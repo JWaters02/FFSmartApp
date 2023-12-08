@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Login</title>
+{% endblock %}
+
+{% block body %}
+    <div id="container">
+        <h1 id="current-login">Not signed in</h1>
+        <button type="button" id="goto-other-page">other-page</button>
+        <br>
+
+        <h1>Login 🔐</h1>
+        <form onsubmit="return false">
+            <input type="text" id="usernameLogin" placeholder="Username"><br>
+            <input type="password" id="passwordLogin" placeholder="Password"><br>
+            <input type="submit" id="login" value="Login"><br>
+        </form>
+        <br>
+
+        <h1>Register 📄</h1>
+        <form onsubmit="return false">
+            <input type="text" id="usernameRegister" placeholder="Username"><br>
+            <input type="email" id="emailRegister" placeholder="Email"><br>
+            <input type="password" id="passwordRegister" placeholder="Password"><br>
+            <input type="submit" id="register" value="Register"><br>
+        </form>
+        <br>
+
+        <h1>Verification Code 👌</h1>
+        <form onsubmit="return false">
+            <input type="text" id="usernameVerify" placeholder="Username"><br>
+            <input type="text" id="codeVerify" placeholder="Code"><br>
+            <input type="submit" id="verify" value="Verify"><br>
+        </form>
+
+        <h1>Logout 🚪</h1>
+        <button id="logout">Logout</button>
+
+        <script src="{{ url_for('static', filename='js/amazon-cognito-identity.min.js') }}"></script>
+        <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
+
+        <script type="text/javascript">
+            const otherPageUrl = "{{ url_for('other_page') }}";
+        </script>
+        <script type="module" src="{{ url_for('static', filename='js/other-page-button-on-index.js')}}"></script>
+    </div>
+{% endblock %}

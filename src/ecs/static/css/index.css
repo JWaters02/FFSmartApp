@@ -1,0 +1,40 @@
+body {
+    background: linear-gradient(to top right, #8e44ad 0%, #f39c12 100%);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    animation: background 5s ease-in-out infinite alternate;
+    color: #ffffff;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 16px;
+    padding: 0 0 50px 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 960px;
+    text-align: center;
+}
+
+button {
+    background: #2c3e50;
+    border: 1px solid #2c3e50;
+    border-radius: 3px;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 16px;
+    margin: 0 5px;
+    padding: 10px 20px;
+    text-transform: uppercase;
+}
+
+input {
+    background: #2c3e50;
+    border: 1px solid #2c3e50;
+    border-radius: 3px;
+    color: #ffffff;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 16px;
+    margin: 5px 5px;
+    padding: 10px 20px;
+}

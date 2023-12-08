@@ -1,0 +1,11 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk/cdk.out
+
+# ignore all __pycache__ directories
+__pycache__/

@@ -1,0 +1,77 @@
+resources:
+  containers:
+    - container: my_container
+      image: public.ecr.aws/t2e7t6h0/analysis-and-design-coursework-public-ecr:latest
+      env:
+        AWS_ACCESS_KEY_ID: $(BEN_AWS_ACCESS_KEY)
+        AWS_SECRET_ACCESS_KEY: $(BEN_AWS_SECRET_ACCESS_KEY)
+        AWS_DEFAULT_REGION: $(BEN_AWS_REGION)
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Build_and_Test
+    jobs:
+      - job: Test
+        container: my_container
+        steps:
+          - checkout: self
+          - script: |
+              cd src/fridge_mgr
+              python3 -m venv fridge_mgr_venv
+              source fridge_mgr_venv/bin/activate
+              pip install -r local_dependencies.txt
+              export PATH=/home/vsts_azpcontainer/.local/bin:$PATH  # Add this line if pytest is not found
+              pytest test
+              deactivate
+              rm -fr fridge_mgr_venv
+            displayName: 'test fridge_mgr'
+
+      - job: Build
+        dependsOn: Test
+        container: my_container
+        steps:
+          - checkout: self
+          - script: |
+              aws --version
+              aws configure list
+            displayName: 'Verify AWS CLI installation'
+
+          - script: |
+              cd src/fridge_mgr
+              mkdir dependencies
+              pip install -t dependencies -r lambda_dependencies.txt
+              mkdir out
+
+              # if dependencies not empty
+              if [ "$(ls -A dependencies)" ]; then
+                cd dependencies
+                zip -r ../out/fridge_mgr.zip .
+                cd ..
+              fi
+
+              zip -r out/fridge_mgr.zip src
+              aws s3 cp out/fridge_mgr.zip s3://analysis-and-design-course-work-lambda-buckets/fridge_mgr.zip
+            displayName: 'build fridge_mgr'
+
+# DOES NOT WORK ATM - maybe too difficult to do in Azure Pipelines
+#  - stage: Deploy_CDK
+#    displayName: 'Deploy CDK to AWS'
+#    variables:
+#      BEN_AWS_ACCOUNT_ID: $(BEN_AWS_ACCOUNT_ID)
+#      BEN_AWS_ACCESS_KEY: $(BEN_AWS_ACCESS_KEY)
+#      BEN_AWS_SECRET_ACCESS_KEY: $(BEN_AWS_SECRET_ACCESS_KEY)
+#      BEN_AWS_REGION: $(BEN_AWS_REGION)
+#    jobs:
+#    - job: Deploy_CDK
+#      steps:
+#      - script: |
+#          cd cdk
+#          npm install
+#          npx cdk bootstrap aws://$(BEN_AWS_ACCOUNT_ID)/$(BEN_AWS_REGION)
+#          npx cdk deploy --all
+#        displayName: 'Bootstrap and Deploy CDK'
+
+
+

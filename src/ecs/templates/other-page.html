@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>other-page</title>
+{% endblock %}
+
+{% block body %}
+    <h1 id="current-user">User not signed in</h1>
+    <script type="module" src="{{ url_for('static', filename='js/other-page.js') }}"></script>
+{% endblock %}
