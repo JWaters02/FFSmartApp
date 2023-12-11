@@ -1,13 +1,11 @@
 {% extends 'base.html' %}
 
-{% block head %}
-    <title>Login</title>
-{% endblock %}
+{% block title %}Login{% endblock %}
 
-{% block body %}
+{% block content %}
     <div id="container">
         <h1 id="current-login">Not signed in</h1>
-        <button type="button" id="goto-other-page">other-page</button>
+        <button type="button" id="home">Home (debug no logging in)</button>
         <br>
 
         <h1>Login 🔐</h1>
@@ -39,10 +37,9 @@
 
         <script src="{{ url_for('static', filename='js/amazon-cognito-identity.min.js') }}"></script>
         <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
-
-        <script type="text/javascript">
-            const otherPageUrl = "{{ url_for('other_page') }}";
+        <script> document.getElementById("home").addEventListener("click", function() {
+                window.location.href = "/home";
+            });
         </script>
-        <script type="module" src="{{ url_for('static', filename='js/other-page-button-on-index.js')}}"></script>
     </div>
 {% endblock %}
