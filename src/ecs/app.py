@@ -123,9 +123,31 @@ def health_report_api(date_after, date_before):
     ]
     return jsonify(items=items)
 
-@app.route('/delivery')
-def delivery():
-    return render_template('delivery.html', user_role=get_user_role())
+@app.route('/delivery/<token>', methods=['GET'])
+def delivery(token):
+    order_data = get_order_data(token)
+    if not order_data:
+        flash('Invalid or expired token.', 'danger')
+        return redirect(url_for('404'))
+
+    return render_template('delivery.html', order_data=order_data)
+
+def get_order_data(token):
+    if not verify_token(token):
+        flash('Invalid or expired token.', 'danger')
+        return None
+    # example order data
+    order_data = [
+        {'name': 'Apple'},
+        {'name': 'Orange'},
+    ]
+    return order_data
+
+@app.route('/api/complete-order', methods=['POST'])
+def complete_order():
+    data = request.get_json()
+    items = data['items']
+    return jsonify({'status': 'success', 'message': 'Order completed successfully!'})
 
 @app.route('/users')
 def manage_users():
@@ -157,7 +179,7 @@ def update_password(token):
     user = verify_token(token)
     if not user:
         flash('Invalid or expired token.', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('404'))
 
     if request.method == 'POST':
         password = request.form.get('password')

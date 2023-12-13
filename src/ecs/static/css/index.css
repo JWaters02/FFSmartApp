@@ -176,3 +176,17 @@ h1, h3 {
     }
 }
 /* Update password end */
+
+/* Delivery */
+.item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-info .form-control {
+    margin-bottom: 10px;
+    background-color: transparent;
+    color: #fff;
+    border: 1px solid #ddd;
+}
+/* Delivery end */
