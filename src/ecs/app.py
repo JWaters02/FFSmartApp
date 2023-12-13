@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, jsonify, request, flash
+from flask import Flask, render_template, session, jsonify, request, flash, redirect, url_for
 from flask_session import Session
 import boto3
 import os
@@ -127,10 +127,6 @@ def health_report_api(date_after, date_before):
 def delivery():
     return render_template('delivery.html', user_role=get_user_role())
 
-@app.route('/password')
-def update_password():
-    return render_template('update-password.html', user_role=get_user_role())
-
 @app.route('/users')
 def manage_users():
     # example users
@@ -155,6 +151,30 @@ def get_user_role():
     # then return the user's role
     role = 'admin' # this shows everything, good for testing
     return role
+
+@app.route('/password/<token>', methods=['GET', 'POST'])
+def update_password(token):
+    user = verify_token(token)
+    if not user:
+        flash('Invalid or expired token.', 'danger')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('update_password', token=token)) 
+
+        flash('Your password has been updated!', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('update-password.html', token=token)
+
+def verify_token(token):
+    # token verification logic
+    return True
 
 # run
 if __name__ == '__main__':
