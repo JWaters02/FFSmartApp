@@ -22,10 +22,10 @@
                 {% endif %}
                 {% if user_role == 'admin' or user_role == 'headchef' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('health_report') }}">Health Report</a>
+                        <a class="nav-link" href="{{ url_for('orders') }}">Orders</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('orders') }}">Orders</a>
+                        <a class="nav-link" href="{{ url_for('health_report') }}">Health Report</a>
                     </li>
                 {% endif %}
                 {% if user_role == 'admin' %}
@@ -36,6 +36,9 @@
                         <a class="nav-link" href="{{ url_for('admin_settings') }}">Admin Settings</a>
                     </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('update_password') }}">Update Password</a>
+                </li>
             </ul>
             <form class="form-inline">
                 <button href="{{ url_for('logout') }}" class="btn btn-outline-danger" type="button">Sign out</button>

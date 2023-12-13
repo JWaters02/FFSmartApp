@@ -130,3 +130,10 @@ h1, h3 {
     object-fit: contain;
 }
 /* Inventory end */
+
+/* Health report */
+.report-filter .form-control {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+/* Health report end */

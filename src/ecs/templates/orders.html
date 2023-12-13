@@ -9,7 +9,6 @@
         <div class="row">
             <div class="col-12">
                 <h1 class="text-center text-light">Orders</h1>
-                <!-- Order selection dropdown -->
                 <div class="order-selection mb-3">
                     <select class="form-control" id="orderSelect" onchange="updateOrderItems()">
                         {% for order in orders %}
@@ -27,28 +26,34 @@
     <script>
         function updateOrderItems() {
             var selectedOrderId = document.getElementById('orderSelect').value;
-            fetch(`/api/order-items/${selectedOrderId}`) // or whatever the api endpoint is
+            fetch(`/api/order-items/${selectedOrderId}`)
                 .then(response => response.json())
                 .then(data => {
-                    var itemsContainer = document.getElementById('orderItems');
-                    itemsContainer.innerHTML = '';
-                    data.items.forEach(item => {
-                        var cardHtml = `
-                            <div class="card table-card m-2">
-                                <div class="card-body">
-                                    <div class="item-info">
-                                        <h5 class="card-title">${item.name}</h5>
-                                        <p class="card-text">Quantity: ${item.quantity}</p>
-                                        <p class="card-text">Date ordered: ${item.date_ordered}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        itemsContainer.insertAdjacentHTML('beforeend', cardHtml);
-                    });
+                    console.log(data);
+                    populateOrders(data.items);
                 })
                 .catch(error => console.error('Error:', error));
         }
+
+        function populateOrders(orders) {
+            var itemsContainer = document.getElementById('orderItems');
+            itemsContainer.innerHTML = '';
+            orders.forEach(item => {
+                var cardHtml = `
+                    <div class="card table-card m-2">
+                        <div class="card-body">
+                            <div class="item-info">
+                                <h5 class="card-title">${item.name}</h5>
+                                <p class="card-text">Quantity: ${item.quantity}</p>
+                                <p class="card-text">Date ordered: ${item.date_ordered}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                itemsContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', updateOrderItems);
     </script>
 {% endblock %}

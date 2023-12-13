@@ -79,11 +79,6 @@ def inventory():
         {'name': 'Banana', 'expiry_date': '8th January 2024', 'quantity': 12, 'desired_quantity': 10},
         {'name': 'Pear', 'expiry_date': '7th January 2024', 'quantity': 3, 'desired_quantity': 10},
         {'name': 'Pineapple', 'expiry_date': '6th January 2024', 'quantity': 1, 'desired_quantity': 5},
-        {'name': 'Watermelon', 'expiry_date': '5th January 2024', 'quantity': 0, 'desired_quantity': 10},
-        {'name': 'Strawberry', 'expiry_date': '4th January 2024', 'quantity': 0, 'desired_quantity': 10},
-        {'name': 'Raspberry', 'expiry_date': '3rd January 2024', 'quantity': 0, 'desired_quantity': 10},
-        {'name': 'Blueberry', 'expiry_date': '2nd January 2024', 'quantity': 0, 'desired_quantity': 10},
-        {'name': 'Blackberry', 'expiry_date': '1st January 2024', 'quantity': 0, 'desired_quantity': 10},
     ]
     return render_template('inventory.html', user_role=get_user_role(), items=items)
 
@@ -97,7 +92,7 @@ def orders():
 
     return render_template('orders.html', user_role=get_user_role(), orders=orders)
 
-@app.route('/api/order-items/<int:order_id>') # or whatever the route is
+@app.route('/api/order-items/<int:order_id>')
 def order_items(order_id):
     # example data
     order_items_data = {
@@ -119,9 +114,22 @@ def order_items(order_id):
 def health_report():
     return render_template('health-report.html', user_role=get_user_role())
 
+@app.route('/api/health-report/<int:date_after>/<int:date_before>')
+def health_report_api(date_after, date_before):
+    # example data
+    items = [
+        {'name': 'Apple', 'date_added': 219827349871, 'date_removed': 23740173847, 'expiry_date': 27949012840},
+        {'name': 'Orange', 'date_added': 219827349871, 'expiry_date': 27949012840},
+    ]
+    return jsonify(items=items)
+
 @app.route('/delivery')
 def delivery():
     return render_template('delivery.html', user_role=get_user_role())
+
+@app.route('/password')
+def update_password():
+    return render_template('update-password.html', user_role=get_user_role())
 
 @app.route('/users')
 def manage_users():
@@ -132,7 +140,6 @@ def manage_users():
         {'name': 'Bob Jones', 'email': 'BobJones@yahoo.com', 'role': 'Chef'},
         {'name': 'Sally Jones', 'email': 'SallyJones@gmail.com', 'role': 'Chef'},
         {'name': 'Ben Jones', 'email': 'BenJones@yahoo.com', 'role': 'Chef'},
-        {'name': 'BigBen Jones', 'email': 'BigBenJones@gmail.com', 'role': 'Chef'},
     ]
 
     return render_template('users.html', user_role=get_user_role(), users=users)
@@ -146,7 +153,7 @@ def admin_settings():
 def get_user_role():
     # some shit involving cognito to get the user role here
     # then return the user's role
-    role = 'admin'
+    role = 'admin' # this shows everything, good for testing
     return role
 
 # run
