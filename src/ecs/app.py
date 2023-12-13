@@ -74,22 +74,46 @@ def home():
 @app.route('/inventory')
 def inventory():
     items = [
-        {'name': 'Apple', 'expiry_date': '12th January 2024', 'quantity': 25, 'desired_quantity': 29, 'image': 'apple.png'},
-        {'name': 'Orange', 'expiry_date': '9th January 2024', 'quantity': 6, 'desired_quantity': 15, 'image': 'orange.png'},
-        {'name': 'Banana', 'expiry_date': '8th January 2024', 'quantity': 12, 'desired_quantity': 10, 'image': 'banana.png'},
-        {'name': 'Pear', 'expiry_date': '7th January 2024', 'quantity': 3, 'desired_quantity': 10, 'image': 'pear.png'},
-        {'name': 'Pineapple', 'expiry_date': '6th January 2024', 'quantity': 1, 'desired_quantity': 5, 'image': 'pineapple.png'},
-        {'name': 'Watermelon', 'expiry_date': '5th January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'watermelon.png'},
-        {'name': 'Strawberry', 'expiry_date': '4th January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'strawberry.png'},
-        {'name': 'Raspberry', 'expiry_date': '3rd January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'raspberry.png'},
-        {'name': 'Blueberry', 'expiry_date': '2nd January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'blueberry.png'},
-        {'name': 'Blackberry', 'expiry_date': '1st January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'blackberry.png'},
+        {'name': 'Apple', 'expiry_date': '12th January 2024', 'quantity': 25, 'desired_quantity': 29},
+        {'name': 'Orange', 'expiry_date': '9th January 2024', 'quantity': 6, 'desired_quantity': 15},
+        {'name': 'Banana', 'expiry_date': '8th January 2024', 'quantity': 12, 'desired_quantity': 10},
+        {'name': 'Pear', 'expiry_date': '7th January 2024', 'quantity': 3, 'desired_quantity': 10},
+        {'name': 'Pineapple', 'expiry_date': '6th January 2024', 'quantity': 1, 'desired_quantity': 5},
+        {'name': 'Watermelon', 'expiry_date': '5th January 2024', 'quantity': 0, 'desired_quantity': 10},
+        {'name': 'Strawberry', 'expiry_date': '4th January 2024', 'quantity': 0, 'desired_quantity': 10},
+        {'name': 'Raspberry', 'expiry_date': '3rd January 2024', 'quantity': 0, 'desired_quantity': 10},
+        {'name': 'Blueberry', 'expiry_date': '2nd January 2024', 'quantity': 0, 'desired_quantity': 10},
+        {'name': 'Blackberry', 'expiry_date': '1st January 2024', 'quantity': 0, 'desired_quantity': 10},
     ]
     return render_template('inventory.html', user_role=get_user_role(), items=items)
 
 @app.route('/orders')
 def orders():
-    return render_template('orders.html', user_role=get_user_role())
+    # example orders
+    orders = [
+        {'id': 1, 'name': 'Order 1'},
+        {'id': 2, 'name': 'Order 2'},
+    ]
+
+    return render_template('orders.html', user_role=get_user_role(), orders=orders)
+
+@app.route('/api/order-items/<int:order_id>') # or whatever the route is
+def order_items(order_id):
+    # example data
+    order_items_data = {
+        1: [
+            {'name': 'Apple', 'quantity': 5, 'date_ordered': '12th January 2024'},
+            {'name': 'Orange', 'quantity': 2, 'date_ordered': '9th January 2024'},
+            {'name': 'Banana', 'quantity': 1, 'date_ordered': '8th January 2024'},
+        ],
+        2: [
+            {'name': 'Cherry', 'quantity': 20, 'date_ordered': '12th January 2024'},
+            {'name': 'Pinapple', 'quantity': 5, 'date_ordered': '9th January 2024'},
+            {'name': 'Peach', 'quantity': 7, 'date_ordered': '8th January 2024'},
+        ],
+    }
+    items = order_items_data.get(order_id, [])
+    return jsonify(items=items)
 
 @app.route('/health')
 def health_report():
