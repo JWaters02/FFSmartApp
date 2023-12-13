@@ -1,5 +1,6 @@
 body {
-    background: linear-gradient(to top right, #8e44ad 0%, #f39c12 100%);
+    /* background: linear-gradient(to top right, #8e44ad 0%, #f39c12 100%); */
+    background: #192A56;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -16,8 +17,8 @@ body {
 }
 
 button {
-    background: #2c3e50;
-    border: 1px solid #2c3e50;
+    background: #273C75;
+    border: 1px solid #273C75;
     border-radius: 3px;
     color: #ffffff;
     cursor: pointer;
@@ -29,12 +30,32 @@ button {
 }
 
 input {
-    background: #2c3e50;
-    border: 1px solid #2c3e50;
+    background: #273C75;
+    border: 1px solid #273C75;
     border-radius: 3px;
     color: #ffffff;
     font-family: 'Consolas', 'Courier New', monospace;
     font-size: 16px;
     margin: 5px 5px;
     padding: 10px 20px;
+}
+
+.btn-secondary {
+    background: #273C75;
+    border: none;
+    opacity: 0.7;
+}
+
+.btn-secondary:hover {
+    opacity: 1;
+}
+
+h1.text-light {
+    margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .btn-lg {
+        width: 100%;
+    }
 }

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, jsonify, request
+from flask import Flask, render_template, session, jsonify, request, flash
 from flask_session import Session
 import boto3
 import os
@@ -43,10 +43,6 @@ def logout():
 # pages
 @app.route('/',  methods=['GET', 'POST'])
 def index():
-    # if the button called home has been pressed, immediately return the home page
-    if request.form.get('home'):
-        print('home button pressed')
-        return render_template('home.html')
     if 'username' in session: # whatever the auth is for if they are logged in or not
         return render_template('home.html')
     else:
@@ -69,13 +65,14 @@ def index():
                 session['username'] = username
                 return render_template('home.html')
             else:
+                flash('Invalid username or password', 'error')
                 return render_template('login.html', error=response_payload['message'])
         return render_template('login.html')
 
 
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', username=session.get('username'))
 
 
 # run
