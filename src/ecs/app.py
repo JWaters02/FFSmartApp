@@ -71,6 +71,10 @@ def index():
 def home():
     return render_template('home.html', user_role=get_user_role())
 
+@app.route('/404')
+def error_404():
+    return render_template('404.html')
+
 @app.route('/inventory')
 def inventory():
     items = [
@@ -128,7 +132,7 @@ def delivery(token):
     order_data = get_order_data(token)
     if not order_data:
         flash('Invalid or expired token.', 'danger')
-        return redirect(url_for('404'))
+        return redirect(url_for('error_404'))
 
     return render_template('delivery.html', order_data=order_data)
 
@@ -171,7 +175,7 @@ def admin_settings():
 def get_user_role():
     # some shit involving cognito to get the user role here
     # then return the user's role
-    role = 'admin' # this shows everything, good for testing
+    role = 'headchef' # this shows everything, good for testing
     return role
 
 @app.route('/password/<token>', methods=['GET', 'POST'])
@@ -179,7 +183,7 @@ def update_password(token):
     user = verify_token(token)
     if not user:
         flash('Invalid or expired token.', 'danger')
-        return redirect(url_for('404'))
+        return redirect(url_for('error_404'))
 
     if request.method == 'POST':
         password = request.form.get('password')
@@ -196,7 +200,7 @@ def update_password(token):
 
 def verify_token(token):
     # token verification logic
-    return True
+    return False
 
 # run
 if __name__ == '__main__':
