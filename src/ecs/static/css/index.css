@@ -59,3 +59,65 @@ h1.text-light {
         width: 100%;
     }
 }
+
+h1, h3 {
+    margin-bottom: 20px;
+}
+
+/* Admin settings */
+.form-control {
+    background-color: transparent;
+    border: 1px solid #ddd;
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.form-control::placeholder {
+    color: #ccc;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    background-color: transparent;
+}
+
+.btn-success {
+    background-color: #44bd32;
+    border: none;
+}
+/* Admin settings end */
+
+/* We do a little flexbox media control */
+.user-card {
+    width: 100%;
+    max-width: 300px;
+    background-color: transparent;
+    color: #fff;
+}
+
+@media (min-width: 768px) {
+    .user-card {
+        width: calc(50% - 1rem);
+    }
+}
+
+@media (min-width: 992px) {
+    .user-card {
+        width: calc(33.333% - 1rem);
+    }
+}
+/* Flexbox media control end */
+
+/* Manage users */
+.add-user-form .form-control {
+    margin-bottom: 15px;
+    background-color: transparent;
+    color: #fff;
+}
+
+.add-user-form .btn-primary {
+    width: auto;
+}
+/* Manage users end */

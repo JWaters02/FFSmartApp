@@ -30,7 +30,6 @@ token_mgr_client = boto3.client('lambda', region_name='eu-west-1')
 # init session
 Session(app)
 
-
 # session
 @app.route('/logout/')
 def logout():
@@ -38,7 +37,6 @@ def logout():
     # print a session variable
     print(session.get('username'))
     return jsonify({'status': '200'})
-
 
 # pages
 @app.route('/',  methods=['GET', 'POST'])
@@ -69,11 +67,51 @@ def index():
                 return render_template('login.html', error=response_payload['message'])
         return render_template('login.html')
 
-
 @app.route('/home')
 def home():
-    return render_template('home.html', username=session.get('username'))
+    return render_template('home.html', user_role=get_user_role())
 
+@app.route('/inventory')
+def inventory():
+    return render_template('inventory.html', user_role=get_user_role())
+
+@app.route('/orders')
+def orders():
+    return render_template('orders.html', user_role=get_user_role())
+
+@app.route('/health')
+def health_report():
+    return render_template('health-report.html', user_role=get_user_role())
+
+@app.route('/delivery')
+def delivery():
+    return render_template('delivery.html', user_role=get_user_role())
+
+@app.route('/users')
+def manage_users():
+    # example users
+    users = [
+        {'name': 'Dan Jones', 'email': 'DanJones@yahoo.com', 'role': 'Head chef'},
+        {'name': 'Larry Jones', 'email': 'LarryJones@gmail.com', 'role': 'Chef'},
+        {'name': 'Bob Jones', 'email': 'BobJones@yahoo.com', 'role': 'Chef'},
+        {'name': 'Sally Jones', 'email': 'SallyJones@gmail.com', 'role': 'Chef'},
+        {'name': 'Ben Jones', 'email': 'BenJones@yahoo.com', 'role': 'Chef'},
+        {'name': 'BigBen Jones', 'email': 'BigBenJones@gmail.com', 'role': 'Chef'},
+    ]
+
+    return render_template('users.html', user_role=get_user_role(), users=users)
+
+@app.route('/admin')
+def admin_settings():
+    if get_user_role() != 'admin': # replace with cognito stuff
+        return render_template('404.html')
+    return render_template('admin-settings.html', user_role=get_user_role())
+
+def get_user_role():
+    # some shit involving cognito to get the user role here
+    # then return the user's role
+    role = 'admin'
+    return role
 
 # run
 if __name__ == '__main__':
