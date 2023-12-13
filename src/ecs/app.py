@@ -73,7 +73,19 @@ def home():
 
 @app.route('/inventory')
 def inventory():
-    return render_template('inventory.html', user_role=get_user_role())
+    items = [
+        {'name': 'Apple', 'expiry_date': '12th January 2024', 'quantity': 25, 'desired_quantity': 29, 'image': 'apple.png'},
+        {'name': 'Orange', 'expiry_date': '9th January 2024', 'quantity': 6, 'desired_quantity': 15, 'image': 'orange.png'},
+        {'name': 'Banana', 'expiry_date': '8th January 2024', 'quantity': 12, 'desired_quantity': 10, 'image': 'banana.png'},
+        {'name': 'Pear', 'expiry_date': '7th January 2024', 'quantity': 3, 'desired_quantity': 10, 'image': 'pear.png'},
+        {'name': 'Pineapple', 'expiry_date': '6th January 2024', 'quantity': 1, 'desired_quantity': 5, 'image': 'pineapple.png'},
+        {'name': 'Watermelon', 'expiry_date': '5th January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'watermelon.png'},
+        {'name': 'Strawberry', 'expiry_date': '4th January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'strawberry.png'},
+        {'name': 'Raspberry', 'expiry_date': '3rd January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'raspberry.png'},
+        {'name': 'Blueberry', 'expiry_date': '2nd January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'blueberry.png'},
+        {'name': 'Blackberry', 'expiry_date': '1st January 2024', 'quantity': 0, 'desired_quantity': 10, 'image': 'blackberry.png'},
+    ]
+    return render_template('inventory.html', user_role=get_user_role(), items=items)
 
 @app.route('/orders')
 def orders():

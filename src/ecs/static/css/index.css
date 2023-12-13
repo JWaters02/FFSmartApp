@@ -90,21 +90,22 @@ h1, h3 {
 /* Admin settings end */
 
 /* We do a little flexbox media control */
-.user-card {
+.table-card {
     width: 100%;
     max-width: 300px;
-    background-color: transparent;
+    background-color: #273C75;
     color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(16, 24, 33, 0.25);
 }
 
 @media (min-width: 768px) {
-    .user-card {
+    .table-card {
         width: calc(50% - 1rem);
     }
 }
 
 @media (min-width: 992px) {
-    .user-card {
+    .table-card {
         width: calc(33.333% - 1rem);
     }
 }
@@ -121,3 +122,11 @@ h1, h3 {
     width: auto;
 }
 /* Manage users end */
+
+/* Inventory */
+.inventory-image {
+    height: 40px;
+    width: 40px;
+    object-fit: contain;
+}
+/* Inventory end */

@@ -11,7 +11,7 @@ Users
                 <h1 class="text-center text-light">Users</h1>
                 <div class="d-flex flex-wrap justify-content-center">
                     {% for user in users %}
-                    <div class="card user-card m-2">
+                    <div class="card table-card m-2">
                         <div class="card-body">
                             <h5 class="card-title">{{ user.name }}</h5>
                             <h6 class="card-subtitle mb-2 text-muted">{{ user.email }}</h6>
@@ -33,7 +33,7 @@ Users
                         <option>Head Chef</option>
                         <option>Chef</option>
                     </select>
-                    <button class="btn btn-primary">Send email to new user</button>
+                    <button class="btn btn-success">Send email to new user</button>
                 </div>
             </div>
         </div>
