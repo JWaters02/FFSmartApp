@@ -22,7 +22,7 @@ var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 function updateLogin() {
     if (accessToken) {
         // get the username
-        cognitoUser.getUserAttributes(function(err, result) {
+        cognitoUser.getUserAttributes(function (err, result) {
             // check for error
             if (err) {
                 alert(err);
@@ -44,7 +44,7 @@ function updateLogin() {
     }
 }
 
-document.getElementById("login").addEventListener("click", function() {
+document.getElementById("login").addEventListener("click", function () {
     let username = document.getElementById("usernameLogin").value;
     let password = document.getElementById("passwordLogin").value;
 
@@ -59,19 +59,19 @@ document.getElementById("login").addEventListener("click", function() {
     }
     cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
     cognitoUser.authenticateUser(authenticationDetails, {
-       onSuccess: function(result) {
-           accessToken = result.getAccessToken().getJwtToken();
-           sessionStorage.setItem("username", username);
-           updateLogin();
-           document.getElementById("current-login").innerHTML = "Logged in as: " + username;
-       },
+        onSuccess: function (result) {
+            accessToken = result.getAccessToken().getJwtToken();
+            sessionStorage.setItem("username", username);
+            updateLogin();
+            document.getElementById("current-login").innerHTML = "Logged in as: " + username;
+        },
         onFailure: function (err) {
-           alert(err.message);
+            alert(err.message);
         }
     });
 });
 
-document.getElementById("register").addEventListener("click", function() {
+document.getElementById("register").addEventListener("click", function () {
     let username = document.getElementById("usernameRegister").value;
     let password = document.getElementById("passwordRegister").value;
     let email = document.getElementById("emailRegister").value;
@@ -91,7 +91,7 @@ document.getElementById("register").addEventListener("click", function() {
 
     attributeList.push(attributeEmail);
 
-    userPool.signUp(username, password, attributeList, null, function(err, result){
+    userPool.signUp(username, password, attributeList, null, function (err, result) {
         if (err) {
             console.log(err);
             return;
@@ -101,7 +101,7 @@ document.getElementById("register").addEventListener("click", function() {
     });
 });
 
-document.getElementById("verify").addEventListener("click", function() {
+document.getElementById("verify").addEventListener("click", function () {
     let username = document.getElementById("usernameVerify").value;
     let code = document.getElementById("codeVerify").value;
 
@@ -114,7 +114,7 @@ document.getElementById("verify").addEventListener("click", function() {
     };
 
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-    cognitoUser.confirmRegistration(code, true, function(err, result) {
+    cognitoUser.confirmRegistration(code, true, function (err, result) {
         if (err) {
             alert(err);
             return;
@@ -123,10 +123,10 @@ document.getElementById("verify").addEventListener("click", function() {
     });
 });
 
-document.getElementById("logout").addEventListener("click", function() {
+document.getElementById("logout").addEventListener("click", function () {
     accessToken = null;
     fetch('/logout/', {})
-        .then(function(response) {
+        .then(function (response) {
             if (response.status !== 200) {
                 console.log('Error: ' + response.status);
                 return;

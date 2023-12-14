@@ -66,6 +66,35 @@ def index():
                 flash('Invalid username or password', 'error')
                 return render_template('login.html', error=response_payload['message'])
         return render_template('login.html')
+    
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # however the call to the lamba function is done, I think it's something like this
+        response = users_mgr_client.invoke(
+            FunctionName=users_mgr_lambda,
+            InvocationType='RequestResponse',
+            Payload='{"username": "' + username + '", "password": "' + password + '"}'
+        )
+
+        response_payload = response['Payload'].read()
+        response_payload = response_payload.decode('utf-8')
+        response_payload = eval(response_payload)
+
+        if response_payload['status'] == '200':
+            session['username'] = username
+            return render_template('home.html')
+        else:
+            flash('Invalid username or password', 'error')
+            return render_template('login.html', error=response_payload['message'])
+    return render_template('register.html')
+
+@app.route('/verify', methods=['GET', 'POST'])
+def verify():
+    return render_template('verification.html')
 
 @app.route('/home')
 def home():

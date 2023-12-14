@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block content %}
+    <div id="container">
+        <h1>Register 📄</h1>
+        <form onsubmit="return false">
+            <input type="text" id="usernameRegister" placeholder="Username"><br>
+            <input type="email" id="emailRegister" placeholder="Email"><br>
+            <input type="password" id="passwordRegister" placeholder="Password"><br>
+            <input type="submit" id="register" value="Register"><br>
+        </form>
+        <br>
+        <h3>Already have an account?</h3>
+        <button type="button" id="loginButton">Login</button>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/amazon-cognito-identity.min.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script>
+        document.getElementById("loginButton").addEventListener("click", function () {
+            console.log("login")
+            window.location.href = "/";
+        });
+    </script>
+{% endblock %}
