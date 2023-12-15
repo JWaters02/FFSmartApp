@@ -38,8 +38,10 @@
                 {% endif %}
             </ul>
             <form class="form-inline">
-                <button href="{{ url_for('logout') }}" class="btn btn-outline-danger" type="button">Sign out</button>
+                <button id="logout" class="btn btn-outline-danger" type="button">Sign out</button>
             </form>
         </div>
     </nav>
+
+    <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 {% endblock %}
