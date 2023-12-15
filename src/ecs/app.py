@@ -216,7 +216,7 @@ def admin_settings():
 def get_user_role():
     # some shit involving cognito to get the user role here
     # then return the user's role
-    role = 'headchef' # this shows everything, good for testing
+    role = 'admin' # this shows everything, good for testing
     return role
 
 @app.route('/password/<token>', methods=['GET', 'POST'])
