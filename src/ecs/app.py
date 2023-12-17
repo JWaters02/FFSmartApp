@@ -1,17 +1,10 @@
 from flask import Flask, render_template, session, jsonify, request, flash, redirect, url_for
 from flask_session import Session
-from dotenv import load_dotenv
 import boto3
 import os
 
 # init app
 app = Flask(__name__)
-
-load_dotenv()
-
-# Get environment variables
-user_pool_id = os.getenv('USER_POOL_ID')
-client_id = os.getenv('CLIENT_ID')
 
 dynamodb_session_table = os.environ.get('DYNAMODB_TABLE')
 fridge_mgr_lambda = os.environ.get('FRIDGE_MGR_ARN')
@@ -22,6 +15,8 @@ token_mgr_lambda = os.environ.get('TOKEN_MGR_ARN')
 
 # config
 region = 'eu-west-1'
+user_pool_id = 'eu-west-1_BGeP1szQM'
+client_id = '3368pjmkt1q1nlqg48duhbikgn'
 
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_DYNAMODB'] = boto3.resource('dynamodb', region_name=region)
@@ -76,8 +71,8 @@ def index():
                 return render_template('home.html')
             else:
                 flash('Invalid username or password', 'error')
-                return render_template('login.html', error=response_payload['message'], user_pool_id=user_pool_id, client_id=client_id, region=region)
-        return render_template('login.html', user_pool_id=user_pool_id, client_id=client_id, region=region)
+                return render_template('login.html', error=response_payload['message'])
+        return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -101,8 +96,8 @@ def register():
             return render_template('home.html')
         else:
             flash('Invalid username or password', 'error')
-            return render_template('login.html', error=response_payload['message'], user_pool_id=user_pool_id, client_id=client_id, region=region)
-    return render_template('register.html', user_pool_id=user_pool_id, client_id=client_id, region=region)
+            return render_template('login.html', error=response_payload['message'])
+    return render_template('register.html')
 
 @app.route('/verify', methods=['GET', 'POST'])
 def verify():

@@ -1,14 +1,6 @@
 # ECS
 ## Description
 
-## Setup
-Make a file called `.env` inside of this `ecs` folder. Inside of it, put two values:
-```
-USER_POOL_ID=<your pool id>
-CLIENT_ID=<your client id>
-```
-and make sure to replace the values with your own. This file is not pushed to git for security.
-
 ## Running the project
 There are two ways to run the project:
 1. Local development server - very fast to start up, but does not have the same environment as the ECS. Use this for quick testing, as it has hot reloading.
