@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    <div id="container">
+        <h1 id="current-login">Not signed in</h1>
+        <button type="button" id="home">Home (debug no logging in)</button>
+        <br>
+        <br>
+
+        <h1>Login 🔐</h1>
+        <form onsubmit="return false">
+            <input type="text" id="usernameLogin" placeholder="Username"><br>
+            <input type="password" id="passwordLogin" placeholder="Password"><br>
+            <input type="submit" id="login" value="Login"><br>
+        </form>
+        <br>
+        <h4>Need to register your resturant?</h3>
+        <button type="button" id="registerButton">Register</button>
+        <br>
+        <br>
+        <h4>Need to verify your account?</h4>
+        <button type="button" id="verifyButton">Verify</button>
+
+        <script src="{{ url_for('static', filename='js/amazon-cognito-identity.min.js') }}"></script>
+        <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
+        <script> 
+            // TODO: TEMP
+            document.getElementById("home").addEventListener("click", function() {
+                window.location.href = "/home";
+            });
+
+            document.getElementById("registerButton").addEventListener("click", function () {
+                window.location.href = "/register";
+            });
+
+            document.getElementById("verifyButton").addEventListener("click", function () {
+                window.location.href = "/verify";
+            });
+        </script>
+    </div>
+{% endblock %}

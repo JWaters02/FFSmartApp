@@ -1,9 +1,22 @@
 # ECS
 ## Description
 
-
 ## Running the project
-To run the project you need to have docker installed.
+There are two ways to run the project:
+1. Local development server - very fast to start up, but does not have the same environment as the ECS. Use this for quick testing, as it has hot reloading.
+2. ECS docker container - slower to start up, but has the same environment as the ECS. Test this before pushing a big change.
+
+### Local development server
+First make sure you are inside of the src\ecs directory, then run the following commands in order:
+```bash
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r .\requirements.txt
+flask run --host=0.0.0.0 --port=80 --debug
+```
+
+### ECS docker container
+To run the project you need to have docker installed (docker desktop for windows).
 You will need to have aws cli setup with the correct permissions.
 You can run the project with the following commands:
 ```bash
