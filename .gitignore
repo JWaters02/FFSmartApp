@@ -11,4 +11,6 @@ cdk/cdk.out
 # ignore all __pycache__ directories
 __pycache__/
 
+src/ecs/flask_session/
+
 src/ecs/.env
