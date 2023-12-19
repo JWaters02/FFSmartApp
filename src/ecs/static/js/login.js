@@ -8,51 +8,71 @@
  * @note to add more cognito logic to the login page, please look at https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js
  * */
 
-let cognitoUser = JSON.parse(sessionStorage.getItem('cognitoUser'));
-let accessToken = sessionStorage.getItem('accessToken');
-let userPoolId, clientId, region, userPool;
+let cognitoUser;
+let userPool;
+let accessToken;
 
-fetchConfig();
-
-function fetchConfig() {
-    fetch('/config')
-        .then(response => response.json())
-        .then(data => {
-            userPoolId = data.user_pool_id;
-            clientId = data.client_id;
-            region = data.region;
-            var poolData = {
-                UserPoolId: userPoolId,
-                ClientId: clientId,
-            };
-            userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+function updateLoginTitle() {
+    let username = sessionStorage.getItem("username");
+    let currentLogin = username == null ? "Not signed in" : "Logged in as: " + username;
+    document.getElementById("current-login").innerHTML = currentLogin;
 }
 
 function updateLogin() {
     if (accessToken) {
-        // get the username
         cognitoUser.getUserAttributes(function (err, result) {
-            // check for error
             if (err) {
                 alert(err);
                 return;
             }
-            console.log("result");
+
             for (let i = 0; i < result.length; i++) {
                 switch (result[i].getName()) {
-                    case 'email':
+                    case "email":
                         sessionStorage.setItem("email", result[i].getValue());
                         break;
-                    case 'sub':
+                    case "sub":
                         sessionStorage.setItem("sub", result[i].getValue());
                         break;
                 }
             }
+
+            updateLoginTitle();
         });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
+    const poolData = JSON.parse(localStorage.getItem("userPool"));
+    userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    cognitoUser = JSON.parse(sessionStorage.getItem("cognitoUser"));
+    accessToken = sessionStorage.getItem("accessToken");
+    updateLoginTitle();
+});
+
+async function updateCredentials(username, userData, accessToken) {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('userData', userData);
+    formData.append('accessToken', accessToken);
+
+    try {
+        const response = await fetch('/update-credentials', {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log(response)
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+
+        const data = await response.text();
+        console.log('Success:', data);
+
+    } catch (error) {
+        console.error('Error:', error);
     }
 }
 
@@ -71,13 +91,19 @@ document.getElementById("login").addEventListener("click", function () {
     }
     cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
     cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: function (result) {
+        onSuccess: async function (result) {
             accessToken = result.getAccessToken().getJwtToken();
-            sessionStorage.setItem('accessToken', accessToken);
-            sessionStorage.setItem('cognitoUser', JSON.stringify(cognitoUser));
+            sessionStorage.setItem("accessToken", accessToken);
+            sessionStorage.setItem("userData", JSON.stringify(userData));
             sessionStorage.setItem("username", username);
+            await updateCredentials(username, JSON.stringify(userData), accessToken);
             updateLogin();
-            document.getElementById("current-login").innerHTML = "Logged in as: " + username;
+
+            alert('Logged in successfully.');
+            window.location.href = "/home";
+        },
+        newPasswordRequired: function (userAttributes, requiredAttributes) {
+            window.location.href = "/new-password";
         },
         onFailure: function (err) {
             alert(err.message);

@@ -16,8 +16,11 @@ Users
                             <h5 class="card-title">{{ user.name }}</h5>
                             <h6 class="card-subtitle mb-2 text-muted">{{ user.email }}</h6>
                             <p class="card-text">{{ user.role }}</p>
-                            <a href="#" class="card-link btn btn-info">Edit</a>
-                            <a href="#" class="card-link btn btn-danger">Remove</a>
+                            <button class="card-link btn edit-user-btn"
+                                    data-username="{{ user.name }}"
+                                    data-email="{{ user.email }}"
+                                    data-role="{{ user.role }}">Edit</button>
+                            <button class="card-link btn btn-danger remove-user-btn" data-username="{{ user.name }}">Remove</button>
                         </div>
                     </div>
                     {% endfor %}
@@ -25,17 +28,19 @@ Users
 
                 <div class="add-user-form mt-4">
                     <h2>Add new user</h2>
-                    <input type="text" class="form-control" placeholder="New user's name">
-                    <input type="email" class="form-control" placeholder="Email">
-                    <select class="form-control">
-                        <option>Job role</option>
-                        <option>Admin</option>
-                        <option>Head Chef</option>
-                        <option>Chef</option>
+                    <input id="username" type="text" class="form-control" placeholder="New username">
+                    <input id="email" type="email" class="form-control" placeholder="Email">
+                    <select id="role" class="form-control">
+                        <option value="">Job Role</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Head Chef">Head Chef</option>
+                        <option value="Chef">Chef</option>
                     </select>
-                    <button class="btn btn-success">Send email to new user</button>
+                    <button id="create-new-user" class="btn btn-success">Send email to new user</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/users.js') }}"></script>
 {% endblock %}
