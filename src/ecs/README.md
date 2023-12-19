@@ -10,7 +10,8 @@ There are two ways to run the project:
 First make sure you are inside of the src\ecs directory, then run the following commands in order:
 ```bash
 python -m venv venv
-.\venv\Scripts\activate
+.\venv\Scripts\activate # for window
+source venv/bin/activate # for linux/mac
 pip install -r .\requirements.txt
 flask run --host=0.0.0.0 --port=80 --debug
 ```
