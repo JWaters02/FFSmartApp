@@ -179,6 +179,7 @@ def inventory():
 
     return render_template('inventory.html', user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), items=[])
 
+
 @app.route('/add-item', methods=['POST'])
 def add_item():
     item_name = request.form.get('item_name')
