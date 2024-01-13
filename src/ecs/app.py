@@ -154,8 +154,8 @@ def inventory():
             }
         }
         
-        response = fridge_mgr_client.invoke(
-            FunctionName="arn:aws:lambda:eu-central-1:275498345744:function:fridge_mgr",
+        response = lambda_client.invoke(
+            FunctionName=fridge_mgr_lambda,
             InvocationType='RequestResponse',
             Payload=json.dumps(lambda_payload)
         )
@@ -177,7 +177,7 @@ def inventory():
         logger.error(f"An error occurred: {str(e)}")
         flash('Error fetching inventory data', 'error')
 
-    return render_template('inventory.html', user_role=get_user_role(), items=[])
+    return render_template('inventory.html', user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), items=[])
 
 @app.route('/add-item', methods=['POST'])
 def add_item():
@@ -201,8 +201,8 @@ def add_item():
             }
         }
 
-        response = fridge_mgr_client.invoke(
-            FunctionName="arn:aws:lambda:eu-central-1:275498345744:function:fridge_mgr",
+        response = lambda_client.invoke(
+            FunctionName=fridge_mgr_lambda,
             InvocationType='RequestResponse',
             Payload=json.dumps(lambda_payload)
         )
@@ -241,8 +241,8 @@ def delete_item():
             }
         }
 
-        response = fridge_mgr_client.invoke(
-            FunctionName="arn:aws:lambda:eu-central-1:275498345744:function:fridge_mgr",
+        response = lambda_client.invoke(
+            FunctionName=fridge_mgr_lambda,
             InvocationType='RequestResponse',
             Payload=json.dumps(lambda_payload)
         )
@@ -282,8 +282,8 @@ def update_item():
             }
         }
 
-        response = fridge_mgr_client.invoke(
-            FunctionName="arn:aws:lambda:eu-central-1:275498345744:function:fridge_mgr",
+        response = lambda_client.invoke(
+            FunctionName=fridge_mgr_lambda,
             InvocationType='RequestResponse',
             Payload=json.dumps(lambda_payload)
         )
