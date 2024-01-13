@@ -8,34 +8,16 @@
  * @note to add more cognito logic to the login page, please look at https://github.com/aws-amplify/amplify-js/tree/master/packages/amazon-cognito-identity-js
  * */
 
-let userPoolId, clientId, region, userPool;
+let userPool;
 
-fetchConfig();
-
-function fetchConfig() {
-    fetch('/config')
-        .then(response => response.json())
-        .then(data => {
-            userPoolId = data.user_pool_id;
-            clientId = data.client_id;
-            region = data.region;
-            var poolData = {
-                UserPoolId: userPoolId,
-                ClientId: clientId,
-            };
-            userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-}
+document.addEventListener('DOMContentLoaded', async function () {
+    const poolData = JSON.parse(localStorage.getItem('userPool'));
+    userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+});
 
 document.getElementById("verify").addEventListener("click", function () {
     let username = document.getElementById("usernameVerify").value;
     let code = document.getElementById("codeVerify").value;
-
-    console.log(username);
-    console.log(code);
 
     var userData = {
         Username: username,
@@ -48,6 +30,13 @@ document.getElementById("verify").addEventListener("click", function () {
             alert(err);
             return;
         }
+
         console.log('call result: ' + result);
+        if(result === 'SUCCESS') {
+            alert('Verification was successful.');
+            window.location.href = "/";
+        } else {
+            alert('An issue occurred, please try again.');
+        }
     });
 });

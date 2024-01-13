@@ -41,6 +41,8 @@ fi
 
 zip -r out/users_mgr.zip src
 aws s3 cp out/users_mgr.zip s3://analysis-and-design-course-work-lambda-buckets/users_mgr.zip
+aws lambda update-function-code --function-name arn:aws:lambda:eu-west-1:203163753194:function:FfSmartAppTheOneWeAreWork-AnalysisAndDesignUsersMg-AzDLX5oyzz1y --s3-bucket analysis-and-design-course-work-lambda-buckets --s3-key users_mgr.zip
+q
 rm -r out
 rm -r dependencies
 ```

@@ -1,0 +1,27 @@
+{% extends 'navbar.html' %}
+
+{% block title %}
+Edit User
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="add-user-form mt-4">
+                    <h2>Edit user</h2>
+                    <p>{{ user.username }}</p>
+                    <p>{{ user.email }}</p>
+                    <select id="role" class="form-control">
+                        <option value="Admin" {% if user.job_role == 'Admin' %} selected {% endif %}>Admin</option>
+                        <option value="Head Chef" {% if user.job_role == 'Head Chef' %} selected {% endif %}>Head Chef</option>
+                        <option value="Chef" {% if user.job_role == 'Chef' %} selected {% endif %}>Chef</option>
+                    </select>
+                    <button id="edit-user" class="btn btn-success" data-username="{{ user.username }}">Edit User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/edit-user.js') }}"></script>
+{% endblock %}

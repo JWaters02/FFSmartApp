@@ -7,3 +7,4 @@ tomli==2.0.1
 
 boto3~=1.33.11
 moto~=4.2.11
+botocore~=1.33.13
