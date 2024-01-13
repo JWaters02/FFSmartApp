@@ -41,8 +41,14 @@ fi
 
 zip -r out/orders_mgr.zip src
 aws s3 cp out/orders_mgr.zip s3://analysis-and-design-course-work-lambda-buckets/orders_mgr.zip
+aws lambda update-function-code --function-name arn:aws:lambda:eu-west-1:203163753194:function:FfSmartAppTheOneWeAreWork-AnalysisAndDesignOrdersM-Q5wAIRISq5SD --s3-bucket analysis-and-design-course-work-lambda-buckets --s3-key orders_mgr.zip 
 rm -r out
 rm -r dependencies
 ```
+##### Lambda deployment (Windows)
+```sh
+./deploy.ps1
+```
+
 
 ### Expected APIs
