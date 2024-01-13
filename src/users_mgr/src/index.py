@@ -3,7 +3,7 @@ import os
 import boto3
 from .custom_exceptions import BadRequestException
 from .post import create_new_restaurant_dynamodb_entries, create_user, update_user
-from .get import get_all_users
+from .get import get_all_users, get_user
 from .delete import delete_user
 
 
@@ -41,6 +41,8 @@ def handler(event, context):
         elif httpMethod == 'GET':
             if action == 'get_all_users':
                 response = get_all_users(event_dict, table)
+            elif action == 'get_user':
+                response = get_user(event_dict, table)
         elif httpMethod == 'DELETE':
             if action == 'delete_user':
                 response = delete_user(event_dict, table)
