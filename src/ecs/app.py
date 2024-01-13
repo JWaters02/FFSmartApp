@@ -168,7 +168,7 @@ def inventory():
                 for detail in item['item_list']:
                     detail['expiry_date'] = datetime.fromtimestamp(detail['expiry_date']).strftime('%Y-%m-%d')
                     
-            return render_template('inventory.html', user_role=get_user_role(), items=items)
+            return render_template('inventory.html', user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), items=items)
         else:
             logger.error(f"Lambda function error: {response_payload}")
             flash('Error fetching inventory data', 'error')
