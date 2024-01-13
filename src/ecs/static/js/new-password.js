@@ -3,7 +3,7 @@ let userPool;
 let accessToken;
 
 document.addEventListener("DOMContentLoaded", async function () {
-    const poolData = JSON.parse(localStorage.getItem("userPool"));
+    const poolData = JSON.parse(localStorage.getItem("poolData"));
     userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 });
 

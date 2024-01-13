@@ -38,7 +38,7 @@ async function registerRestaurant(restaurantName) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    const poolData = JSON.parse(localStorage.getItem('userPool'));
+    const poolData = JSON.parse(localStorage.getItem('poolData'));
     userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     cognitoUser = JSON.parse(sessionStorage.getItem('cognitoUser'));
 });

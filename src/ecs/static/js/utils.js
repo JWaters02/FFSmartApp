@@ -27,7 +27,7 @@ async function fetchConfig() {
 
         localStorage.setItem('poolData', JSON.stringify(poolData));
 
-        console.log(localStorage.getItem('userPool'));
+        console.log(localStorage.getItem('poolData'));
         console.log(localStorage.getItem('region'));
 
     } catch (error) {
