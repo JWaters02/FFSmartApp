@@ -15,6 +15,14 @@ users_mgr_lambda = os.environ.get('USERS_MGR_NAME')
 health_report_mgr_lambda = os.environ.get('HEALTH_REPORT_MGR_NAME')
 token_mgr_lambda = os.environ.get('TOKEN_MGR_NAME')
 
+# set these variables above to the hardcoded values
+dynamodb_session_table = 'analysis-and-design-ecs-session-table'
+fridge_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignFridgeM-JGnzKOPDBYoi'
+order_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignOrdersM-Q5wAIRISq5SD'
+users_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignUsersMg-AzDLX5oyzz1y'
+health_report_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignHealthR-Fhf8nl7TD4Dl'
+token_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignTokenMg-Iw77qKeVW3Yn'
+
 # config
 # TODO: these should all be environment variables
 region = 'eu-west-1'

@@ -14,7 +14,7 @@ let cognitoUser;
 document.addEventListener('DOMContentLoaded', async function () {
     accessToken = sessionStorage.getItem('accessToken');
 
-    const poolData = await JSON.parse(localStorage.getItem("userPool"));
+    const poolData = await JSON.parse(localStorage.getItem("poolData"));
     const username = sessionStorage.getItem("username");
     console.log(poolData);
     console.log(username);
