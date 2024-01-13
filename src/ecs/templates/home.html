@@ -11,12 +11,12 @@
         </div>
     </div>
     <div class="row text-center mt-5">
-        {% if user_role == 'admin' or user_role == 'headchef' or user_role == 'chef' %}
+        {% if user_role == 'Admin' or user_role == 'Head Chef' or user_role == 'Chef' %}
             <div class="col-md-4 mb-3">
                 <a href="{{ url_for('inventory') }}" class="btn btn-secondary btn-block btn-lg">Inventory</a>
             </div>
         {% endif %}
-        {% if user_role == 'admin' or user_role == 'headchef' %}
+        {% if user_role == 'Admin' or user_role == 'Head Chef' %}
             <div class="col-md-4 mb-3">
                 <a href="{{ url_for('orders') }}" class="btn btn-secondary btn-block btn-lg">Orders</a>
             </div>
@@ -24,7 +24,7 @@
                 <a href="{{ url_for('health_report') }}" class="btn btn-secondary btn-block btn-lg">Health Report</a>
             </div>
         {% endif %}
-        {% if user_role == 'admin' %}
+        {% if user_role == 'Admin' %}
             <div class="col-md-4 mb-3">
                 <a href="{{ url_for('admin_settings') }}" class="btn btn-secondary btn-block btn-lg">Admin Settings</a>
             </div>

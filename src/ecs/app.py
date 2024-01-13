@@ -3,7 +3,7 @@ from flask_session import Session
 import boto3
 import json
 import os
-from lib.utils import create_user, make_lambda_request, get_email_by_username, delete_user_by_username, is_user_signed_in
+from lib.utils import create_user, make_lambda_request, get_email_by_username, delete_user_by_username, is_user_signed_in, get_user_role
 
 # init app
 app = Flask(__name__)
@@ -12,7 +12,6 @@ dynamodb_session_table = os.environ.get('DYNAMODB_TABLE')
 fridge_mgr_lambda = os.environ.get('FRIDGE_MGR_NAME')
 order_mgr_lambda = os.environ.get('ORDERS_MGR_NAME')
 users_mgr_lambda = os.environ.get('USERS_MGR_NAME')
-print(users_mgr_lambda)
 health_report_mgr_lambda = os.environ.get('HEALTH_REPORT_MGR_NAME')
 token_mgr_lambda = os.environ.get('TOKEN_MGR_NAME')
 
@@ -120,8 +119,9 @@ def verify():
 
 @app.route('/home')
 def home():
-    # TODO: only show the correct things based on role
-    return render_template('home.html', user_role=get_user_role())
+    user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+
+    return render_template('home.html', user_role=user_role)
 
 
 @app.route('/404')
@@ -138,7 +138,10 @@ def inventory():
         {'name': 'Pear', 'expiry_date': '7th January 2024', 'quantity': 3, 'desired_quantity': 10},
         {'name': 'Pineapple', 'expiry_date': '6th January 2024', 'quantity': 1, 'desired_quantity': 5},
     ]
-    return render_template('inventory.html', user_role=get_user_role(), items=items)
+
+    user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+
+    return render_template('inventory.html', user_role=user_role, items=items)
 
 
 @app.route('/orders')
@@ -149,7 +152,9 @@ def orders():
         {'id': 2, 'name': 'Order 2'},
     ]
 
-    return render_template('orders.html', user_role=get_user_role(), orders=orders)
+    user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+
+    return render_template('orders.html', user_role=user_role, orders=orders)
 
 
 @app.route('/api/order-items/<int:order_id>')
@@ -173,7 +178,8 @@ def order_items(order_id):
 
 @app.route('/health')
 def health_report():
-    return render_template('health-report.html', user_role=get_user_role())
+    user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+    return render_template('health-report.html', user_role=user_role)
 
 
 @app.route('/api/health-report/<int:date_after>/<int:date_before>')
@@ -317,7 +323,9 @@ def manage_users():
             'role': user['role']
         } for user in response['body']['items']]
 
-    return render_template('users.html', user_role=get_user_role(), users=users)
+    user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+
+    return render_template('users.html', user_role=user_role, users=users)
 
 
 @app.route('/edit-user', methods=['POST', 'GET'])
@@ -329,7 +337,9 @@ def edit_user():
             'job_role': request.args.get('jobRole')
         }
 
-        return render_template('edit-user.html', user_role=get_user_role(), user=user)
+        user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+
+        return render_template('edit-user.html', user_role=user_role, user=user)
 
     elif request.method == 'POST':
 
@@ -353,16 +363,12 @@ def edit_user():
 
 @app.route('/admin')
 def admin_settings():
-    if get_user_role() != 'admin':  # replace with cognito stuff
+    user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+
+    if user_role != 'Admin':
         return render_template('404.html')
-    return render_template('admin-settings.html', user_role=get_user_role())
 
-
-def get_user_role():
-    # some shit involving cognito to get the user role here
-    # then return the user's role
-    role = 'admin'  # this shows everything, good for testing
-    return role
+    return render_template('admin-settings.html', user_role=user_role)
 
 
 @app.route('/password/<token>', methods=['GET', 'POST'])

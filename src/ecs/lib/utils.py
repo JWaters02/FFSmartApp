@@ -1,5 +1,5 @@
 import json
-import boto3
+import os
 from botocore.exceptions import ClientError, BotoCoreError
 
 
@@ -141,3 +141,71 @@ def is_user_signed_in(cognito_client, access_token, username):
 
     except BotoCoreError as ignore:
         return False
+
+
+def get_restaurant_id(cognito_client, access_token):
+    """
+    Gets the restaurant id for the current user.
+    :param cognito_client: Client for cognito.
+    :param access_token: Users access token.
+    :return: The current users restaurant_id, admin users have their username returned.
+    """
+    try:
+        user_details = cognito_client.get_user(
+            AccessToken=access_token
+        )
+
+        if 'UserAttributes' not in user_details:
+            return None
+
+        for attribute in user_details['UserAttributes']:
+            if 'custom:restaurant_id' == attribute['Name']:
+                return attribute['Value']
+        else:
+            # If there is no restaurant id, then the current user must be a restaurant
+            return user_details['Username']
+
+    except ClientError as ignore:
+        return None
+
+    except BotoCoreError as ignore:
+        return None
+
+
+def get_user_role(cognito_client, access_token, lambda_client, username):
+    """
+    Gets the job role for the current user, restaurant accounts are assumed to be Admin.
+    :param cognito_client: Client for Cognito.
+    :param access_token: Current users access token.
+    :param lambda_client: Client for lambda.
+    :param username: Username of current user.
+    :return: Role of current user, restaurant accounts are assumed to be
+    Admin. If anything goes wrong, chef is returned.
+    """
+    try:
+        restaurant_id = get_restaurant_id(cognito_client, access_token)
+
+        if username == restaurant_id:
+            return 'Admin'
+
+        payload = {
+            'httpMethod': 'GET',
+            'action': 'get_user',
+            'body': {
+                'restaurant_id': restaurant_id,
+                'username': username
+            }
+        }
+
+        response = make_lambda_request(lambda_client, payload, os.environ.get('USERS_MGR_NAME'))
+
+        if response['statusCode'] != 200:
+            return 'Chef'
+
+        return response['body']['role']
+
+    except ClientError as ignore:
+        return 'Chef'
+
+    except BotoCoreError as ignore:
+        return 'Chef'

@@ -12,7 +12,7 @@
         </button>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
-                {% if user_role == 'admin' or user_role == 'headchef' or user_role == 'chef' %}
+                {% if user_role == 'Admin' or user_role == 'Head Chef' or user_role == 'Chef' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('home') }}">Home</a>
                     </li>
@@ -20,7 +20,7 @@
                         <a class="nav-link" href="{{ url_for('inventory') }}">Inventory</a>
                     </li>
                 {% endif %}
-                {% if user_role == 'admin' or user_role == 'headchef' %}
+                {% if user_role == 'Admin' or user_role == 'Head Chef' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('orders') }}">Orders</a>
                     </li>
@@ -28,7 +28,7 @@
                         <a class="nav-link" href="{{ url_for('health_report') }}">Health Report</a>
                     </li>
                 {% endif %}
-                {% if user_role == 'admin' %}
+                {% if user_role == 'Admin' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('manage_users') }}">Manage Users</a>
                     </li>
