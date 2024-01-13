@@ -31,7 +31,7 @@ health_report_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignHealthR-F
 token_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignTokenMg-Iw77qKeVW3Yn'
 
 # config
-region = 'eu-central-1' #needs to be eu-west-1
+region = 'eu-west-1' #needs to be eu-west-1
 user_pool_id = 'eu-west-1_BGeP1szQM'
 client_id = '3368pjmkt1q1nlqg48duhbikgn'
 
