@@ -27,16 +27,16 @@ document.getElementById("verify").addEventListener("click", function () {
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
     cognitoUser.confirmRegistration(code, true, function (err, result) {
         if (err) {
-            alert(err);
+            sendFlashMessage(err, 'danger');
             return;
         }
 
         console.log('call result: ' + result);
         if(result === 'SUCCESS') {
-            alert('Verification was successful.');
             window.location.href = "/";
+            sendFlashMessage('Verification successful.', 'success');
         } else {
-            alert('An issue occurred, please try again.');
+            sendFlashMessage('An issue occurred, please try again.', 'danger');
         }
     });
 });

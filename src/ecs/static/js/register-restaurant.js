@@ -61,7 +61,7 @@ document.getElementById("register").addEventListener("click", async function () 
 
     userPool.signUp(username, password, attributeList, null, async function(err, result) {
         if (err) {
-            // TODO: flash the error message (from flask)
+            sendFlashMessage(err)
             console.log(err);
         } else {
             alert('Registered successfully, please verify your account, and check your email.');

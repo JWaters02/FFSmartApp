@@ -60,6 +60,16 @@ def config():
     return jsonify(user_pool_id=user_pool_id, client_id=client_id, region=region)
 
 
+# flash
+@app.route('/flash', methods=['POST'])
+def flash_message():
+    parameters = request.get_json()
+    message = parameters['message']
+    category = parameters['category']
+    flash(message, category)
+    return jsonify({'status': '200'})
+
+
 # pages
 @app.route('/', methods=['GET'])
 def index():
