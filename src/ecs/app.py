@@ -3,7 +3,7 @@ from flask_session import Session
 import boto3
 import json
 import os
-from lib.utils import create_user, make_lambda_request, get_email_by_username, delete_user_by_username, is_user_signed_in, get_user_role
+from lib.utils import create_user, make_lambda_request, get_email_by_username, delete_user_by_username, is_user_signed_in, get_user_role, get_admin_settings
 
 # init app
 app = Flask(__name__)
@@ -377,15 +377,7 @@ def admin_settings():
         return render_template('404.html')
     
     if request.method == 'GET':
-        payload = json.dumps({
-            "httpMethod": "GET",
-            "action": "get_admin_settings",
-            "body": {
-                "restaurant_id": session['username']
-            }
-        })
-
-        response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
+        response = get_admin_settings(session['username'], lambda_client, users_mgr_lambda)
 
         """
         example response json:
@@ -439,10 +431,16 @@ def admin_settings():
                 }
             }
         })
-
+        print(payload)
+        
         response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
-
-        return make_response('', response['statusCode'])
+        print(response)
+        if response['statusCode'] == 200:
+            flash('Settings updated successfully!', 'success')
+            return redirect(url_for('admin_settings'))
+        else:
+            flash('Failed to update settings.', 'danger')
+            return redirect(url_for('admin_settings'))
 
 
 @app.route('/password/<token>', methods=['GET', 'POST'])

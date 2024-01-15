@@ -209,3 +209,14 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
 
     except BotoCoreError as ignore:
         return 'Chef'
+
+def get_admin_settings(username, lambda_client, function_name):
+    payload = json.dumps({
+            "httpMethod": "GET",
+            "action": "get_admin_settings",
+            "body": {
+                "restaurant_id": username
+            }
+        })
+
+    return make_lambda_request(lambda_client, payload, function_name)
