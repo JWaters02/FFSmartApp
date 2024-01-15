@@ -2,8 +2,8 @@ import json
 import os
 import boto3
 from .custom_exceptions import BadRequestException
-from .post import create_new_restaurant_dynamodb_entries, create_user, update_user
-from .get import get_all_users, get_user
+from .post import create_new_restaurant_dynamodb_entries, create_user, update_user, update_admin_settings
+from .get import get_all_users, get_user, get_admin_settings
 from .delete import delete_user
 
 
@@ -38,11 +38,15 @@ def handler(event, context):
                 response = create_user(dynamodb_client, event_dict, __master_db_name__)
             elif action == 'update_user':
                 response = update_user(event_dict, table)
+            elif action == 'update_admin_settings':
+                response = update_admin_settings(event_dict, table)
         elif httpMethod == 'GET':
             if action == 'get_all_users':
                 response = get_all_users(event_dict, table)
             elif action == 'get_user':
                 response = get_user(event_dict, table)
+            elif action == 'get_admin_settings':
+                response = get_admin_settings(event_dict, table)
         elif httpMethod == 'DELETE':
             if action == 'delete_user':
                 response = delete_user(event_dict, table)

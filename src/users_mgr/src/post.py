@@ -261,3 +261,95 @@ def update_user(event, table):
         }
 
     return response
+
+
+def update_admin_settings(event, table):
+    """
+    Updates the contents of a user entry for a given username and restaurant_id.
+    :param event: Event passed to lambda.
+    :param table: Table resource for MasterDB.
+    :raises BadRequestException: Thrown if format is not as expected.
+    :return: 200 - Success.
+        404 - Restaurant or user not found.
+        500 - Internal Server Error.
+    """
+
+    response = {
+        'statusCode': 200,
+    }
+
+    if 'body' not in event:
+        raise BadRequestException('No request body exists.')
+
+    if 'restaurant_id' not in event['body']:
+        raise BadRequestException('Bad request restaurant_id not found in body.')
+
+    if 'delivery_company_email' not in event['body']:
+        raise BadRequestException('Bad request delivery_company_email not found in body.')
+
+    if 'health_and_safety_email' not in event['body']:
+        raise BadRequestException('Bad request health_and_safety_email not found in body.')
+
+    if 'restaurant_details' not in event['body']:
+        raise BadRequestException('Bad request restaurant_details not found in body.')
+
+    if 'location' not in event['body']['restaurant_details']:
+        raise BadRequestException('Bad request location not found in restaurant_details.')
+
+    if 'city' not in event['body']['restaurant_details']['location']:
+        raise BadRequestException('Bad request city not found in location.')
+
+    if 'postcode' not in event['body']['restaurant_details']['location']:
+        raise BadRequestException('Bad request postcode not found in location.')
+
+    if 'street_address_1' not in event['body']['restaurant_details']['location']:
+        raise BadRequestException('Bad request street_address_1 not found in location.')
+
+    if 'street_address_2' not in event['body']['restaurant_details']['location']:
+        raise BadRequestException('Bad request street_address_2 not found in location.')
+
+    if 'street_address_3' not in event['body']['restaurant_details']['location']:
+        raise BadRequestException('Bad request street_address_3 not found in location.')
+
+    if 'restaurant_name' not in event['body']['restaurant_details']:
+        raise BadRequestException('Bad request restaurant_name not found in restaurant_details.')
+
+    restaurant_id = event['body']['restaurant_id']
+    delivery_company_email = event['body']['delivery_company_email']
+    health_and_safety_email = event['body']['health_and_safety_email']
+    restaurant_details = event['body']['restaurant_details']
+
+    try:
+        dynamo_response = table.get_item(
+            Key={
+                'pk': restaurant_id,
+                'type': 'admin_settings'
+            }
+        )
+
+        if 'Item' not in dynamo_response:
+            raise NotFoundException("Item not found: " + restaurant_id)
+
+        admin_settings = dynamo_response['Item']
+
+        admin_settings['delivery_company_email'] = delivery_company_email
+        admin_settings['health_and_safety_email'] = health_and_safety_email
+        admin_settings['restaurant_details'] = restaurant_details
+
+        table.put_item(
+            Item=admin_settings
+        )
+
+    except NotFoundException as e:
+        response = {
+            'statusCode': 404,
+            'body': str(e)
+        }
+
+    except ClientError as e:
+        response = {
+            'statusCode': 500,
+            'body': 'Client Error: ' + str(e)
+        }
+
+    return response

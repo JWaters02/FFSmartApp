@@ -369,14 +369,80 @@ def edit_user():
         return make_response('', response['statusCode'])
 
 
-@app.route('/admin')
+@app.route('/admin', methods=['POST', 'GET'])
 def admin_settings():
     user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
 
     if user_role != 'Admin':
         return render_template('404.html')
+    
+    if request.method == 'GET':
+        payload = json.dumps({
+            "httpMethod": "GET",
+            "action": "get_admin_settings",
+            "body": {
+                "restaurant_id": session['username']
+            }
+        })
 
-    return render_template('admin-settings.html', user_role=user_role)
+        response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
+
+        """
+        example response json:
+        {
+            "statusCode": 200,
+            "body": {
+                "admin_settings": [
+                    {
+                        "restaurant_details": {
+                        "location": {
+                            "postcode": "value",
+                            "street_address_1": "value",
+                            "street_address_2": "value",
+                            "street_address_3": "value",
+                            "city": "value"
+                        },
+                        "restaurant_name": "value"
+                        },
+                        "pk": "restaurant_name",
+                        "delivery_company_email": "email1",
+                        "health_and_safety_email": "email1",
+                        "type": "admin_settings"
+                    }
+                ]
+            }
+        }
+        """
+
+        if response['statusCode'] == 200:
+            return render_template('admin-settings.html', user_role=user_role, settings=response['body']['admin_settings'])
+        else:
+            return render_template('admin-settings.html', user_role=user_role, settings={})
+
+    if request.method == 'POST':
+        payload = json.dumps({
+            "httpMethod": "POST",
+            "action": "update_admin_settings",
+            "body": {
+                "restaurant_id": session['username'],
+                "delivery_company_email": request.form.get('DeliveryCompanyEmail'),
+                "health_and_safety_email": request.form.get('HealthAndSafetyEmail'),
+                "restaurant_details": {
+                    "location": {
+                        "city": request.form.get('City'),
+                        "postcode": request.form.get('Postcode'),
+                        "street_address_1": request.form.get('StreetAddress1'),
+                        "street_address_2": request.form.get('StreetAddress2'),
+                        "street_address_3": request.form.get('StreetAddress3')
+                    },
+                    "restaurant_name": request.form.get('RestaurantName'),
+                }
+            }
+        })
+
+        response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
+
+        return make_response('', response['statusCode'])
 
 
 @app.route('/password/<token>', methods=['GET', 'POST'])
