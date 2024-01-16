@@ -100,7 +100,7 @@ def create_new_restaurant_dynamodb_entries(dynamodb_client, event, table_name):
                                             'street_address_3': {'S': ''}
                                         }
                                     },
-                                    'restaurant_name': {'S': ''}
+                                    'restaurant_name': {'S': restaurant_name}
                                 }
                             }
                         },
