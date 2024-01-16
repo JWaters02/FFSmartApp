@@ -17,25 +17,43 @@ def get_all_users(event, table):
 
     response = None
 
-    if 'body' not in event and 'restaurant_id' not in event['body']:
+    if 'body' not in event or 'restaurant_id' not in event['body']:
         raise BadRequestException('Bad request restaurant_id not found in body.')
 
     restaurant_name = event['body']['restaurant_id']
+    username = event['body'].get('username')  # Use get to handle potential absence of 'username'
 
     try:
         table_response = table.query(
             KeyConditionExpression=Key('pk').eq(restaurant_name) & Key('type').eq('users')
         )
 
-        # Can throw key error if not found
-        users = table_response['Items'][0]['users']
+        if 'Items' in table_response and len(table_response['Items']) > 0:
+            users = table_response['Items'][0].get('users', [])
 
-        response = {
-            'statusCode': 200,
-            'body': {
-                'items': users
+            user_in_question = None
+            for user in users:
+                if 'username' in user and user['username'] == username:
+                    user_in_question = user
+                    break
+
+            if user_in_question is not None:
+                response = {
+                    'statusCode': 200,
+                    'body': {
+                        'items': [user_in_question]
+                    }
+                }
+            else:
+                response = {
+                    'statusCode': 404,
+                    'body': 'User not found.'
+                }
+        else:
+            response = {
+                'statusCode': 404,
+                'body': 'User not found.'
             }
-        }
 
     except KeyError as ignore:
         response = {
@@ -50,7 +68,6 @@ def get_all_users(event, table):
         }
 
     return response
-
 
 def get_user(event, table):
     """
