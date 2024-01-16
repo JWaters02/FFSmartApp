@@ -1,6 +1,9 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from src.index import handler
+from src.get import get_all_users, BadRequestException
+from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key
 
 
 class TestDynamoDBHandler(unittest.TestCase):
@@ -79,3 +82,83 @@ class TestDynamoDBHandler(unittest.TestCase):
         }
 
         self.assertEqual(response, expected_exception_response)
+
+
+class TestGetAllUsers(unittest.TestCase):
+
+    @patch('boto3.resource')
+    def test_get_all_users_success(self, mock_boto3_resource):
+        # Mock event and table
+        mock_event = {'body': {'restaurant_id': 'mock_restaurant_id'}}
+        mock_table = MagicMock()
+
+        # Mock DynamoDB response
+        mock_table.query.return_value = {'Items': [{'users': ['user1', 'user2']}]}
+
+        # Call the function
+        result = get_all_users(mock_event, mock_table)
+
+        # Assert that the function behaves as expected
+        expected_result = {
+            'statusCode': 200,
+            'body': {
+                'items': ['user1', 'user2']
+            }
+        }
+        self.assertEqual(result, expected_result)
+
+        # Optionally, assert that DynamoDB query method was called with the expected parameters
+        mock_table.query.assert_called_once_with(
+            KeyConditionExpression=Key('pk').eq('mock_restaurant_id') & Key('type').eq('users')
+        )
+
+    @patch('boto3.resource')
+    def test_get_all_users_not_found(self, mock_boto3_resource):
+        # Mock event and table
+        mock_event = {'body': {'restaurant_id': 'nonexistent'}}
+        mock_table = MagicMock()
+
+        # Mock DynamoDB response for user not found
+        mock_table.query.return_value = {'Items': []}
+
+        # Call the function
+        result = get_all_users(mock_event, mock_table)
+
+        # Assert the function behaves as expected
+        expected_result = {
+            'statusCode': 404,
+            'body': 'User not found.'
+        }
+        self.assertEqual(result, expected_result)
+
+    @patch('boto3.resource')
+    def test_get_all_users_bad_request(self, mock_boto3_resource):
+        # Mock event and table with missing 'restaurant_id' in 'body'
+        mock_event = {'body': {}}
+        mock_table = MagicMock()
+
+        # Call the function and expect a BadRequestException
+        with self.assertRaises(BadRequestException):
+            get_all_users(mock_event, mock_table)
+
+    @patch('boto3.resource')
+    def test_get_all_users_internal_error(self, mock_boto3_resource):
+        # Mock event and table
+        mock_event = {'body': {'restaurant_id': 'house'}}
+        mock_table = MagicMock()
+
+        # Mock DynamoDB response for internal error
+        mock_table.side_effect = Exception("An error occurred (InternalError) while calling the operation_name operation: Unknown error")
+
+        # Call the function
+        result = get_all_users(mock_event, mock_table)
+
+        # Assert the function behaves as expected
+        expected_result = {
+            'statusCode': 500,
+            'body': 'Error accessing DynamoDB: An error occurred (InternalError) while calling the operation_name operation: Unknown error'
+        }
+        self.assertEqual(result, expected_result)
+
+if __name__ == '__main__':
+    unittest.main()
