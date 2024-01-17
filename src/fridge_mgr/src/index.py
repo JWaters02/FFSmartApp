@@ -8,7 +8,7 @@ from .inventory_utils import view_inventory, delete_entire_item, delete_zero_qua
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def lambda_handler(event, context):
+def handler(event, context):
     try:
         if isinstance(event.get('body'), dict):
             body = event.get('body')
