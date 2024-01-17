@@ -217,12 +217,18 @@ def inventory():
         response_payload = json.loads(response['Payload'].read())
         if response_payload['statusCode'] == 200:
             items = response_payload['body']['additional_details']['items']
+            is_front_door_open = response_payload['body']['additional_details']['is_front_door_open']
+            is_back_door_open = response_payload['body']['additional_details']['is_back_door_open']
             
             for item in items:
                 for detail in item['item_list']:
                     detail['expiry_date'] = datetime.fromtimestamp(detail['expiry_date']).strftime('%Y-%m-%d')
                     
-            return render_template('inventory.html', user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), items=items)
+            return render_template('inventory.html', 
+                                   user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), 
+                                   items=items, 
+                                   is_front_door_open=is_front_door_open, 
+                                   is_back_door_open=is_back_door_open)
         else:
             logger.error(f"Lambda function error: {response_payload}")
             flash('Error fetching inventory data', 'error')
@@ -231,7 +237,9 @@ def inventory():
         logger.error(f"An error occurred: {str(e)}")
         flash('Error fetching inventory data', 'error')
 
-    return render_template('inventory.html', user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), items=[])
+    return render_template('inventory.html', 
+                           user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), 
+                           items=[])
 
 
 @app.route('/add-item', methods=['POST'])
