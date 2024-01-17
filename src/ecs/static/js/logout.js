@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const poolData = await JSON.parse(localStorage.getItem("poolData"));
     const username = sessionStorage.getItem("username");
-    console.log(poolData);
-    console.log(username);
 
     let userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     let userData = {
@@ -47,10 +45,7 @@ document.getElementById("logout").addEventListener("click", async function () {
         cognitoUser.signOut();
     }
 
-    console.log(sessionStorage.getItem("username"));
     sessionStorage.clear();
-    console.log(sessionStorage.getItem("username"));
 
-    alert('Logout successful.');
     window.location.href = "/";
 });

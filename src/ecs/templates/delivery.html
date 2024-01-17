@@ -6,6 +6,18 @@
 
 {% block content %}
     <div class="container mt-5">
+
+        <div class="add-item-form mb-4">
+            <h2>Add New Item</h2>
+            <form action="{{ url_for('add_item') }}" method="post">
+                <input type="text" name="item_name" class="form-control mb-2" placeholder="Item name" required>
+                <input type="number" name="quantity_change" class="form-control mb-2" placeholder="Quantity" required>
+                <input type="date" name="expiry_date" class="form-control mb-2" placeholder="Expiry Date" required>
+                <input type="number" name="desired_quantity" class="form-control mb-2" placeholder="Desired Quantity (Optional)">
+                <button type="submit" class="btn btn-success">Add item</button>
+            </form>
+        </div>
+
         <div class="row">
             <div class="col-12">
                 <h1 class="text-center text-light">Delivery</h1>

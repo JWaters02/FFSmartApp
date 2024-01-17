@@ -1,13 +1,23 @@
 .navbar {
     background-color: #273C75;
-    align-items: center;
 }
 
-.navbar-dark .navbar-brand, 
-.navbar-dark .navbar-nav .nav-link {
-    color: #ffffff;
+.navbar-dark{
+    color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
-.navbar-dark .navbar-nav .nav-link:hover {
-    color: #f0f0f0;
+@media (max-width: 991.98px) {
+    .navbar-expand-lg>.container {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .navbar-nav {
+        margin: .5rem 0;
+    }
+
+    .navbar-nav .nav-item {
+        padding: .5rem 1rem;
+    }
 }

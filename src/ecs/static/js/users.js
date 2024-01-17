@@ -15,13 +15,14 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                alert('User was not removed correctly, please try again later.');
+                sendFlashMessage('User was not removed correctly, please try again later.', 'danger');
                 console.error('Error:', 'Network response was not ok: ' + response.statusText);
                 return;
             }
 
-            alert('User removed successfully.');
             window.location.href = "/users";
+
+            sendFlashMessage('User removed successfully.', 'success');
         })
     })
 
@@ -39,13 +40,13 @@ document.addEventListener("DOMContentLoaded", function () {
 document.getElementById("create-new-user").addEventListener("click", async function () {
 
     if(document.getElementById("role").value === "") {
-        alert("Please select a job role.");
+        sendFlashMessage('Please select a role.', 'danger');
         return;
     }
 
     let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     if(!document.getElementById("email").value.match(emailPattern)) {
-        alert("Email field must be a valid email address.");
+        sendFlashMessage('Please enter a valid email address.', 'danger');
         return;
     }
 
@@ -62,11 +63,12 @@ document.getElementById("create-new-user").addEventListener("click", async funct
     });
 
     if (!response.ok) {
-        alert('User was not created, please ensure that the entered values are correct.');
+        sendFlashMessage('User was not created correctly, please try again later.', 'danger');
         console.error('Error:', 'Network response was not ok: ' + response.statusText);
         return;
     }
 
-    alert('User created successfully.');
     window.location.href = "/users";
+
+    sendFlashMessage('User created successfully.', 'success');
 });

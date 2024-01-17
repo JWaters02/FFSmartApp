@@ -1,52 +1,73 @@
 import os
 import boto3
-from boto3.dynamodb.conditions import Key
-# NOTE: if you want to import another file aka src/utils.py, you must put a `.` before its name `import .utils`.
-# Not doing this will not error locally but will error on the lambda.
+import logging
+from datetime import datetime, timedelta
+import json
+from .inventory_utils import view_inventory, delete_entire_item, delete_zero_quantity_items, modify_items, modify_door_state, generate_response, get_current_time_gmt
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def handler(event, context):
-    response = None
-
+    """
+    Handles AWS Lambda events.
+    :param event: Event data from AWS Lambda.
+    :param context: Lambda execution context.
+    :return: Response based on action.
+    """
     try:
-        __master_db_name__ = os.environ.get('MASTER_DB')
+        if isinstance(event.get('body'), dict):
+            body = event.get('body')
+        else:
+            body = json.loads(event.get('body', '{}'))
 
-        # Init DynamoDB
+        master_db_name = os.environ.get('MASTER_DB')
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(__master_db_name__)
+        table = dynamodb.Table(master_db_name)
 
-        # Read from event example
-        data = event.get('data')
-        partition_key_value = event.get('pk')
-        sort_key_value = event.get('type')
+        pk = body.get('restaurant_name')
+        action = event.get('action')
 
-        # Write example
-        table.put_item(
-            Item={
-                'pk': partition_key_value,
-                'type': sort_key_value,
-                'data': data
-            }
-        )
+        if action == "view_inventory":
+            return view_inventory(table, pk)
+        elif action in ["add_item", "update_item", "delete_item", "open_door", "close_door"]:
+            response = manage_inventory(table, pk, body, action)
+        else:
+            raise ValueError(f"Invalid action specified: {action}")
 
-        # Read example
-        database_response = table.query(
-            KeyConditionExpression=Key('pk').eq(partition_key_value) & Key('type').eq(sort_key_value)
-        )
+        return response
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
+        return generate_response(500, f"An error occurred: {str(e)}")
 
-        response = {
-            'statusCode': 200,
-            'body': {
-                'details': 'function works',
-                'db_response': database_response['Items']
-            }
-        }
-    except Exception as e:  # try and use other exception types such as BotoCoreError, with different status codes.
-        response = {
-            'statusCode': 500,
-            'body': {
-                'details': str(e)
-            }
-        }
+def manage_inventory(table, pk, body, action):
+    """
+    Manages inventory based on action.
+    :param table: DynamoDB table name.
+    :param pk: Primary key for inventory record.
+    :param body: Request body details.
+    :param action: Action to perform.
+    :return: 200 - Successful.
+        500 - Internal Server Error.
+    """
+    try:
+        current_time = get_current_time_gmt()
+        response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
+        item = response.get('Item')
 
-    return response
+        if not item:
+            item = {'pk': pk, 'type': 'fridge', 'items': [], 'is_front_door_open': False, 'is_back_door_open': False}
+
+        if action in ["add_item", "update_item"]:
+            modify_items(item, body, action, current_time)
+        elif action == "delete_item":
+            delete_entire_item(item, body)
+        elif action in ["open_door", "close_door"]:
+            modify_door_state(item, body, action)
+
+        table.put_item(Item=item)
+        return generate_response(200, f'Inventory {action} successful', item)
+    except Exception as e:
+        logger.error(f"An error occurred during DynamoDB update: {str(e)}")
+        return generate_response(500, f"An error occurred during DynamoDB update: {str(e)}")
+        

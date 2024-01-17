@@ -34,11 +34,11 @@ document.getElementById("UpdatePassword").addEventListener("click", function () 
 
             cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
                 onSuccess: function(result) {
-                    alert('Password updated successfully, please login');
                     window.location.href = "/";
+                    sendFlashMessage('Password updated successfully, please login', 'success');
                 },
                 onFailure: function(err) {
-                    alert(err);
+                    sendFlashMessage(err, 'danger');
                 }
             });
         }

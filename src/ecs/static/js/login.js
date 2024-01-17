@@ -22,7 +22,7 @@ function updateLogin() {
     if (accessToken) {
         cognitoUser.getUserAttributes(function (err, result) {
             if (err) {
-                alert(err);
+                sendFlashMessage(err, 'danger');
                 return;
             }
 
@@ -99,14 +99,15 @@ document.getElementById("login").addEventListener("click", function () {
             await updateCredentials(username, JSON.stringify(userData), accessToken);
             updateLogin();
 
-            alert('Logged in successfully.');
             window.location.href = "/home";
+
+            sendFlashMessage('Logged in successfully.', 'success');
         },
         newPasswordRequired: function (userAttributes, requiredAttributes) {
             window.location.href = "/new-password";
         },
         onFailure: function (err) {
-            alert(err.message);
+            sendFlashMessage(err, 'danger');
         }
     });
 });
