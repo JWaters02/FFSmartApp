@@ -1,13 +1,15 @@
-from datetime import datetime
-import logging
-from flask import Flask, json, render_template, session, jsonify, request, flash, redirect, url_for, make_response
-from datetime import datetime
-import time
-from flask_session import Session
-import boto3
 import json
+import logging
 import os
-from lib.utils import create_user, make_lambda_request, get_email_by_username, delete_user_by_username, is_user_signed_in, get_user_role
+import time
+from datetime import datetime
+
+import boto3
+from flask import Flask, jsonify, make_response, flash, redirect, url_for, request, render_template, session
+from flask_session import Session
+
+from lib.utils import (create_user, delete_user_by_username, get_email_by_username, 
+                       get_restaurant_id, get_user_role, is_user_signed_in, make_lambda_request)
 
 # init app
 app = Flask(__name__)
@@ -152,15 +154,57 @@ def home():
 def error_404():
     return render_template('404.html')
 
+@app.route('/open_door', methods=['POST'])
+def open_door():
+    
+    restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
+
+    lambda_payload = {
+        "httpMethod": "POST",
+        "action": "open_door",
+        "body": {
+            "restaurant_name": restaurant_name,
+            "is_front_door_open": True,
+            "is_back_door_open": False
+        }
+    }
+    response = lambda_client.invoke(
+        FunctionName=fridge_mgr_lambda,
+        InvocationType='RequestResponse',
+        Payload=json.dumps(lambda_payload)
+    )
+    return redirect(url_for('inventory'))
+
+@app.route('/close_door', methods=['POST'])
+def close_door():
+    
+    restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
+    
+    lambda_payload = {
+        "httpMethod": "POST",
+        "action": "close_door",
+        "body": {
+            "restaurant_name": restaurant_name
+        }
+    }
+    response = lambda_client.invoke(
+        FunctionName=fridge_mgr_lambda,
+        InvocationType='RequestResponse',
+        Payload=json.dumps(lambda_payload)
+    )
+    return redirect(url_for('inventory'))
+
 
 @app.route('/inventory')
 def inventory():
     try:
+        restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
+        
         lambda_payload = {
             "httpMethod": "POST",
             "action": "view_inventory",
             "body": {
-                "restaurant_name": "YourRestaurantName"
+                "restaurant_name": restaurant_name
             }
         }
         
@@ -191,7 +235,7 @@ def inventory():
 
 
 @app.route('/add-item', methods=['POST'])
-def add_item():
+def add_item():    
     item_name = request.form.get('item_name')
     quantity_change = request.form.get('quantity_change', 0)
     desired_quantity = request.form.get('desired_quantity', 0)
@@ -199,12 +243,13 @@ def add_item():
     try:
         expiry_date_str = request.form.get('expiry_date')
         expiry_date = int(time.mktime(datetime.strptime(expiry_date_str, '%Y-%m-%d').timetuple()))
+        restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
         lambda_payload = {
             "httpMethod": "POST",
             "action": "add_item",
             "body": {
-                "restaurant_name": "YourRestaurantName",
+                "restaurant_name": restaurant_name,
                 "item_name": item_name,
                 "quantity_change": int(quantity_change),
                 "expiry_date": int(expiry_date),
@@ -240,12 +285,13 @@ def delete_item():
         expiry_date = int(time.mktime(datetime.strptime(expiry_date_str, '%Y-%m-%d').timetuple()))
         quantity_change = int(request.form.get('quantity_change'))
         logger.info(f"Request details - Item name: {item_name}, Expiry Date: {expiry_date_str}, Quantity Change: {quantity_change}")
+        restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
         lambda_payload = {
             "httpMethod": "POST",
             "action": "delete_item",
             "body": {
-                "restaurant_name": "YourRestaurantName",
+                "restaurant_name": restaurant_name,
                 "item_name": item_name,
                 "quantity_change": quantity_change,
                 "expiry_date": expiry_date
@@ -278,6 +324,7 @@ def update_item():
     expiry_date_str = request.form.get('expiry_date')
     quantity_change = int(request.form.get('quantity_change'))
     logger.info(f"Received update request for item: {item_name}, Expiry Date: {expiry_date_str}, Quantity Change: {quantity_change}")
+    restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
     try:
         expiry_date = int(time.mktime(datetime.strptime(expiry_date_str, '%Y-%m-%d').timetuple()))
@@ -286,7 +333,7 @@ def update_item():
             "httpMethod": "POST",
             "action": "update_item",
             "body": {
-                "restaurant_name": "YourRestaurantName",
+                "restaurant_name": restaurant_name,
                 "item_name": item_name,
                 "quantity_change": quantity_change,
                 "expiry_date": expiry_date
