@@ -3,8 +3,7 @@ import boto3
 import logging
 from datetime import datetime, timedelta
 import json
-
-from inventory_utils import view_inventory, delete_entire_item, delete_zero_quantity_items, modify_items, modify_door_state, generate_response, get_current_time_gmt
+from .inventory_utils import view_inventory, delete_entire_item, delete_zero_quantity_items, modify_items, modify_door_state, generate_response, get_current_time_gmt
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
