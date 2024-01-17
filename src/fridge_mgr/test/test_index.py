@@ -2,80 +2,45 @@ import unittest
 from unittest.mock import patch, MagicMock
 from src.index import handler
 
-
 class TestDynamoDBHandler(unittest.TestCase):
+
     @patch('boto3.resource')
-    def test_handler_function(self, mock_boto3_resource):  # use highly descriptive function names, not what like this
-        """Basic functionality test"""
-        # Mock boto3 setup
+    def test_view_inventory_success(self, mock_boto3_resource):
+        """
+        Test the 'view_inventory' action of the handler function.
+        """
+
+        # Setup mock DynamoDB
         mock_dynamodb_resource = MagicMock()
         mock_boto3_resource.return_value = mock_dynamodb_resource
+        mock_table = MagicMock()
+        mock_dynamodb_resource.Table.return_value = mock_table
+        mock_table.get_item.return_value = {'Item': {'pk': 'restaurant_1', 'type': 'fridge', 'items': []}}
 
-        # Mock dynamodb resource
-        mock_dynamodb_table = MagicMock()
-        mock_dynamodb_resource.Table.return_value = mock_dynamodb_table
-        mock_dynamodb_table.query.return_value = {'Items': []}
-
-        # Handler inputs
+        # Define handler input for 'view_inventory' action
         mock_event = {
-            'data': 'example data',
-            'pk': 'test_pk',
-            'type': 'test_type'
+            'body': json.dumps({'restaurant_name': 'restaurant_1'}),
+            'action': 'view_inventory'
         }
         mock_context = {}
 
+        # Execute handler function
         response = handler(mock_event, mock_context)
 
-        # Assert functions are called correctly
-        mock_dynamodb_table.put_item.assert_called_with(Item={
-            'pk': 'test_pk',
-            'type': 'test_type',
-            'data': 'example data'
-        })
+        # Verify DynamoDB get_item was called correctly
+        mock_table.get_item.assert_called_with(Key={'pk': 'restaurant_1', 'type': 'fridge'})
 
-        # Define the expected response
+        # Define expected response
         expected_response = {
             'statusCode': 200,
-            'body': {
-                'details': 'function works',
-                'db_response': []
-            }
+            'body': {'details': 'Inventory retrieved successfully', 'additional_details': {'pk': 'restaurant_1', 'type': 'fridge', 'items': []}}
         }
 
-        # Assert the response
+        # Assert response matches expected
         self.assertEqual(response, expected_response)
 
-    @patch('boto3.resource')
-    def test_handler_query_exception_handling(self, mock_boto3_resource):
-        """Test the handler function for handling DynamoDB query exceptions"""
+    # Additional test cases go here, for different actions and scenarios
 
-        mock_dynamodb_resource = MagicMock()
-        mock_boto3_resource.return_value = mock_dynamodb_resource
+if __name__ == '__main__':
+    unittest.main()
 
-        mock_dynamodb_table = MagicMock()
-        mock_dynamodb_resource.Table.return_value = mock_dynamodb_table
-        mock_dynamodb_table.query.side_effect = Exception("Query error occurred")
-
-        mock_event = {
-            'data': 'example data',
-            'pk': 'test_pk',
-            'type': 'test_type'
-        }
-        mock_context = {}
-
-        response = handler(mock_event, mock_context)
-
-        mock_dynamodb_table.put_item.assert_called_with(Item={
-            'pk': 'test_pk',
-            'type': 'test_type',
-            'data': 'example data'
-        })
-
-        expected_exception_response = {
-            'statusCode': 500,
-            'body': {
-                'details': 'Query error occurred'
-            }
-        }
-
-        self.assertEqual(response, expected_exception_response)
