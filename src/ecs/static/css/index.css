@@ -16,12 +16,6 @@ body {
     text-align: center;
 }
 
-.highlighted {
-    border: 2px solid #4ab34d;
-    background-color: #44bd32;
-    color: #fff;
-}
-
 button {
     background: #273C75;
     border: 1px solid #273C75;

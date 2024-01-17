@@ -11,12 +11,15 @@
 {% block content %}
     <div class="container mt-5">
         <div class="text-center mb-4">
-            <form action="{{ url_for('open_door') }}" method="post" class="d-inline">
-                <button id="openButton" type="submit" class="btn {{ 'btn-success' if is_front_door_open else 'btn-primary' }}" onclick="toggleHighlight(true)">Open Door</button>
-            </form>
-            <form action="{{ url_for('close_door') }}" method="post" class="d-inline">
-                <button id="closeButton" type="submit" class="btn {{ 'btn-success' if is_back_door_open else 'btn-secondary' }}" onclick="toggleHighlight(false)">Close Door</button>
-            </form>            
+            {% if is_front_door_open %}
+                <form action="{{ url_for('close_door') }}" method="post" class="d-inline">
+                    <button id="doorButton" type="submit" class="btn btn-danger">Close Door</button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('open_door') }}" method="post" class="d-inline">
+                    <button id="doorButton" type="submit" class="btn btn-success">Open Door</button>
+                </form>
+            {% endif %}   
         </div>
         <div class="d-flex flex-wrap justify-content-center">
             {% for item in items %}
@@ -61,19 +64,5 @@
             {% endfor %}
         </div>
     </div>
-
-    <script>
-        function toggleHighlight(open) {
-            const openButton = document.getElementById('openButton');
-            const closeButton = document.getElementById('closeButton');
-            
-            if (open) {
-                openButton.classList.add('highlighted');
-                closeButton.classList.remove('highlighted');
-            } else {
-                openButton.classList.remove('highlighted');
-            }
-        }
-    </script>
     
 {% endblock %}

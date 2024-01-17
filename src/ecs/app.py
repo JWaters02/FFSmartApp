@@ -218,7 +218,6 @@ def inventory():
         if response_payload['statusCode'] == 200:
             items = response_payload['body']['additional_details']['items']
             is_front_door_open = response_payload['body']['additional_details']['is_front_door_open']
-            is_back_door_open = response_payload['body']['additional_details']['is_back_door_open']
             
             for item in items:
                 for detail in item['item_list']:
@@ -227,8 +226,7 @@ def inventory():
             return render_template('inventory.html', 
                                    user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), 
                                    items=items, 
-                                   is_front_door_open=is_front_door_open, 
-                                   is_back_door_open=is_back_door_open)
+                                   is_front_door_open=is_front_door_open)
         else:
             logger.error(f"Lambda function error: {response_payload}")
             flash('Error fetching inventory data', 'error')
