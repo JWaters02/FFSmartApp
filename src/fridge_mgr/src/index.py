@@ -9,6 +9,12 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def handler(event, context):
+    """
+    Handles AWS Lambda events.
+    :param event: Event data from AWS Lambda.
+    :param context: Lambda execution context.
+    :return: Response based on action.
+    """
     try:
         if isinstance(event.get('body'), dict):
             body = event.get('body')
@@ -35,6 +41,15 @@ def handler(event, context):
         return generate_response(500, f"An error occurred: {str(e)}")
 
 def manage_inventory(table, pk, body, action):
+    """
+    Manages inventory based on action.
+    :param table: DynamoDB table name.
+    :param pk: Primary key for inventory record.
+    :param body: Request body details.
+    :param action: Action to perform.
+    :return: 200 - Successful.
+        500 - Internal Server Error.
+    """
     try:
         current_time = get_current_time_gmt()
         response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
