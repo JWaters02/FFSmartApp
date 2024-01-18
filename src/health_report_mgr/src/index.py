@@ -10,6 +10,12 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def handler(event, context):
+    """
+    Handles AWS Lambda event to send a health and safety report.
+    :param event: Event data with restaurant details and date range.
+    :param context: AWS Lambda context.
+    :return: JSON response with operation status.
+    """
     response = None
 
     try:
