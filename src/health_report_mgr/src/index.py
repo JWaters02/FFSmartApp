@@ -2,62 +2,49 @@ import os
 import boto3
 import json
 from boto3.dynamodb.conditions import Key
-# NOTE: if you want to import another file aka src/utils.py, you must put a `.` before its name `import .utils`.
-# Not doing this will not error locally but will error on the lambda.
+from datetime import datetime
+import logging
+from .utils import unix_to_readable, get_health_and_safety_email, get_filtered_items, send_email_with_attachment, create_csv_content
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def handler(event, context):
     response = None
 
     try:
-        __master_db_name__ = os.environ.get('MASTER_DB')
-
+        master_db_name = os.environ.get('MASTER_DB')
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(__master_db_name__)
+        table = dynamodb.Table(master_db_name)
+        logger.info(f"Using database: {master_db_name}")
 
-        partition_key_value = event['pk']
-        sort_key_value = event['type']
-
-        # Fetch data from DynamoDB
-        database_response = table.query(
-            KeyConditionExpression=Key('pk').eq(partition_key_value) & Key('type').eq(sort_key_value)
-        )
-        data = database_response['Items']
-
-        # Create SES client
-        ses = boto3.client('ses')
-
-        # Send email
-        ses_response = ses.send_email(
-            Source='SENDER_EMAIL',  # TODO: to be verified and other stuff
-            Destination={
-                'ToAddresses': [
-                    'ben@benlewisjones.com',
-                ],
-            },
-            Message={
-                'Subject': {
-                    'Data': 'DynamoDB Data',
-                },
-                'Body': {
-                    'Text': {
-                        'Data': json.dumps(data),
-                    },
-                }
-            }
-        )
+        body = event['body']
+        restaurant_name = body['restaurant_name']
+        start_date = int(datetime.strptime(body['startDate'], '%Y-%m-%d').timestamp())
+        end_date = int(datetime.strptime(body['endDate'], '%Y-%m-%d').timestamp())
+        logger.info(f"Querying for restaurant: {restaurant_name}, Start Date: {start_date}, End Date: {end_date}")
+        
+        email = get_health_and_safety_email(table, restaurant_name)
+        if not email:
+            raise ValueError("Health and safety email not found for the restaurant.")
+            
+        filtered_items = get_filtered_items(table, restaurant_name, start_date, end_date)
+        csv_content = create_csv_content(filtered_items)
+        send_email_with_attachment(email, restaurant_name, body['startDate'], body['endDate'], filtered_items)
 
         response = {
             'statusCode': 200,
-            'body': json.dumps('Email sent!')
+            'body': json.dumps({
+                'message': 'Health and Safety Report Sent!',
+                'csv_data': csv_content
+            })
         }
 
-    except Exception as e:  # try and use other exception types such as BotoCoreError, with different status codes.
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
         response = {
             'statusCode': 500,
-            'body': {
-                'details': str(e)
-            }
+            'body': json.dumps({'details': str(e)})
         }
 
     return response

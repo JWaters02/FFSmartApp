@@ -1,7 +1,9 @@
 import json
 import logging
 import os
+import io
 import time
+import csv
 from datetime import datetime
 
 import boto3
@@ -77,6 +79,41 @@ def flash_message():
 def index():
     return render_template('login.html')
 
+@app.route('/send-health-report', methods=['POST'])
+def send_health_report():
+    restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
+    start_date = request.form.get('startDate')
+    end_date = request.form.get('endDate')
+
+    lambda_payload = {
+        "httpMethod": "POST",
+        "action": "send_health_report",
+        "body": {
+            "restaurant_name": restaurant_name,
+            "startDate": start_date,
+            "endDate": end_date
+        }
+    }
+    response = lambda_client.invoke(
+        FunctionName=health_report_mgr_lambda,
+        InvocationType='RequestResponse',
+        Payload=json.dumps(lambda_payload)
+    )
+    
+    response_payload = json.loads(response['Payload'].read())
+    if response_payload.get('statusCode') == 200:
+        flash('Email sent successfully!', 'success')
+        body = json.loads(response_payload['body'])
+        csv_data = body['csv_data']
+        csv_reader = csv.reader(io.StringIO(csv_data), delimiter=',')
+        headers = next(csv_reader)
+        csv_list = [dict(zip(headers, row)) for row in csv_reader]
+        
+        return render_template('health-report.html', csv_list=csv_list, start_date=start_date, end_date=end_date)
+    else:
+        flash('Failed to send email.', 'error')
+    
+    return redirect(url_for('health_report'))
 
 @app.route('/register-restaurant', methods=['GET', 'POST'])
 def register_restaurant():
