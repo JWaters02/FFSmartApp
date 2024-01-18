@@ -41,6 +41,8 @@ fi
 
 zip -r out/update_orders.zip src
 aws s3 cp out/update_orders.zip s3://analysis-and-design-course-work-lambda-buckets/update_orders.zip
+aws lambda update-function-code --function-name arn:aws:lambda:eu-west-1:203163753194:function:FfSmartAppTheOneWeAreWork-AnalysisAndDesignUpdateO-vU4oQlozso3q --s3-bucket analysis-and-design-course-work-lambda-buckets --s3-key update_orders.zip 
+q
 rm -r out
 rm -r dependencies
 ```

@@ -13,6 +13,7 @@ interface eventBridgeTriggeredLambdaToDynamoDbStackProps extends cdk.StackProps 
     s3KeyToZipFile: string;
     masterDb: DynamoDB.Table;
     lambdaToBeInvoked: lambda.Function;
+    sendEmail: boolean;
     environment?: { [key: string]: string };
 }
 
@@ -36,6 +37,7 @@ export class EventBridgeTriggeredLambdaToDynamoDbStack extends cdk.Stack {
                 s3KeyToZipFile: props.s3KeyToZipFile,
                 masterDb: props.masterDb,
                 environment: props.environment,
+                sendEmail: props.sendEmail,
             },
         );
 

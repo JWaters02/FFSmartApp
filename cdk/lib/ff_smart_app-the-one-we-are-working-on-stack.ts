@@ -99,6 +99,7 @@ export class FfSmartAppTheOneWeAreWorkingOnStack extends cdk.Stack {
                 s3KeyToZipFile: 'update_orders.zip',
                 masterDb: storageStack.masterDynamoDbTable,
                 lambdaToBeInvoked: tokenMgr.lambdaFunction,
+                sendEmail: true,
                 environment: {
                     'MASTER_DB': storageStack.masterDynamoDbTable.tableName,
                     'TOKEN_MGR_ARN': tokenMgrFunctionArn,
