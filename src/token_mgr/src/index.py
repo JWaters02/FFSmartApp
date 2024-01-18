@@ -4,6 +4,7 @@ import json
 from .custom_exceptions import BadRequestException
 from .patch import set_token
 from .post import validate_token
+from .delete import delete_token
 
 
 def handler(event, context):
@@ -38,7 +39,7 @@ def handler(event, context):
                 response = validate_token(event, table)
         elif httpMethod == 'DELETE':
             if action == 'delete_token':
-                pass
+                response = delete_token(event, table)
             elif action == 'clean_up_old_tokens':
                 pass
 
