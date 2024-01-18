@@ -3,6 +3,7 @@ import boto3
 import json
 from .custom_exceptions import BadRequestException
 from .patch import set_token
+from .post import validate_token
 
 
 def handler(event, context):
@@ -34,7 +35,7 @@ def handler(event, context):
                 response = set_token(event, table)
         if httpMethod == 'POST':
             if action == 'validate_token':
-                pass
+                response = validate_token(event, table)
         elif httpMethod == 'DELETE':
             if action == 'delete_token':
                 pass

@@ -42,7 +42,7 @@ def set_token(event, table):
             },
         )
 
-        return {
+        response = {
             'statusCode': 200,
             'body': {
                 'token': random_number,

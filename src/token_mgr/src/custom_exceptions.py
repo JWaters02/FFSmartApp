@@ -20,3 +20,11 @@ class NotFoundException(CustomHTTPException):
     The server should respond with 404.
     """
     pass
+
+
+class UnauthorizedException(CustomHTTPException):
+    """
+    Should be raised when the user is not allowed to access something.
+    The server should respond with 401.
+    """
+    pass
