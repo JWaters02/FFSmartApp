@@ -32,10 +32,12 @@ def handler(event, data):
     })
 
     for restaurant in all_items:
-        subject = 'Your delivery link'
-        body = 'Some stuff in the body'
         destination = [restaurant['delivery_company_email']]
         sender = 'info@ffsmart.benlewisjones.com'
+        subject = 'Your delivery link'
+        body = '''
+        https://www.google.com/
+        '''
 
         generate_and_send_email(ses_client, subject, body, destination, sender)
 

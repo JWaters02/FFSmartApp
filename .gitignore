@@ -14,6 +14,6 @@ __pycache__/
 src/ecs/flask_session/
 
 **/venv/
-
+**/.idea/
 **/aws.xml
 *.iml
