@@ -1,5 +1,8 @@
 import json
+import boto3
 from boto3.dynamodb.conditions import Attr
+from botocore.exceptions import ClientError
+
 
 def make_lambda_request(lambda_client, payload, function_name):
     """
@@ -58,3 +61,43 @@ def list_of_all_pks_and_delivery_emails(table):
         next_page_exists = last_evaluated_key is not None
 
     return all_pks
+
+
+def generate_and_send_email(ses_client, subject, body, destinations, sender):
+    """
+    Generates and then sends an email to destination.
+
+    :param ses_client: Client of the ses.
+    :param subject: The emails subject.
+    :param body: The emails body.
+    :param destinations: The an array of destination email addresses.
+    :param sender: The sender email address, this must be a verified email address.
+    :return: True if email was sent.
+    """
+
+    try:
+        ses_client.send_email(
+            Destination={
+                'ToAddresses': destinations,
+            },
+            Message={
+                'Body': {
+                    'Text': {
+                        'Charset': 'UTF-8',
+                        'Data': body,
+                    },
+                },
+                'Subject': {
+                    'Charset': 'UTF-8',
+                    'Data': subject,
+                },
+            },
+            Source=sender
+        )
+
+        return True
+
+    except ClientError as ignore:
+        print(ignore)
+        # Handle email not being sent
+        return False
