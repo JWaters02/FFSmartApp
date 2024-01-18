@@ -4,7 +4,7 @@ import json
 from .custom_exceptions import BadRequestException
 from .patch import set_token
 from .post import validate_token
-from .delete import delete_token
+from .delete import delete_token, clean_up_old_tokens
 
 
 def handler(event, context):
@@ -41,13 +41,10 @@ def handler(event, context):
             if action == 'delete_token':
                 response = delete_token(event, table)
             elif action == 'clean_up_old_tokens':
-                pass
+                response = clean_up_old_tokens(event, table)
 
         if response is None:
-            response = {
-                'statusCode': 400,
-                'body': 'Bad request.'
-            }
+            raise BadRequestException('Bad request.')
 
     except BadRequestException as e:
         response = {
