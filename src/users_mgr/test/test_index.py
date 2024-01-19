@@ -360,13 +360,5 @@ class TestDeleteUserLambda(unittest.TestCase):
         self.assertIn('Error accessing DynamoDB', response['body'])
 
 
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     unittest.main()
