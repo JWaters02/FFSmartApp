@@ -51,11 +51,7 @@ def list_of_all_pks_and_delivery_emails(table):
             )
 
         if 'Items' in dynamo_response:
-            for item in dynamo_response['Items']:
-                all_pks.append({
-                    'pk': item['pk'],
-                    'delivery_company_email': item['delivery_company_email']
-                })
+            all_pks.extend(dynamo_response['Items'])
 
         last_evaluated_key = dynamo_response.get('LastEvaluatedKey')
         next_page_exists = last_evaluated_key is not None
@@ -101,3 +97,26 @@ def generate_and_send_email(ses_client, subject, body, destinations, sender):
         print(ignore)
         # Handle email not being sent
         return False
+
+
+def generate_email_body(restaurant_admin_settings, token):
+
+    delivery_link = f'http://0.0.0.0:80/delivery/{restaurant_admin_settings["pk"]}/{token}'
+
+    return f'''
+    Hello Driver,
+    
+    You have a delivery for {restaurant_admin_settings['restaurant_details']['restaurant_name']}.
+    
+    Delivery link: {delivery_link}
+    
+    Address:
+    {restaurant_admin_settings['restaurant_details']['location']['city']}
+    {restaurant_admin_settings['restaurant_details']['location']['postcode']}
+    {restaurant_admin_settings['restaurant_details']['location']['street_address_1']}
+    {restaurant_admin_settings['restaurant_details']['location']['street_address_2']}
+    {restaurant_admin_settings['restaurant_details']['location']['street_address_3']}
+    
+    Good luck!
+    This message will self-destruct in 3 days.
+    '''

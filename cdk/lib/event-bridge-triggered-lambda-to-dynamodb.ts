@@ -52,6 +52,6 @@ export class EventBridgeTriggeredLambdaToDynamoDbStack extends cdk.Stack {
 
         this.eventBridgeRule.addTarget(new targets.LambdaFunction(this.lambdaFunction));
 
-        this.lambdaFunction.grantInvoke(props.lambdaToBeInvoked);
+        props.lambdaToBeInvoked.grantInvoke(this.lambdaFunction);
     }
 }

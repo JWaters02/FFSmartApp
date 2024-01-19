@@ -416,6 +416,7 @@ def health_report_api(date_after, date_before):
 
 @app.route('/delivery/<token>', methods=['GET'])
 def delivery(token):
+    # TODO: needs updating
     order_data = get_order_data(token)
     if not order_data:
         flash('Invalid or expired token.', 'danger')
