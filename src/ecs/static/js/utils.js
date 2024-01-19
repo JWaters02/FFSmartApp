@@ -34,3 +34,20 @@ async function fetchConfig() {
         console.error('Error:', error);
     }
 }
+
+async function sendFlashMessage(message, category) {
+    fetch('/flash', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: message, category: category })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}

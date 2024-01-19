@@ -4,41 +4,65 @@
     Inventory
 {% endblock %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
 {% block content %}
     <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="text-center text-light">Inventory</h1>
-                <div class="d-flex flex-wrap justify-content-center">
-                    {% for item in items %}
-                    <div class="card table-card m-2">
-                        <div class="card-body d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <h5 class="card-title">{{ item.name }}</h5>
+        <div class="text-center mb-4">
+            {% if is_front_door_open %}
+                <form action="{{ url_for('close_door') }}" method="post" class="d-inline">
+                    <button id="doorButton" type="submit" class="btn btn-danger">Close Door</button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('open_door') }}" method="post" class="d-inline">
+                    <button id="doorButton" type="submit" class="btn btn-success">Open Door</button>
+                </form>
+            {% endif %}   
+        </div>
+        <div class="d-flex flex-wrap justify-content-center">
+            {% for item in items %}
+                <div class="card table-card m-2">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center mb-3">
+                            <h5 class="card-title">{{ item.item_name }}</h5>
+                        </div>
+                        {% for item_detail in item.item_list %}
+                            <div class="mb-2">
+                                <strong>Expiry Date:</strong> {{ item_detail.expiry_date }}
                             </div>
                             <div class="mb-2">
-                                <strong>Expiry Date:</strong> {{ item.expiry_date }}
+                                <strong>Quantity:</strong> {{ item_detail.current_quantity }} 
+                                <form action="{{ url_for('update_item') }}" method="post" class="d-inline">
+                                    <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                    <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                    <input type="hidden" name="quantity_change" value=1>
+                                    <button type="submit" class="btn btn-sm btn-outline-success">+</button>
+                                </form> 
+                                <form action="{{ url_for('update_item') }}" method="post" class="d-inline">
+                                    <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                    <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                    <input type="hidden" name="quantity_change" value=-1>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">-</button>
+                                </form>
                             </div>
-                            <div class="mb-2">
-                                <strong>Quantity:</strong> {{ item.quantity }} <button class="btn btn-sm btn-outline-success">+</button> <button class="btn btn-sm btn-outline-danger">-</button>
-                            </div>
-                            <div class="mb-2">
-                                <strong>Desired Quantity:</strong> 
-                                <input type="number" class="form-control" value="{{ item.desired_quantity }}">
-                            </div>
-                            <button class="btn btn-danger mt-auto">Remove</button>
+                            <form action="{{ url_for('delete_item') }}" method="post">
+                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                <input type="hidden" name="quantity_change" value="{{ item_detail.current_quantity }}">
+                                <button type="submit" class="btn btn-danger mt-auto">Delete Item</button>
+                            </form>
+                            
+                        {% endfor %}
+                        <div class="mb-2">
+                            <strong>Desired Quantity:</strong> 
+                            <input type="number" class="form-control" value="{{ item.desired_quantity }}">
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-
-                <div class="add-user-form mt-4">
-                    <h2>Add new item</h2>
-                    <input type="text" class="form-control" placeholder="New item name">
-                    <input type="email" class="form-control" placeholder="Desired quantity">
-                    <button class="btn btn-success">Add item to fridge</button>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
+    
 {% endblock %}
