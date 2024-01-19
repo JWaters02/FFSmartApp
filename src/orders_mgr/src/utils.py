@@ -34,7 +34,22 @@ def is_order_id_valid(order_id, item):
     return True
 
 
-def get_item_quantity(order_items, item_name):
+def get_expired_item_quantity_fridge(fridge_item):
+    quantity = 0
+    for entry in fridge_item['item_list']:
+        if entry['expiry_date'] <= int(time.time()):
+            quantity += entry['current_quantity']
+    return quantity
+
+
+def get_item_quantity_fridge(fridge_item):
+    for entry in fridge_item['item_list']:
+        if entry['expiry_date'] > int(time.time()):
+            return entry['current_quantity']
+    return 0
+
+
+def get_item_quantity_orders(order_items, item_name):
     for item in order_items:
         if item['item_name'] == item_name:
             return item['quantity']
@@ -43,12 +58,9 @@ def get_item_quantity(order_items, item_name):
 
 def get_total_item_quantity(fridge_item, orders):
     # Count from fridge entry
-    item_quantity = 0
-    for entry in fridge_item['item_list']:
-        if entry['expiry_date'] > int(time.time()):
-            item_quantity += entry['current_quantity']
+    item_quantity = get_item_quantity_fridge(fridge_item)
     # Count from orders
     for order in orders:
-        item_quantity += get_item_quantity(order['items'], fridge_item['item_name'])
+        item_quantity += get_item_quantity_orders(order['items'], fridge_item['item_name'])
 
     return item_quantity

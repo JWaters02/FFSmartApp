@@ -1,7 +1,7 @@
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from .custom_exceptions import NotFoundException, BadRequestException
-from .utils import generate_order_id, get_total_item_quantity
+from .utils import generate_order_id, get_total_item_quantity, get_expired_item_quantity_fridge
 import time
 import json
 
@@ -44,24 +44,34 @@ def order_check(dynamodb_client, event, table, table_name):
         orders = orders_response['Items'][0]['orders']
 
         order_items = []
+        expired_items = []
         for fridge_item in fridge_items:
             item_quantity = get_total_item_quantity(fridge_item, orders)
             if item_quantity < fridge_item['desired_quantity']:
                 # add item to order
                 item_to_order = {
                     'M': {
-                        "item_name": {'S': fridge_item['item_name']},
-                        "quantity": {'N': str(fridge_item['desired_quantity'] - item_quantity)}
+                        'item_name': {'S': fridge_item['item_name']},
+                        'quantity': {'N': str(fridge_item['desired_quantity'] - item_quantity)}
                     }
                 }
                 order_items.append(item_to_order)
+            expired_item_quantity = get_expired_item_quantity_fridge(fridge_item)
+            if expired_item_quantity > 0:
+                expired_item = {
+                    'item_name': fridge_item['item_name'],
+                    'quantity': expired_item_quantity
+                }
+                expired_items.append(expired_item)
         if order_items:
-            response = create_order(dynamodb_client, table, restaurant_name, order_items, table_name)
+            response = create_order(dynamodb_client, table, restaurant_name, order_items, expired_items, table_name)
         else:
             # return success, no order necessary
             response = {
-                'statusCode': 200,
-                'body': 'No order necessary'
+                'statusCode': 204,
+                'body': {
+                    'expired_items': expired_items
+                }
             }
 
     except KeyError as ignore:
@@ -80,7 +90,7 @@ def order_check(dynamodb_client, event, table, table_name):
     return response
 
 
-def create_order(dynamodb_client, table, restaurant_name, order_items, table_name):
+def create_order(dynamodb_client, table, restaurant_name, order_items, expired_items, table_name):
     """
     Creates a new order for a given restaurant_id.
 
@@ -130,8 +140,11 @@ def create_order(dynamodb_client, table, restaurant_name, order_items, table_nam
         )
 
         response = {
-            'statusCode': 200,
-            'body': {'order_id': order_id}
+            'statusCode': 201,
+            'body': {
+                'order_id': order_id,
+                'expired_items': expired_items
+            }
         }
 
     except NotFoundException as e:
