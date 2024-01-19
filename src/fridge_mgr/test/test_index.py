@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
+from src.inventory_utils import modify_door_state
 from src.index import handler
 
 class TestDynamoDBHandler(unittest.TestCase):
@@ -40,6 +41,51 @@ class TestDynamoDBHandler(unittest.TestCase):
         self.assertEqual(response, expected_response)
 
     # Additional test cases go here, for different actions and scenarios
+class TestModifyDoorStateFunction(unittest.TestCase):
+
+    def test_open_door_action(self):
+        item = {'is_front_door_open': False, 'is_back_door_open': False}
+        body = {'is_front_door_open': True, 'is_back_door_open': False}
+        action = "open_door"
+
+        modify_door_state(item, body, action)
+
+        self.assertTrue(item['is_front_door_open'])
+        self.assertFalse(item['is_back_door_open'])
+
+    def test_open_door_action_with_default_values(self):
+        item = {'is_front_door_open': False, 'is_back_door_open': False}
+        body = {}
+        action = "open_door"
+
+        modify_door_state(item, body, action)
+
+        self.assertFalse(item['is_front_door_open'])  # Default value should be False
+        self.assertFalse(item['is_back_door_open'])   # Default value should be False
+
+    def test_close_door_action(self):
+        item = {'is_front_door_open': True, 'is_back_door_open': True}
+        body = {}
+        action = "close_door"
+
+        modify_door_state(item, body, action)
+
+        self.assertFalse(item['is_front_door_open'])
+        self.assertFalse(item['is_back_door_open'])
+
+    def test_close_door_action_with_existing_values(self):
+        item = {'is_front_door_open': True, 'is_back_door_open': True}
+        body = {'is_front_door_open': False, 'is_back_door_open': True}
+        action = "close_door"
+
+        modify_door_state(item, body, action)
+
+        self.assertFalse(item['is_front_door_open'])
+        self.assertFalse(item['is_back_door_open'])
+
+if __name__ == '__main__':
+    unittest.main()
+
 
 if __name__ == '__main__':
     unittest.main()
