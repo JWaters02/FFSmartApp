@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from src.index import handler
 from src.get import get_all_users, BadRequestException, get_user
 from src.post import create_new_restaurant_dynamodb_entries, BadRequestException
+from src.delete import delete_user
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
@@ -306,6 +307,64 @@ class TestCreateNewRestaurantDynamoDBEntries(unittest.TestCase):
             self.assertEqual(e.response['Error']['Code'], 'TransactionCanceledException')
             self.assertEqual(e.response['Error']['Message'], 'The conditional request failed')
             self.assertEqual(e.response['ResponseMetadata']['HTTPStatusCode'], 500)
+
+
+
+
+
+
+
+
+class TestDeleteUserLambda(unittest.TestCase):
+
+    def setUp(self):
+        self.event = {
+            'body': {
+                'restaurant_id': 'example_restaurant',
+                'username': 'example_user'
+            }
+        }
+        self.table = MagicMock()
+
+    def test_delete_user_successful(self):
+        # Mocking DynamoDB response
+        self.table.get_item.return_value = {
+            'Item': {
+                'pk': 'example_restaurant',
+                'type': 'users',
+                'users': [{'username': 'existing_user'}, {'username': 'example_user'}]
+            }
+        }
+
+        response = delete_user(self.event, self.table)
+
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(self.table.update_item.call_count, 1)
+
+    def test_delete_user_not_found(self):
+        # Mocking DynamoDB response for non-existent restaurant
+        self.table.get_item.return_value = {}
+
+        response = delete_user(self.event, self.table)
+
+        self.assertEqual(response['statusCode'], 404)
+        self.assertIn('Restaurant does not exist', response['body'])
+
+    def test_delete_user_dynamodb_error(self):
+        # Mocking DynamoDB ClientError
+        self.table.get_item.side_effect = ClientError({'Error': {'Code': 'TestException'}}, 'operation_name')
+
+        response = delete_user(self.event, self.table)
+
+        self.assertEqual(response['statusCode'], 500)
+        self.assertIn('Error accessing DynamoDB', response['body'])
+
+
+
+
+
+
+
 
 
 
