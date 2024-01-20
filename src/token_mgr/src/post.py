@@ -29,8 +29,6 @@ def validate_token(event, table):
     request_token = event['body']['request_token']
 
     try:
-        is_valid = False
-
         dynamo_response = table.get_item(
             Key={
                 'pk': restaurant_id,
@@ -46,14 +44,16 @@ def validate_token(event, table):
 
         for token in item['tokens']:
             if request_token == token['token'] and current_time < token['expiry_date']:
-                is_valid = True
+                response = {
+                    'statusCode': 200,
+                    'body': {
+                        'object_id': token['object_id'],
+                        'id_type': token['id_type']
+                    }
+                }
                 break
         else:
             raise UnauthorizedException('Invalid token.')
-
-        response = {
-            'statusCode': 200,
-        }
 
     except UnauthorizedException as e:
         response = {

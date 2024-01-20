@@ -43,6 +43,13 @@ def delete_token(event, table):
         for index, token in enumerate(item['tokens']):
             if request_token == token['token']:
                 item['tokens'].pop(index)
+                response = {
+                    'statusCode': 200,
+                    'body': {
+                        'object_id': token['object_id'],
+                        'id_type': token['id_type']
+                    }
+                }
                 break
         else:
             raise NotFoundException('Token does not exist.')
@@ -57,10 +64,6 @@ def delete_token(event, table):
                 ':val': item['tokens']
             },
         )
-
-        response = {
-            'statusCode': 200,
-        }
 
     except NotFoundException as e:
         response = {
@@ -97,7 +100,7 @@ def clean_up_old_tokens(event, table):
     restaurant_id = event['body']['restaurant_id']
 
     try:
-        is_valid = False
+        all_removed_objects = []
 
         dynamo_response = table.get_item(
             Key={
@@ -112,9 +115,15 @@ def clean_up_old_tokens(event, table):
 
         current_time = int(time.time())
 
+        new_token_list = []
         for index, token in enumerate(item['tokens']):
             if current_time > token['expiry_date']:
-                item['tokens'].pop(index)
+                all_removed_objects.append({
+                    'object_id': token['object_id'],
+                    'id_type': token['id_type']
+                })
+            else:
+                new_token_list.append(token)
 
         table.update_item(
             Key={
@@ -123,12 +132,15 @@ def clean_up_old_tokens(event, table):
             },
             UpdateExpression="SET tokens = :val",
             ExpressionAttributeValues={
-                ':val': item['tokens']
+                ':val': new_token_list
             },
         )
 
         response = {
             'statusCode': 200,
+            'body': {
+                'objects_removed': all_removed_objects
+            }
         }
 
     except NotFoundException as e:

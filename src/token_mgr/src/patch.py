@@ -28,12 +28,12 @@ def set_token(event, table):
     if event['body']['id_type'] not in ['order']:
         raise BadRequestException(f"Bad request {event['body']['id_type']} is not a valid type.")
 
-    if 'id_to_store' not in event['body']:
+    if 'object_id' not in event['body']:
         raise BadRequestException('Bad request id not found in body.')
 
     restaurant_id = event['body']['restaurant_id']
     id_type = event['body']['id_type']
-    id_to_store = event['body']['id_to_store']
+    object_id = event['body']['object_id']
 
     try:
         random_number = str(secrets.randbits(64))
@@ -50,7 +50,7 @@ def set_token(event, table):
                     'token': random_number,
                     'expiry_date': expiry_date_unix_time,
                     'id_type': id_type,
-                    'id_to_store': id_to_store
+                    'object_id': object_id
                 }]
             },
         )
