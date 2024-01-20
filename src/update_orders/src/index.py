@@ -18,40 +18,55 @@ def handler(event, data):
     table = dynamodb_resource.Table(__master_db_name__)
 
     all_items = list_of_all_pks_and_delivery_emails(table)
-    temp = all_items[0]
-    all_items.clear()
-    all_items.append(temp)
+
+    failed_entries = []
 
     for restaurant in all_items:
-        print('I have been called')
-        ##########################
-        # Orders
-        orders_response = create_new_order(lambda_client, __orders_mgr_arn__, restaurant)
+        try:
+            ##########################
+            # Orders
+            orders_response = create_new_order(lambda_client, __orders_mgr_arn__, restaurant)
 
-        if 200 > orders_response['statusCode'] > 299:
-            continue
+            if 200 > orders_response['statusCode'] > 299:
+                continue
 
-        # Email the restaurant with all the expired items
-        if orders_response['body']['expired_items']:
-            send_expired_items(ses_client, restaurant, orders_response['body']['expired_items'])
+            # Email the restaurant with all the expired items
+            if orders_response['body']['expired_items']:
+                send_expired_items(ses_client, restaurant, orders_response['body']['expired_items'])
 
-        # Order is created, so an email must be sent to the delivery man
-        if orders_response['statusCode'] == 201:
-            token = create_an_order_token(
-                lambda_client,
-                __token_mgr_arn__,
-                restaurant,
-                orders_response['body']['order_id']
-            )
-            send_delivery_email(ses_client, restaurant, token)
+            # Order is created, so an email must be sent to the delivery man
+            if orders_response['statusCode'] == 201:
+                token = create_an_order_token(
+                    lambda_client,
+                    __token_mgr_arn__,
+                    restaurant,
+                    orders_response['body']['order_id']
+                )
+                send_delivery_email(ses_client, restaurant, token)
 
-        ############################
-        # Clean up all tokens no matter the type
-        old_token_object_ids = remove_old_tokens(lambda_client, __token_mgr_arn__, restaurant)
-        remove_old_objects(lambda_client, __orders_mgr_arn__, restaurant, old_token_object_ids)
+            ############################
+            # Clean up all tokens no matter the type
+            old_token_object_ids = remove_old_tokens(lambda_client, __token_mgr_arn__, restaurant)
+            remove_old_objects(lambda_client, __orders_mgr_arn__, restaurant, old_token_object_ids)
 
-    response = {
-        'statusCode': 200,
-    }
+        except Exception as ignore:
+
+            # If anything goes wrong, this is important for malformed data
+            try:
+                failed_entries.append(restaurant['pk'])
+            except Exception as also_ignored:
+                pass
+
+    if failed_entries:
+        response = {
+            'statusCode': 200,
+            'body': {
+                'failed_entries': failed_entries
+            }
+        }
+    else:
+        response = {
+            'statusCode': 200
+        }
 
     return response
