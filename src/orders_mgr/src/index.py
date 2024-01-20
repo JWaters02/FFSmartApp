@@ -5,8 +5,6 @@ from .custom_exceptions import BadRequestException
 from .get import get_all_orders, get_order
 from .post import create_order, order_check
 from .delete import delete_order
-# NOTE: if you want to import another file aka src/utils.py, you must put a `.` before its name `import .utils`.
-# Not doing this will not error locally but will error on the lambda.
 
 
 def handler(event, context):
