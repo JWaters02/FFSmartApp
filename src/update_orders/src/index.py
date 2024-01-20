@@ -1,11 +1,15 @@
 import os
 import boto3
+
+from .emails import send_delivery_email, send_expired_items
+from .lambda_requests import create_new_order, create_a_token, remove_old_tokens
 from .utils import make_lambda_request, list_of_all_pks_and_delivery_emails, generate_and_send_email, \
-    generate_email_body
+    generate_token_email_body
 
 
 def handler(event, data):
     __token_mgr_arn__ = os.environ.get('TOKEN_MGR_ARN')
+    __orders_mgr_arn__ = os.environ.get('ORDERS_MGR_ARN')
     __master_db_name__ = os.environ.get('MASTER_DB')
 
     ses_client = boto3.client('ses')
@@ -16,47 +20,23 @@ def handler(event, data):
     all_items = list_of_all_pks_and_delivery_emails(table)
 
     for restaurant in all_items:
+        # Create new order
+        orders_response = create_new_order(lambda_client, __orders_mgr_arn__, restaurant)
 
-        # 1. Create new orders
-        # TODO: create new orders
-
-        # 2. get a token
-        payload = {
-            'httpMethod': 'PATCH',
-            'action': 'set_token',
-            'body': {
-                'restaurant_id': restaurant['pk']
-            }
-        }
-
-        lambda_response = make_lambda_request(lambda_client, payload, __token_mgr_arn__)
-
-        if lambda_response['statusCode'] != 200:
-            # Nothing we can do
+        if 200 > orders_response['statusCode'] > 299:
             continue
 
-        token = lambda_response['body']['token']
+        # Email the restaurant with all the expired items
+        if orders_response['body']['expired_items']:
+            send_expired_items(ses_client, restaurant, orders_response['body']['expired_items'])
 
-        # 3. generate body of email
-        body = generate_email_body(restaurant, token)
+        # Order is created, so an email must be sent to the delivery man
+        if orders_response['statusCode'] == 201:
+            token = create_a_token(lambda_client, __token_mgr_arn__, restaurant)
+            send_delivery_email(ses_client, restaurant, token)
 
-        # 4. send email
-        destination = [restaurant['delivery_company_email']]
-        sender = 'no-reply@ffsmart.benlewisjones.com'
-        subject = 'Your delivery link'
-
-        generate_and_send_email(ses_client, subject, body, destination, sender)
-
-        # 5. old tokens must be removed
-        payload = {
-            'httpMethod': 'DELETE',
-            'action': 'clean_up_old_tokens',
-            'body': {
-                'restaurant_id': restaurant['pk']
-            }
-        }
-
-        lambda_response = make_lambda_request(lambda_client, payload, __token_mgr_arn__)
+        # Clean up
+        remove_old_tokens(lambda_client, __token_mgr_arn__, restaurant)
 
     response = {
         'statusCode': 200,

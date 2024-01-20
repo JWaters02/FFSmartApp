@@ -16,6 +16,8 @@ export class FlaskEcsGatewayStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: FlaskEcsGatewayStackProps) {
         super(scope, id, props);
 
+        // TODO: needs permissions for cognito
+
         // VPC created here since it will not be used by any other stack (for now)
         const vpc = new ec2.Vpc(this, 'AnalysisAndDesignVpc', {
             maxAzs: 2,

@@ -1,7 +1,8 @@
 import json
+import os
 import boto3
 from boto3.dynamodb.conditions import Attr
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, BotoCoreError
 
 
 def make_lambda_request(lambda_client, payload, function_name):
@@ -99,8 +100,7 @@ def generate_and_send_email(ses_client, subject, body, destinations, sender):
         return False
 
 
-def generate_email_body(restaurant_admin_settings, token):
-
+def generate_token_email_body(restaurant_admin_settings, token):
     delivery_link = f'http://0.0.0.0:80/delivery/{restaurant_admin_settings["pk"]}/{token}'
 
     return f'''
@@ -118,5 +118,45 @@ def generate_email_body(restaurant_admin_settings, token):
     {restaurant_admin_settings['restaurant_details']['location']['street_address_3']}
     
     Good luck!
-    This message will self-destruct in 3 days.
+    This link will self-destruct in 3 days.
     '''
+
+
+def generate_email_body(restaurant_admin_settings, expired_items):
+
+    list_of_items = ''
+
+    for item in expired_items:
+        list_of_items += f"{item['item_name']}: {item['quantity']}\r\t"
+
+    return f"""
+    Hello {restaurant_admin_settings['restaurant_details']['restaurant_name']},
+    
+    The following items have expired:
+    {list_of_items}
+    
+    This has been reported as a part of your health report.
+    
+    Thanks
+    """
+
+
+def get_cognito_user_email(username):
+    __user_pool_id__ = os.environ.get('USER_POOL_ID')
+    cognito_client = boto3.client('cognito-idp')
+
+    try:
+        cognito_response = cognito_client.admin_get_user(
+            UserPoolId=__user_pool_id__,
+            Username=username
+        )
+
+        for attribute in cognito_response['UserAttributes']:
+            if attribute['Name'] == 'email':
+                return attribute['Value']
+
+    except ClientError as ignore:
+        return None
+
+    except BotoCoreError as ignore:
+        return None
