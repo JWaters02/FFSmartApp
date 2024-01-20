@@ -13,12 +13,14 @@ def create_new_order(lambda_client, lambda_arn, restaurant):
     return make_lambda_request(lambda_client, orders_payload, lambda_arn)
 
 
-def create_a_token(lambda_client, lambda_arn, restaurant):
+def create_an_order_token(lambda_client, lambda_arn, restaurant, order_id):
     token_payload = {
         'httpMethod': 'PATCH',
         'action': 'set_token',
         'body': {
-            'restaurant_id': restaurant['pk']
+            'restaurant_id': restaurant['pk'],
+            'id_type': 'order',
+            'object_id': order_id
         }
     }
 
@@ -41,3 +43,26 @@ def remove_old_tokens(lambda_client, lambda_arn, restaurant):
     }
 
     token_lambda_response = make_lambda_request(lambda_client, token_payload, lambda_arn)
+
+    result = []
+
+    if token_lambda_response['statusCode'] == 200:
+        result = token_lambda_response['body']['objects_removed']
+
+    return result
+
+
+def remove_old_objects(lambda_client, order_lambda_arn, restaurant, old_tokens):
+
+    for token in old_tokens:
+        if token['id_type'] == 'order':
+            payload = {
+                'httpMethod': 'DELETE',
+                'action': 'delete_order',
+                'body': {
+                    'restaurant_id': restaurant['pk'],
+                    'order_id': token['object_id']
+                }
+            }
+
+            make_lambda_request(lambda_client, payload, order_lambda_arn)

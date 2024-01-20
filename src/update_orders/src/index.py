@@ -2,7 +2,7 @@ import os
 import boto3
 
 from .emails import send_delivery_email, send_expired_items
-from .lambda_requests import create_new_order, create_a_token, remove_old_tokens
+from .lambda_requests import create_new_order, create_an_order_token, remove_old_tokens, remove_old_objects
 from .utils import make_lambda_request, list_of_all_pks_and_delivery_emails, generate_and_send_email, \
     generate_token_email_body
 
@@ -18,9 +18,14 @@ def handler(event, data):
     table = dynamodb_resource.Table(__master_db_name__)
 
     all_items = list_of_all_pks_and_delivery_emails(table)
+    temp = all_items[0]
+    all_items.clear()
+    all_items.append(temp)
 
     for restaurant in all_items:
-        # Create new order
+        print('I have been called')
+        ##########################
+        # Orders
         orders_response = create_new_order(lambda_client, __orders_mgr_arn__, restaurant)
 
         if 200 > orders_response['statusCode'] > 299:
@@ -32,11 +37,18 @@ def handler(event, data):
 
         # Order is created, so an email must be sent to the delivery man
         if orders_response['statusCode'] == 201:
-            token = create_a_token(lambda_client, __token_mgr_arn__, restaurant)
+            token = create_an_order_token(
+                lambda_client,
+                __token_mgr_arn__,
+                restaurant,
+                orders_response['body']['order_id']
+            )
             send_delivery_email(ses_client, restaurant, token)
 
-        # Clean up
-        remove_old_tokens(lambda_client, __token_mgr_arn__, restaurant)
+        ############################
+        # Clean up all tokens no matter the type
+        old_token_object_ids = remove_old_tokens(lambda_client, __token_mgr_arn__, restaurant)
+        remove_old_objects(lambda_client, __orders_mgr_arn__, restaurant, old_token_object_ids)
 
     response = {
         'statusCode': 200,
