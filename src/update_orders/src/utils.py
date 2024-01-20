@@ -95,12 +95,18 @@ def generate_and_send_email(ses_client, subject, body, destinations, sender):
         return True
 
     except ClientError as ignore:
-        print(ignore)
         # Handle email not being sent
         return False
 
 
-def generate_token_email_body(restaurant_admin_settings, token):
+def generate_delivery_email_body(restaurant_admin_settings, token):
+    """
+    Creates the body of the email sent to the delivery driver.
+
+    :param restaurant_admin_settings: The restaurant settings.
+    :param token: Token for the email.
+    :return: The emails body.
+    """
     delivery_link = f'http://0.0.0.0:80/delivery/{restaurant_admin_settings["pk"]}/{token}'
 
     return f'''
@@ -122,8 +128,14 @@ def generate_token_email_body(restaurant_admin_settings, token):
     '''
 
 
-def generate_email_body(restaurant_admin_settings, expired_items):
+def generate_expired_items_email_body(restaurant_admin_settings, expired_items):
+    """
+    Creates the body of the email sent to the restaurant showing all the expired items.
 
+    :param restaurant_admin_settings: The restaurant settings.
+    :param expired_items: A list of all the expired items.
+    :return: The emails body.
+    """
     list_of_items = ''
 
     for item in expired_items:
@@ -142,6 +154,12 @@ def generate_email_body(restaurant_admin_settings, expired_items):
 
 
 def get_cognito_user_email(username):
+    """
+    Gets the email address for a cognito user.
+
+    :param username: Username of the cognito user.
+    :return: The emails body.
+    """
     __user_pool_id__ = os.environ.get('USER_POOL_ID')
     cognito_client = boto3.client('cognito-idp')
 

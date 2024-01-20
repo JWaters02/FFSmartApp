@@ -3,8 +3,7 @@ import boto3
 
 from .emails import send_delivery_email, send_expired_items
 from .lambda_requests import create_new_order, create_an_order_token, remove_old_tokens, remove_old_objects
-from .utils import make_lambda_request, list_of_all_pks_and_delivery_emails, generate_and_send_email, \
-    generate_token_email_body
+from .utils import list_of_all_pks_and_delivery_emails
 
 
 def handler(event, data):

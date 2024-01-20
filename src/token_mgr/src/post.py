@@ -1,5 +1,4 @@
 import time
-from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from .custom_exceptions import BadRequestException, NotFoundException, UnauthorizedException
 
