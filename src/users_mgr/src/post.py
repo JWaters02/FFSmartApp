@@ -80,6 +80,35 @@ def create_new_restaurant_dynamodb_entries(dynamodb_client, event, table_name):
                             '#type': 'type'
                         }
                     }
+                },
+                {
+                    'Put': {
+                        'TableName': table_name,
+                        'Item': {
+                            'pk': {'S': restaurant_name},
+                            'type': {'S': 'admin_settings'},
+                            'delivery_company_email': {'S': ''},
+                            'health_and_safety_email': {'S': ''},
+                            'restaurant_details': {
+                                'M': {
+                                    'location': {
+                                        'M': {
+                                            'city': {'S': ''},
+                                            'postcode': {'S': ''},
+                                            'street_address_1': {'S': ''},
+                                            'street_address_2': {'S': ''},
+                                            'street_address_3': {'S': ''}
+                                        }
+                                    },
+                                    'restaurant_name': {'S': restaurant_name}
+                                }
+                            }
+                        },
+                        'ConditionExpression': 'attribute_not_exists(pk) AND attribute_not_exists(#type)',
+                        'ExpressionAttributeNames': {
+                            '#type': 'type'
+                        }
+                    }
                 }
             ]
         )
