@@ -12,9 +12,11 @@ def order_check(dynamodb_client, event, table, table_name):
 
     :param dynamodb_client: The MasterDB client.
     :param event: Event passed to lambda.
-    :param table: Name of MasterDB
+    :param table: DynamoDB table resource for specified table_name.
+    :param table_name: Name of MasterDB.
     :raises BadRequestException: Thrown if format is not as expected.
-    :return: 200 - Success.
+    :return: 204 - Success: No order necessary.
+        404 - Fridge not found.
         500 - Internal error resulting in entry not being added.
     """
 
@@ -95,10 +97,13 @@ def create_order(dynamodb_client, table, restaurant_name, order_items, expired_i
     Creates a new order for a given restaurant_id.
 
     :param dynamodb_client: The MasterDB client.
-    :param event: Event passed to lambda.
-    :param table: Name of MasterDB
-    :raises BadRequestException: Thrown if format is not as expected.
-    :return: 200 - Success.
+    :param table: DynamoDB table resource for specified table_name.
+    :param restaurant_name: Name of restaurant.
+    :param order_items: Items to be added to order.
+    :param expired_items: Expired item entries from fridge.
+    :param table_name: Name of MasterDB.
+    :raises Exception: Thrown if order id could not be generated.
+    :return: 201 - Success: order created.
         500 - Internal error resulting in entry not being added.
     """
     response = None

@@ -4,11 +4,12 @@ from .custom_exceptions import BadRequestException, NotFoundException
 
 def delete_order(event, table):
     """
-    Removes an order for a given order_id and restaurant_id.
+    Deletes an order for a given order_id and restaurant_id.
 
     :param event: Event passed to lambda.
     :param table: MasterDB table resource.
     :raises BadRequestException: Thrown if format is not as expected.
+    :raises NotFoundException: Thrown if restaurant not found or order does not exist
     :return: 200 - Successful.
         404 - Restaurant or order does not exist.
         500 - Internal Server Error.

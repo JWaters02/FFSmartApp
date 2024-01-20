@@ -5,13 +5,13 @@ from .custom_exceptions import BadRequestException
 
 def get_all_orders(event, table):
     """
-    Returns all the users given a restaurant_id.
+    Returns all the orders for a given restaurant_id.
 
     :param event: Event passed to lambda.
     :param table: Client for Master DB.
     :raises BadRequestException: Thrown if format is not as expected.
-    :return: 200 - list of items containing all the users.
-        404 - User not found.
+    :return: 200 - list of items containing all the orders.
+        404 - Orders not found.
         500 - Internal error.
     """
 
@@ -54,13 +54,13 @@ def get_all_orders(event, table):
 
 def get_order(event, table):
     """
-    Gets a specific user, for a given restaurant_id and username.
+    Gets a specific order based on given restaurant_id and order_id.
 
     :param event: Event passed to lambda.
     :param table: Client for Master DB.
     :raises BadRequestException: Thrown if format is not as expected.
     :return: 200 - All the order entries contents.
-        404 - User not found.
+        404 - Order not found.
         500 - Internal error.
     """
     response = None
@@ -72,7 +72,7 @@ def get_order(event, table):
         raise BadRequestException('Bad request restaurant_id not found in body.')
 
     if 'order_id' not in event['body']:
-        raise BadRequestException('Bad request username not found in body.')
+        raise BadRequestException('Bad request order_id not found in body.')
 
     restaurant_name = event['body']['restaurant_id']
     order_id = event['body']['order_id']
@@ -99,7 +99,7 @@ def get_order(event, table):
     except KeyError as ignore:
         response = {
             'statusCode': 404,
-            'body': 'User not found.'
+            'body': 'Order not found.'
         }
 
     except ClientError as e:
