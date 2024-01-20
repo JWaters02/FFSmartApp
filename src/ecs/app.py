@@ -7,9 +7,7 @@ from datetime import datetime
 import boto3
 from flask import Flask, jsonify, make_response, flash, redirect, url_for, request, render_template, session
 from flask_session import Session
-
-from lib.utils import (create_user, delete_user_by_username, get_email_by_username, 
-                       get_restaurant_id, get_user_role, is_user_signed_in, make_lambda_request)
+from lib.utils import create_user, make_lambda_request, get_email_by_username, delete_user_by_username, is_user_signed_in, get_user_role, get_admin_settings, get_restaurant_id
 
 # init app
 app = Flask(__name__)
@@ -583,14 +581,51 @@ def edit_user():
         return make_response('', response['statusCode'])
 
 
-@app.route('/admin')
+@app.route('/admin', methods=['POST', 'GET'])
 def admin_settings():
     user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
 
     if user_role != 'Admin':
         return render_template('404.html')
+    
+    if request.method == 'GET':
+        response = get_admin_settings(session['username'], lambda_client, users_mgr_lambda)
 
-    return render_template('admin-settings.html', user_role=user_role)
+        if response['statusCode'] == 200:
+            return render_template('admin-settings.html', user_role=user_role, settings=response['body']['admin_settings'])
+        else:
+            return render_template('admin-settings.html', user_role=user_role, settings={})
+
+    if request.method == 'POST':
+        payload = json.dumps({
+            "httpMethod": "POST",
+            "action": "update_admin_settings",
+            "body": {
+                "restaurant_id": session['username'],
+                "delivery_company_email": request.form.get('DeliveryCompanyEmail'),
+                "health_and_safety_email": request.form.get('HealthAndSafetyEmail'),
+                "restaurant_details": {
+                    "location": {
+                        "city": request.form.get('City'),
+                        "postcode": request.form.get('Postcode'),
+                        "street_address_1": request.form.get('StreetAddress1'),
+                        "street_address_2": request.form.get('StreetAddress2'),
+                        "street_address_3": request.form.get('StreetAddress3')
+                    },
+                    "restaurant_name": request.form.get('RestaurantName'),
+                }
+            }
+        })
+        print(payload)
+        
+        response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
+        print(response)
+        if response['statusCode'] == 200:
+            flash('Settings updated successfully!', 'success')
+            return redirect(url_for('admin_settings'))
+        else:
+            flash('Failed to update settings.', 'danger')
+            return redirect(url_for('admin_settings'))
 
 
 @app.route('/password/<token>', methods=['GET', 'POST'])
