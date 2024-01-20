@@ -15,7 +15,8 @@ def order_check(dynamodb_client, event, table, table_name):
     :param table: DynamoDB table resource for specified table_name.
     :param table_name: Name of MasterDB.
     :raises BadRequestException: Thrown if format is not as expected.
-    :return: 204 - Success: No order necessary.
+    :return: 201 - Success: Order was created
+        204 - Success: No order necessary.
         404 - Fridge not found.
         500 - Internal error resulting in entry not being added.
     """
@@ -49,6 +50,7 @@ def order_check(dynamodb_client, event, table, table_name):
         expired_items = []
         for fridge_item in fridge_items:
             item_quantity = get_total_item_quantity(fridge_item, orders)
+
             if item_quantity < fridge_item['desired_quantity']:
                 # add item to order
                 item_to_order = {
@@ -58,13 +60,17 @@ def order_check(dynamodb_client, event, table, table_name):
                     }
                 }
                 order_items.append(item_to_order)
+
             expired_item_quantity = get_expired_item_quantity_fridge(fridge_item)
+
             if expired_item_quantity > 0:
                 expired_item = {
                     'item_name': fridge_item['item_name'],
                     'quantity': expired_item_quantity
                 }
+
                 expired_items.append(expired_item)
+
         if order_items:
             response = create_order(dynamodb_client, table, restaurant_name, order_items, expired_items, table_name)
         else:
