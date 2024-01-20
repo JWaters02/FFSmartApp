@@ -379,33 +379,6 @@ def admin_settings():
     if request.method == 'GET':
         response = get_admin_settings(session['username'], lambda_client, users_mgr_lambda)
 
-        """
-        example response json:
-        {
-            "statusCode": 200,
-            "body": {
-                "admin_settings": [
-                    {
-                        "restaurant_details": {
-                        "location": {
-                            "postcode": "value",
-                            "street_address_1": "value",
-                            "street_address_2": "value",
-                            "street_address_3": "value",
-                            "city": "value"
-                        },
-                        "restaurant_name": "value"
-                        },
-                        "pk": "restaurant_name",
-                        "delivery_company_email": "email1",
-                        "health_and_safety_email": "email1",
-                        "type": "admin_settings"
-                    }
-                ]
-            }
-        }
-        """
-
         if response['statusCode'] == 200:
             return render_template('admin-settings.html', user_role=user_role, settings=response['body']['admin_settings'])
         else:
