@@ -5,39 +5,37 @@ Users
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="text-center text-light">Users</h1>
-                <div class="d-flex flex-wrap justify-content-center">
-                    {% for user in users %}
-                    <div class="card table-card m-2">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ user.name }}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ user.email }}</h6>
-                            <p class="card-text">{{ user.role }}</p>
-                            <button class="card-link btn edit-user-btn"
-                                    data-username="{{ user.name }}"
-                                    data-email="{{ user.email }}"
-                                    data-role="{{ user.role }}">Edit</button>
-                            <button class="card-link btn btn-danger remove-user-btn" data-username="{{ user.name }}">Remove</button>
-                        </div>
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center text-light">Users</h1>
+            <div class="d-flex flex-wrap justify-content-center">
+                {% for user in users %}
+                <div class="card table-card m-2">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ user.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ user.email }}</h6>
+                        <p class="card-text">{{ user.role }}</p>
+                        <button class="card-link btn edit-user-btn"
+                                data-username="{{ user.name }}"
+                                data-email="{{ user.email }}"
+                                data-role="{{ user.role }}">Edit</button>
+                        <button class="card-link btn btn-danger remove-user-btn" data-username="{{ user.name }}">Remove</button>
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
+            </div>
 
-                <div class="add-user-form mt-4">
-                    <h2>Add new user</h2>
-                    <input id="username" type="text" class="form-control" placeholder="New username">
-                    <input id="email" type="email" class="form-control" placeholder="Email">
-                    <select id="role" class="form-control">
-                        <option value="">Job Role</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Head Chef">Head Chef</option>
-                        <option value="Chef">Chef</option>
-                    </select>
-                    <button id="create-new-user" class="btn btn-success">Send email to new user</button>
-                </div>
+            <div class="add-user-form mt-4">
+                <h2>Add new user</h2>
+                <input id="username" type="text" class="form-control" placeholder="New username">
+                <input id="email" type="email" class="form-control" placeholder="Email">
+                <select id="role" class="form-control">
+                    <option value="">Job Role</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Head Chef">Head Chef</option>
+                    <option value="Chef">Chef</option>
+                </select>
+                <button id="create-new-user" class="btn btn-success">Send email to new user</button>
             </div>
         </div>
     </div>

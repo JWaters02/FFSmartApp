@@ -64,7 +64,7 @@ document.getElementById("register").addEventListener("click", async function () 
             sendFlashMessage(err)
             console.log(err);
         } else {
-            alert('Registered successfully, please verify your account, and check your email.');
+            sendFlashMessage('Registered successfully, please verify your account, and check your email.');
             window.location.href = "/verify";
             let cognitoUser = result.user;
             sessionStorage.setItem('cognitoUser', JSON.stringify(cognitoUser));

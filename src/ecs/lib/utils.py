@@ -210,6 +210,7 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
     except BotoCoreError as ignore:
         return 'Chef'
 
+
 def get_admin_settings(username, lambda_client, function_name):
     """
     Gets the admin settings.
@@ -228,3 +229,12 @@ def get_admin_settings(username, lambda_client, function_name):
         })
 
     return make_lambda_request(lambda_client, payload, function_name)
+
+
+def get_order_data(token):
+    # example order data
+    order_data = [
+        {'name': 'Apple'},
+        {'name': 'Orange'},
+    ]
+    return order_data

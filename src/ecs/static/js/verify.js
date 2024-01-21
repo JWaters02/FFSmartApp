@@ -24,9 +24,12 @@ document.getElementById("verify").addEventListener("click", function () {
         Pool: userPool
     };
 
+    console.log(userData)
+
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
     cognitoUser.confirmRegistration(code, true, function (err, result) {
         if (err) {
+            console.log(err);
             sendFlashMessage(err, 'danger');
             return;
         }

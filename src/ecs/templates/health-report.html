@@ -5,59 +5,57 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="text-center text-light">Health Report</h1>
-                <form method="post" action="/send-health-report" class="report-filter mb-4 text-center">
-                    <label for="dateAfter" class="text-light">Start Date:</label>
-                    <input type="date" class="form-control d-inline-block" id="dateAfter" name="startDate" style="width: auto;">
-                    <label for="dateBefore" class="text-light">End Date:</label>
-                    <input type="date" class="form-control d-inline-block" id="dateBefore" name="endDate" style="width: auto;">
-                    <button type="submit" class="btn btn-success" id="sendHealthReport">Send Email</button>
-                </form>
-            </div>
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center text-light">Health Report</h1>
+            <form method="post" action="/send-health-report" class="report-filter mb-4 text-center">
+                <label for="dateAfter" class="text-light">Start Date:</label>
+                <input type="date" class="form-control d-inline-block" id="dateAfter" name="startDate" style="width: auto;">
+                <label for="dateBefore" class="text-light">End Date:</label>
+                <input type="date" class="form-control d-inline-block" id="dateBefore" name="endDate" style="width: auto;">
+                <button type="submit" class="btn btn-success" id="sendHealthReport">Send Email</button>
+            </form>
         </div>
-        <div class="row">
-            <div class="col-12">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
+    </div>
+    <div class="row">
+        <div class="col-12">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
                     {% for category, message in messages %}
-                      <div class="alert alert-{{ category }} mt-3">
-                        {{ message }}
-                      </div>
+                        <div class="alert alert-{{ category }} mt-3">
+                            {{ message }}
+                        </div>
                     {% endfor %}
-                  {% endif %}
-                {% endwith %}
-            </div>
+                {% endif %}
+            {% endwith %}
         </div>
-        {% if csv_list %}
-            <div class="row">
-                <div class="col-12 mt-4">
-                    <h2 class="text-center text-light">
-                        Health and Safety Report for Items<br>
-                        [{{ start_date|default('Start Date', true) }}] - [{{ end_date|default('End Date', true) }}]
-                    </h2>
-                    <table class="table table-dark table-striped">
-                        <thead>
+    </div>
+    {% if csv_list %}
+        <div class="row">
+            <div class="col-12 mt-4">
+                <h2 class="text-center text-light">
+                    Health and Safety Report for Items<br>
+                    [{{ start_date|default('Start Date', true) }}] - [{{ end_date|default('End Date', true) }}]
+                </h2>
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            {% for header in csv_list[0].keys() %}
+                                <th>{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in csv_list %}
                             <tr>
-                                {% for header in csv_list[0].keys() %}
-                                    <th>{{ header }}</th>
+                                {% for cell in row.values() %}
+                                    <td>{{ cell }}</td>
                                 {% endfor %}
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in csv_list %}
-                                <tr>
-                                    {% for cell in row.values() %}
-                                        <td>{{ cell }}</td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 {% endblock %}
