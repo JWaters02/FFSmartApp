@@ -17,19 +17,6 @@
             </form>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} mt-3">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-        </div>
-    </div>
     {% if csv_list %}
         <div class="row">
             <div class="col-12 mt-4">

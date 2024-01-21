@@ -55,24 +55,15 @@ def send_health_report():
         headers = next(csv_reader)
         csv_list = [dict(zip(headers, row)) for row in csv_reader]
         
-        return render_template('health-report.html', csv_list=csv_list, start_date=start_date, end_date=end_date)
+        user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
+        return render_template('health-report.html', csv_list=csv_list, start_date=start_date, end_date=end_date, user_role=user_role)
     else:
         flash('Failed to send email.', 'error')
     
-    return redirect(url_for('health_report'))
+    return redirect(url_for('report.health_report'))
 
 
 @report_route.route('/health')
 def health_report():
     user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
     return render_template('health-report.html', user_role=user_role)
-
-
-@report_route.route('/api/health-report/<int:date_after>/<int:date_before>')
-def health_report_api(date_after, date_before):
-    # example data
-    items = [
-        {'name': 'Apple', 'date_added': 219827349871, 'date_removed': 23740173847, 'expiry_date': 27949012840},
-        {'name': 'Orange', 'date_added': 219827349871, 'expiry_date': 27949012840},
-    ]
-    return jsonify(items=items)
