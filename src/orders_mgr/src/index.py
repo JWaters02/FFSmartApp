@@ -4,7 +4,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from .custom_exceptions import BadRequestException
 from .get import get_all_orders, get_order
-from .post import create_order, order_check
+from .post import order_check
 from .delete import delete_order
 
 

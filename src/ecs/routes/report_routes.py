@@ -6,7 +6,6 @@ from flask import (
     redirect, 
     url_for, 
     json,
-    jsonify, 
     flash, 
     request,
     render_template)
@@ -19,7 +18,6 @@ from lib.globals import (
     health_report_mgr_lambda,
     lambda_client, 
     cognito_client,
-    logger,
     flask_session as session
 )
 
@@ -54,7 +52,7 @@ def send_health_report():
         csv_reader = csv.reader(io.StringIO(csv_data), delimiter=',')
         headers = next(csv_reader)
         csv_list = [dict(zip(headers, row)) for row in csv_reader]
-        
+
         user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
         return render_template('health-report.html', csv_list=csv_list, start_date=start_date, end_date=end_date, user_role=user_role)
     else:

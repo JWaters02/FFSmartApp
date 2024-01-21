@@ -8,50 +8,31 @@
     <div class="row">
         <div class="col-12">
             <h1 class="text-center text-light">Orders</h1>
-            <div class="order-selection mb-3">
-                <select class="form-control" id="orderSelect" onchange="updateOrderItems()">
-                    {% for order in orders %}
-                    <option value="{{ order.id }}">{{ order.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div id="orderItems" class="d-flex flex-wrap justify-content-center">
-                <!-- Order items end up here -->
+            <div class="d-flex flex-wrap justify-content-center">
+                {% for order in orders %}
+                    <div class="card table-card m-2">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex align-items-center mb-3">
+                                <h5 class="card-title">Order ID: {{ order.id }}</h5>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Date Ordered:</strong> {{ order.date_ordered }}<br>
+                                <strong>Delivery Date:</strong> {{ order.delivery_date }}
+                            </div>
+
+                            <div class="mb-2">
+                                <h5>Items ordered:</h5>
+                            </div>
+                            {% for item in order['items'] %}
+                                <div class="mb-2">
+                                    <span>{{ item.item_name }}:</span>
+                                    <span class="badge bg-secondary">{{ item.quantity }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-
-    <script>
-        function updateOrderItems() {
-            var selectedOrderId = document.getElementById('orderSelect').value;
-            fetch(`/api/order-items/${selectedOrderId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    populateOrders(data.items);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function populateOrders(orders) {
-            var itemsContainer = document.getElementById('orderItems');
-            itemsContainer.innerHTML = '';
-            orders.forEach(item => {
-                var cardHtml = `
-                    <div class="card table-card m-2">
-                        <div class="card-body">
-                            <div class="item-info">
-                                <h5 class="card-title">${item.name}</h5>
-                                <p class="card-text">Quantity: ${item.quantity}</p>
-                                <p class="card-text">Date ordered: ${item.date_ordered}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                itemsContainer.insertAdjacentHTML('beforeend', cardHtml);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', updateOrderItems);
-    </script>
 {% endblock %}

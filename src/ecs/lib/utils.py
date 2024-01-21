@@ -1,6 +1,7 @@
 import json
 import os
 from botocore.exceptions import ClientError, BotoCoreError
+from datetime import datetime
 
 
 def create_user(cognito_client, username, email, restaurant_id, user_pool_id):
@@ -231,10 +232,67 @@ def get_admin_settings(username, lambda_client, function_name):
     return make_lambda_request(lambda_client, payload, function_name)
 
 
-def get_order_data(token):
-    # example order data
-    order_data = [
-        {'name': 'Apple'},
-        {'name': 'Orange'},
-    ]
-    return order_data
+def get_order_data(lambda_client, order_mgr_lambda, session):
+    """
+    example response:
+    {
+        "statusCode":200,
+        "body":{
+            "items":[
+                {
+                    "delivery_date":1705855333,
+                    "id":"188656606620066851",
+                    "date_ordered":1705768933,
+                    "items":[
+                    {
+                        "item_name":"apple",
+                        "quantity":5
+                    },
+                    {
+                        "item_name":"lemon",
+                        "quantity":10
+                    }
+                    ]
+                },
+                {
+                    "delivery_date":1705855333,
+                    "id":"288656606620066851",
+                    "date_ordered":1705768933,
+                    "items":[
+                    {
+                        "item_name":"peaches",
+                        "quantity":50
+                    },
+                    {
+                        "item_name":"milk",
+                        "quantity":2
+                    }
+                    ]
+                }
+            ]
+        }
+    }
+    """
+
+    try:
+        payload = json.dumps({
+            "httpMethod": "GET",
+            "action": "get_all_orders",
+            "body": {
+                "restaurant_id": session['username']
+            }
+        })
+
+        response = make_lambda_request(lambda_client, payload, order_mgr_lambda)
+        if response['statusCode'] == 200:
+            orders = response['body']['items']
+            for order in orders:
+                order['date_ordered'] = datetime.fromtimestamp(order['date_ordered']).strftime('%Y-%m-%d')
+                order['delivery_date'] = datetime.fromtimestamp(order['delivery_date']).strftime('%Y-%m-%d')
+            return orders
+        else:
+            return []
+
+    except Exception as e:
+        print(e)
+        return []
