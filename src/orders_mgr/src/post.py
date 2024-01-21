@@ -8,7 +8,7 @@ import json
 
 def order_check(dynamodb_client, event, table, table_name):
     """
-    Check fridge for a given restaurant_id, create order if necessary.
+    Check fridge for a given restaurant_id, create order if necessary!.
 
     :param dynamodb_client: The MasterDB client.
     :param event: Event passed to lambda.
