@@ -1,12 +1,13 @@
 import os
 import boto3
 import logging
-from datetime import datetime, timedelta
 import json
-from .inventory_utils import view_inventory, delete_entire_item, delete_zero_quantity_items, modify_items, modify_door_state, generate_response, get_current_time_gmt
+from .inventory_utils import view_inventory, delete_entire_item, modify_items, modify_door_state,\
+    generate_response, get_current_time_gmt, get_low_stock
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
 
 def handler(event, context):
     """
@@ -32,6 +33,8 @@ def handler(event, context):
             return view_inventory(table, pk)
         elif action in ["add_item", "update_item", "delete_item", "open_door", "close_door"]:
             response = manage_inventory(table, pk, body, action)
+        elif action == "get_low_stock":
+            response = get_low_stock(table, pk)
         else:
             raise ValueError(f"Invalid action specified: {action}")
 
@@ -39,6 +42,7 @@ def handler(event, context):
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
         return generate_response(500, f"An error occurred: {str(e)}")
+
 
 def manage_inventory(table, pk, body, action):
     """
@@ -52,8 +56,8 @@ def manage_inventory(table, pk, body, action):
     """
     try:
         current_time = get_current_time_gmt()
-        response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
-        item = response.get('Item')
+        table_response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
+        item = table_response.get('Item')
 
         if not item:
             item = {'pk': pk, 'type': 'fridge', 'items': [], 'is_front_door_open': False, 'is_back_door_open': False}

@@ -1,8 +1,64 @@
 import logging
 from datetime import datetime, timedelta
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+
+def get_low_stock(table, pk):
+    """
+    Gets the low stock items.
+
+    :param table: Master table.
+    :param pk: The pk of the restaurant.
+    :return: 200 - Success and will return low stock.
+        500 - Any other issue.
+    """
+    try:
+        response = generate_response(500, 'Internal Server Error')
+
+        dynamo_response = table.get_item(
+            Key={
+                'pk': pk,
+                'type': 'fridge'
+            }
+        )
+        item = dynamo_response.get('Item', {'items': []})
+
+        low_stock = []
+
+        for food_item in item['items']:
+            name = food_item['item_name']
+            desired_quantity = food_item['desired_quantity']
+
+            current_quantity = 0
+
+            for entry in food_item['item_list']:
+                current_quantity += entry['current_quantity']
+
+            if current_quantity < 2 and desired_quantity > 2:
+                low_stock.append({
+                    'item_name': name,
+                    'desired_quantity': desired_quantity,
+                    'current_quantity': current_quantity
+                })
+
+        response = {
+            'statusCode': 200,
+            'body': {
+                'low_stock': low_stock
+            }
+        }
+
+    except ClientError as ignore:
+        response = generate_response(500, 'Internal Server Error: ' + str(ignore))
+
+    except Exception as ignore:
+        response = generate_response(500, 'Internal Server Error: ' + str(ignore))
+
+    return response
+
 
 def view_inventory(table, pk):
     """
@@ -15,13 +71,14 @@ def view_inventory(table, pk):
     try:
         response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
         item = response.get('Item', {})
-        
+
         delete_zero_quantity_items(item)
-        
+
         return generate_response(200, 'Inventory retrieved successfully', item)
     except Exception as e:
         logger.error(f"An error occurred during inventory retrieval: {str(e)}")
         return generate_response(500, f"An error occurred during inventory retrieval: {str(e)}")
+
 
 def delete_entire_item(item, body):
     """
@@ -29,7 +86,7 @@ def delete_entire_item(item, body):
     :param item: Inventory item.
     :param body: Request body details.
     """
-    logger.info("Entering delete_entire_item function") 
+    logger.info("Entering delete_entire_item function")
 
     item_name = body.get('item_name')
     quantity_change = body.get('quantity_change', 0)
@@ -43,8 +100,8 @@ def delete_entire_item(item, body):
             item_found = True
             logger.info(f"Found item: {item_name}")
             before_delete_count = len(stored_item['item_list'])
-            stored_item['item_list'] = [detail for detail in stored_item['item_list'] 
-                                        if not (detail['expiry_date'] == expiry_date and 
+            stored_item['item_list'] = [detail for detail in stored_item['item_list']
+                                        if not (detail['expiry_date'] == expiry_date and
                                                 detail['current_quantity'] == quantity_change)]
 
             after_delete_count = len(stored_item['item_list'])
@@ -60,6 +117,7 @@ def delete_entire_item(item, body):
 
     logger.info("Exiting delete_entire_item function")
 
+
 def delete_zero_quantity_items(item):
     """
     Removes zero quantity items from inventory.
@@ -69,6 +127,7 @@ def delete_zero_quantity_items(item):
         for stored_item in item['items']:
             stored_item['item_list'] = [detail for detail in stored_item['item_list'] if detail['current_quantity'] > 0]
         item['items'] = [stored_item for stored_item in item['items'] if stored_item['item_list']]
+
 
 def modify_items(item, body, action, current_time):
     """
@@ -115,19 +174,21 @@ def modify_items(item, body, action, current_time):
             }]
         })
 
+
 def modify_door_state(item, body, action):
     """
     Changes door state in inventory for front and back door.
     :param item: Inventory item.
     :param body: Request body details.
     :param action: Door action.
-    """ 
+    """
     if action == "open_door":
         item['is_front_door_open'] = body.get('is_front_door_open', False)
         item['is_back_door_open'] = body.get('is_back_door_open', False)
     elif action == "close_door":
         item['is_front_door_open'] = False
         item['is_back_door_open'] = False
+
 
 def generate_response(status_code, message, additional_details=None):
     """
@@ -144,6 +205,7 @@ def generate_response(status_code, message, additional_details=None):
         'statusCode': status_code,
         'body': body
     }
+
 
 def get_current_time_gmt():
     """

@@ -41,6 +41,8 @@ fi
 
 zip -r out/fridge_mgr.zip src
 aws s3 cp out/fridge_mgr.zip s3://analysis-and-design-course-work-lambda-buckets/fridge_mgr.zip
+aws lambda update-function-code --function-name arn:aws:lambda:eu-west-1:203163753194:function:FfSmartAppTheOneWeAreWork-AnalysisAndDesignFridgeM-JGnzKOPDBYoi --s3-bucket analysis-and-design-course-work-lambda-buckets --s3-key fridge_mgr.zip 
+q
 rm -r out
 rm -r dependencies
 ```
