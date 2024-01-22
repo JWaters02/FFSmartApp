@@ -121,13 +121,17 @@ def modify_door_state(item, body, action):
     :param item: Inventory item.
     :param body: Request body details.
     :param action: Door action.
-    """ 
+    """
     if action == "open_door":
-        item['is_front_door_open'] = body.get('is_front_door_open', False)
-        item['is_back_door_open'] = body.get('is_back_door_open', False)
+        if 'is_front_door_open' in body:
+            item['is_front_door_open'] = body['is_front_door_open']
+        if 'is_back_door_open' in body:
+            item['is_back_door_open'] = body['is_back_door_open']
     elif action == "close_door":
-        item['is_front_door_open'] = False
-        item['is_back_door_open'] = False
+        if 'is_front_door_open' in body:
+            item['is_front_door_open'] = False if body['is_front_door_open'] else item['is_front_door_open']
+        if 'is_back_door_open' in body:
+            item['is_back_door_open'] = False if body['is_back_door_open'] else item['is_back_door_open']
 
 def generate_response(status_code, message, additional_details=None):
     """
