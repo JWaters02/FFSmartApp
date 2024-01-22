@@ -1,3 +1,4 @@
+import json
 import unittest
 from unittest.mock import patch, MagicMock
 from src.inventory_utils import modify_door_state, generate_response, delete_entire_item
