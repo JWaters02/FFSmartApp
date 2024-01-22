@@ -81,23 +81,6 @@ def error_404():
     return render_template('404.html')
 
 
-# TODO: Is this even used anymore?
-@app.route('/password/<token>', methods=['GET', 'POST'])
-def update_password(token):
-    if request.method == 'POST':
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-
-        if password != confirm_password:
-            flash('Passwords do not match.', 'danger')
-            return redirect(url_for('update_password', token=token))
-
-        flash('Your password has been updated!', 'success')
-        return redirect(url_for('index'))
-
-    return render_template('update-password.html', token=token)
-
-
 # run
 if __name__ == '__main__':
     app.run(debug=True)

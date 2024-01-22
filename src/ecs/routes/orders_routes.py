@@ -18,7 +18,7 @@ orders_route = Blueprint('orders', __name__)
 
 @orders_route.route('/orders')
 def orders():
-    orders = get_order_data(lambda_client, order_mgr_lambda, session)
+    orders = get_order_data(lambda_client, order_mgr_lambda, session['username'])
     logger.info(orders)
 
     return render_template('orders.html',

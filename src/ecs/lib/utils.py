@@ -1,5 +1,6 @@
 import json
 import os
+from flask import flash
 from botocore.exceptions import ClientError, BotoCoreError
 from datetime import datetime
 
@@ -232,46 +233,13 @@ def get_admin_settings(username, lambda_client, function_name):
     return make_lambda_request(lambda_client, payload, function_name)
 
 
-def get_order_data(lambda_client, order_mgr_lambda, session):
+def get_order_data(lambda_client, function_name, restaurant_id):
     """
-    example response:
-    {
-        "statusCode":200,
-        "body":{
-            "items":[
-                {
-                    "delivery_date":1705855333,
-                    "id":"188656606620066851",
-                    "date_ordered":1705768933,
-                    "items":[
-                    {
-                        "item_name":"apple",
-                        "quantity":5
-                    },
-                    {
-                        "item_name":"lemon",
-                        "quantity":10
-                    }
-                    ]
-                },
-                {
-                    "delivery_date":1705855333,
-                    "id":"288656606620066851",
-                    "date_ordered":1705768933,
-                    "items":[
-                    {
-                        "item_name":"peaches",
-                        "quantity":50
-                    },
-                    {
-                        "item_name":"milk",
-                        "quantity":2
-                    }
-                    ]
-                }
-            ]
-        }
-    }
+    Gets the order data for the current restaurant.
+    :param lambda_client: Client of the lambda.
+    :param function_name: ID of the restaurant.
+    :param restaurant_id: Current restaurant_id.
+    :return: The order data.
     """
 
     try:
@@ -279,11 +247,11 @@ def get_order_data(lambda_client, order_mgr_lambda, session):
             "httpMethod": "GET",
             "action": "get_all_orders",
             "body": {
-                "restaurant_id": session['username']
+                "restaurant_id": restaurant_id
             }
         })
 
-        response = make_lambda_request(lambda_client, payload, order_mgr_lambda)
+        response = make_lambda_request(lambda_client, payload, function_name)
         if response['statusCode'] == 200:
             orders = response['body']['items']
             for order in orders:
@@ -296,3 +264,36 @@ def get_order_data(lambda_client, order_mgr_lambda, session):
     except Exception as e:
         print(e)
         return []
+
+
+def validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
+    """
+    Validates a token.
+    :param token: Token to validate.
+    :param lambda_client: Client of the lambda.
+    :param restaurant_id: ID of the restaurant.
+    :param token_mgr_lambda: Name of the lambda.
+    :return: True if valid.
+    """
+    
+    try:
+        payload = {
+            "httpMethod": "POST",
+            "action": "validate_token",
+            "body": {
+                "restaurant_id": restaurant_id,
+                "request_token": token
+            }
+        }
+        print(payload)
+
+        response = make_lambda_request(lambda_client, payload, token_mgr_lambda)
+        print(response)
+        if response['statusCode'] == 200:
+            return True
+        else:
+            return False
+
+    except Exception as e:
+        print(e)
+        return False
