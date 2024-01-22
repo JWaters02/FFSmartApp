@@ -75,10 +75,6 @@ def complete_order(restaurant_id, token):
     # And close the door
     close_door(restaurant_id)
 
-    # And delete the token
-    if not delete_token(restaurant_id, token):
-        return jsonify({'success': False, 'message': 'Failed to delete token'}), 400
-
     return jsonify({'success': True, 'message': 'Order completed successfully'})
 
 @delivery_route.route('/delivery/end_delivery/<restaurant_id>/<token>/', methods=['POST'])
