@@ -160,7 +160,7 @@ def create_order(dynamodb_client, table, restaurant_name, order_items, expired_i
 
     except NotFoundException as e:
         response = {
-            'statusCode': 500,
+            'statusCode': 404,
             'body': 'Exception: Restaurant does not exist.'
         }
 
