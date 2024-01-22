@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.inventory_utils import modify_door_state
+from src.inventory_utils import modify_door_state, generate_response, delete_entire_item
 from src.index import handler
 
 class TestDynamoDBHandler(unittest.TestCase):
@@ -82,6 +82,99 @@ class TestModifyDoorStateFunction(unittest.TestCase):
 
         self.assertFalse(item['is_front_door_open'])
         self.assertFalse(item['is_back_door_open'])
+
+class TestGenerateResponse(unittest.TestCase):
+
+    def test_generate_response_with_additional_details(self):
+        status_code = 200
+        message = "Success"
+        additional_details = {'key': 'value'}
+        response = generate_response(status_code, message, additional_details)
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(response['body']['details'], "Success")
+        self.assertEqual(response['body']['additional_details'], {'key': 'value'})
+
+    def test_generate_response_without_additional_details(self):
+        status_code = 500
+        message = "Error"
+        response = generate_response(status_code, message)
+        self.assertEqual(response['statusCode'], 500)
+        self.assertEqual(response['body']['details'], "Error")
+        self.assertNotIn('additional_details', response['body'])
+
+class TestDeleteEntireItem(unittest.TestCase):
+
+    def test_delete_entire_item_existing(self):
+        item = {
+            'items': [
+                {
+                    'item_name': 'Milk',
+                    'item_list': [
+                        {'expiry_date': '2024-01-01', 'current_quantity': 10}
+                    ]
+                }
+            ]
+        }
+        body = {'item_name': 'Milk', 'quantity_change': 10, 'expiry_date': '2024-01-01'}
+        delete_entire_item(item, body)
+        self.assertEqual(len(item['items']), 0)
+
+    def test_delete_entire_item_non_existing(self):
+        item = {'items': []}
+        body = {'item_name': 'Milk', 'quantity_change': 10, 'expiry_date': '2024-01-01'}
+        delete_entire_item(item, body)
+        self.assertEqual(len(item['items']), 0)
+
+    def test_delete_partial_item(self):
+        item = {
+            'items': [
+                {
+                    'item_name': 'Juice',
+                    'item_list': [
+                        {'expiry_date': '2024-02-01', 'current_quantity': 20},
+                        {'expiry_date': '2024-03-01', 'current_quantity': 15}
+                    ]
+                }
+            ]
+        }
+        body = {'item_name': 'Juice', 'quantity_change': 20, 'expiry_date': '2024-02-01'}
+        delete_entire_item(item, body)
+        self.assertEqual(len(item['items'][0]['item_list']), 1)
+        self.assertNotIn({'expiry_date': '2024-02-01', 'current_quantity': 20}, item['items'][0]['item_list'])
+
+    def test_delete_item_not_in_list(self):
+        item = {
+            'items': [
+                {
+                    'item_name': 'Water',
+                    'item_list': [
+                        {'expiry_date': '2024-04-01', 'current_quantity': 30}
+                    ]
+                }
+            ]
+        }
+        body = {'item_name': 'Water', 'quantity_change': 15, 'expiry_date': '2024-05-01'}
+        delete_entire_item(item, body)
+        self.assertEqual(len(item['items'][0]['item_list']), 1)
+        self.assertIn({'expiry_date': '2024-04-01', 'current_quantity': 30}, item['items'][0]['item_list'])
+
+    def test_delete_nonexistent_item_name(self):
+        item = {
+            'items': [
+                {
+                    'item_name': 'Tea',
+                    'item_list': [
+                        {'expiry_date': '2024-06-01', 'current_quantity': 25}
+                    ]
+                }
+            ]
+        }
+        body = {'item_name': 'Coffee', 'quantity_change': 25, 'expiry_date': '2024-06-01'}
+        delete_entire_item(item, body)
+        self.assertEqual(len(item['items']), 1)
+        self.assertEqual(item['items'][0]['item_name'], 'Tea')
+
+
 
 if __name__ == '__main__':
     unittest.main()
