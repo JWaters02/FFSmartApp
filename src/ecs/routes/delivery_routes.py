@@ -177,7 +177,6 @@ def open_door(restaurant_id):
         "action": "open_door",
         "body": {
             "restaurant_name": restaurant_id,
-            "is_front_door_open": False,
             "is_back_door_open": True
         }
     }
