@@ -285,15 +285,15 @@ def validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
                 "request_token": token
             }
         }
-        print(payload)
 
         response = make_lambda_request(lambda_client, payload, token_mgr_lambda)
-        print(response)
         if response['statusCode'] == 200:
             return True
         else:
+            flash('Invalid or expired token.', 'danger')
             return False
 
     except Exception as e:
         print(e)
+        flash('Invalid or expired token.', 'danger')
         return False
