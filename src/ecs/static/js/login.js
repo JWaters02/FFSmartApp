@@ -12,12 +12,6 @@ let cognitoUser;
 let userPool;
 let accessToken;
 
-function updateLoginTitle() {
-    let username = sessionStorage.getItem("username");
-    let currentLogin = username == null ? "Not signed in" : "Logged in as: " + username;
-    document.getElementById("current-login").innerHTML = currentLogin;
-}
-
 function updateLogin() {
     if (accessToken) {
         cognitoUser.getUserAttributes(function (err, result) {
@@ -36,8 +30,6 @@ function updateLogin() {
                         break;
                 }
             }
-
-            updateLoginTitle();
         });
     }
 }
@@ -47,7 +39,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     cognitoUser = JSON.parse(sessionStorage.getItem("cognitoUser"));
     accessToken = sessionStorage.getItem("accessToken");
-    updateLoginTitle();
 });
 
 async function updateCredentials(username, userData, accessToken) {
