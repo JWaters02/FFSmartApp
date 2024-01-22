@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from src.index import handler
-
+from src.post import validate_token
 
 class TestDynamoDBHandler(unittest.TestCase):
     @patch('boto3.resource')
@@ -79,3 +79,68 @@ class TestDynamoDBHandler(unittest.TestCase):
         }
 
         self.assertEqual(response, expected_exception_response)
+class TestValidateTokenLambda(unittest.TestCase):
+
+    def setUp(self):
+        self.event = {
+            'body': {
+                'restaurant_id': 'example_restaurant',
+                'request_token': 'example_token'
+            }
+        }
+        self.table = MagicMock()
+
+    def test_valid_token(self):
+        # Mocking DynamoDB response with a valid token that has not expired
+        self.table.get_item.return_value = {
+            'Item': {
+                'pk': 'example_restaurant',
+                'type': 'tokens',
+                'tokens': [
+                    {'token': 'example_token', 'expiry_date': 9999999999, 'object_id': 'example_id', 'id_type': 'example_type'}
+                ]
+            }
+        }
+
+        response = validate_token(self.event, self.table)
+
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(response['body']['object_id'], 'example_id')
+        self.assertEqual(response['body']['id_type'], 'example_type')
+
+    def test_expired_token(self):
+        # Mocking DynamoDB response with an expired token
+        self.table.get_item.return_value = {
+            'Item': {
+                'pk': 'example_restaurant',
+                'type': 'tokens',
+                'tokens': [
+                    {'token': 'example_token', 'expiry_date': 1, 'object_id': 'example_id', 'id_type': 'example_type'}
+                ]
+            }
+        }
+
+        response = validate_token(self.event, self.table)
+
+        self.assertEqual(response['statusCode'], 401)
+        self.assertIn('Invalid token', response['body'])
+
+    def test_invalid_token(self):
+        # Mocking DynamoDB response with no matching token
+        self.table.get_item.return_value = {
+            'Item': {
+                'pk': 'example_restaurant',
+                'type': 'tokens',
+                'tokens': [
+                    {'token': 'another_token', 'expiry_date': 9999999999, 'object_id': 'example_id', 'id_type': 'example_type'}
+                ]
+            }
+        }
+
+        response = validate_token(self.event, self.table)
+
+        self.assertEqual(response['statusCode'], 401)
+        self.assertIn('Invalid token', response['body'])
+
+if __name__ == '__main__':
+    unittest.main()
