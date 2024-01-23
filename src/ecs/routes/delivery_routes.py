@@ -31,7 +31,6 @@ def delivery(restaurant_id, token):
     if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda): return redirect(url_for('error_404'))
     
     order_data = get_order_data(lambda_client, order_mgr_lambda, restaurant_id)
-    print(order_data)
 
     if request.method == 'PATCH':
         door_data = request.json
@@ -53,7 +52,6 @@ def complete_order(restaurant_id, token):
     if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda): return redirect(url_for('error_404'))
     
     submitted_data = request.json['items']
-    print(submitted_data)
 
     # If any order expiry dates are before tomorrow or don't exist, don't complete
     for item in submitted_data:
@@ -63,7 +61,6 @@ def complete_order(restaurant_id, token):
             return jsonify({'success': False, 'message': 'Expiry date cannot be for the past'}), 400
 
     order_data = get_order_data(lambda_client, order_mgr_lambda, restaurant_id)
-    print(order_data)
 
     success, discrepancies = compare_order_data(order_data, submitted_data)
 

@@ -12,7 +12,8 @@ from flask import (
 
 from lib.utils import (
     get_user_role, 
-    get_restaurant_id
+    get_restaurant_id,
+    make_lambda_request
 )
 from lib.globals import (
     fridge_mgr_lambda,
@@ -37,27 +38,22 @@ def inventory():
             }
         }
         
-        response = lambda_client.invoke(
-            FunctionName=fridge_mgr_lambda,
-            InvocationType='RequestResponse',
-            Payload=json.dumps(lambda_payload)
-        )
-
-        response_payload = json.loads(response['Payload'].read())
-        if response_payload['statusCode'] == 200:
-            items = response_payload['body']['additional_details']['items']
-            is_front_door_open = response_payload['body']['additional_details']['is_front_door_open']
+        response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+        print(response)
+        if response['statusCode'] == 200:
+            items = response['body']['additional_details']['items']
+            is_front_door_open = response['body']['additional_details']['is_front_door_open']
             
             for item in items:
                 for detail in item['item_list']:
                     detail['expiry_date'] = datetime.fromtimestamp(detail['expiry_date']).strftime('%Y-%m-%d')
-                    
+            
             return render_template('inventory.html', 
                     user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), 
                     items=items, 
                     is_front_door_open=is_front_door_open)
         else:
-            logger.error(f"Lambda function error: {response_payload}")
+            logger.error(f"Lambda function error: {response}")
             flash('Error fetching inventory data', 'error')
 
     except Exception as e:
@@ -92,19 +88,13 @@ def delete_item():
             }
         }
 
-        response = lambda_client.invoke(
-            FunctionName=fridge_mgr_lambda,
-            InvocationType='RequestResponse',
-            Payload=json.dumps(lambda_payload)
-        )
+        response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+        logger.info(f"Lambda response: {response}")
 
-        response_payload = json.loads(response['Payload'].read())
-        logger.info(f"Lambda response: {response_payload}")
-
-        if response_payload['statusCode'] == 200:
+        if response['statusCode'] == 200:
             flash('Item deleted successfully!', 'success')
         else:
-            flash(f"Failed to delete item: {response_payload['body']['details']}", 'error')
+            flash(f"Failed to delete item: {response['body']['details']}", 'error')
 
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
@@ -137,19 +127,13 @@ def update_item():
 
         logger.info(f"Lambda payload: {lambda_payload}")
 
-        response = lambda_client.invoke(
-            FunctionName=fridge_mgr_lambda,
-            InvocationType='RequestResponse',
-            Payload=json.dumps(lambda_payload)
-        )
+        response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+        logger.info(f"Lambda response: {response}")
 
-        response_payload = json.loads(response['Payload'].read())
-        logger.info(f"Lambda response: {response_payload}")
-
-        if response_payload['statusCode'] == 200:
+        if response['statusCode'] == 200:
             flash('Item updated successfully!', 'success')
         else:
-            flash(f"Failed to update item: {response_payload['body']['details']}", 'error')
+            flash(f"Failed to update item: {response['body']['details']}", 'error')
 
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
@@ -158,9 +142,51 @@ def update_item():
     return redirect(url_for('inventory.inventory'))
 
 
+@inventory_route.route('/add-item', methods=['POST'])
+def add_item():
+    item_name = request.form.get('add_item_name')
+    expiry_date_str = datetime.now().strftime('%Y-%m-%d')
+    desired_quantity = int(request.form.get('add_desired_quantity'))
+
+    if not validate_inputs(item_name, desired_quantity):
+        return redirect(url_for('inventory.inventory'))
+
+    logger.info(f"Received add request for item: {item_name}, Expiry Date: {expiry_date_str}, Quantity: {desired_quantity}")
+    restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
+
+    try:
+        expiry_date = int(time.mktime(datetime.strptime(expiry_date_str, '%Y-%m-%d').timetuple()))
+
+        lambda_payload = {
+            "httpMethod": "POST",
+            "action": "add_item",
+            "body": {
+                "restaurant_name": restaurant_name,
+                "item_name": item_name,
+                "desired_quantity": desired_quantity,
+                "expiry_date": expiry_date
+            }
+        }
+
+        logger.info(f"Lambda payload: {lambda_payload}")
+
+        response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+        logger.info(f"Lambda response: {response}")
+
+        if response['statusCode'] == 200:
+            flash('Item added successfully!', 'success')
+        else:
+            flash(f"Failed to add item: {response['body']['details']}", 'error')
+
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
+        flash('Error adding item', 'error')
+
+    return redirect(url_for('inventory.inventory'))
+
+
 @inventory_route.route('/open_door', methods=['POST'])
 def open_door():
-    
     restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
     lambda_payload = {
@@ -168,21 +194,18 @@ def open_door():
         "action": "open_door",
         "body": {
             "restaurant_name": restaurant_name,
-            "is_front_door_open": True,
-            "is_back_door_open": False
+            "is_front_door_open": True
         }
     }
-    response = lambda_client.invoke(
-        FunctionName=fridge_mgr_lambda,
-        InvocationType='RequestResponse',
-        Payload=json.dumps(lambda_payload)
-    )
+
+    response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+    if response['statusCode'] != 200:
+        flash(f"Failed to open door: {response['body']['details']}", 'error')
     return redirect(url_for('inventory.inventory'))
 
 
 @inventory_route.route('/close_door', methods=['POST'])
 def close_door():
-    
     restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
     
     lambda_payload = {
@@ -192,9 +215,20 @@ def close_door():
             "restaurant_name": restaurant_name
         }
     }
-    response = lambda_client.invoke(
-        FunctionName=fridge_mgr_lambda,
-        InvocationType='RequestResponse',
-        Payload=json.dumps(lambda_payload)
-    )
+
+    response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+    if response['statusCode'] != 200:
+        flash(f"Failed to close door: {response['body']['details']}", 'error')
     return redirect(url_for('inventory.inventory'))
+
+def validate_inputs(item_name, quantity):
+    if not item_name:
+        flash('Item name must be specified', 'error')
+        return False
+    if not quantity:
+        flash('Quantity must be specified', 'error')
+        return False
+    if quantity < 1:
+        flash('Quantity must be greater than 0', 'error')
+        return False
+    return True
