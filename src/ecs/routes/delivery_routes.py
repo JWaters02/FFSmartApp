@@ -55,6 +55,13 @@ def complete_order(restaurant_id, token):
     submitted_data = request.json['items']
     print(submitted_data)
 
+    # If any order expiry dates are before tomorrow or don't exist, don't complete
+    for item in submitted_data:
+        if item['expiry_date'] is None:
+            return jsonify({'success': False, 'message': 'Expiry date must be specified'}), 400
+        if item['expiry_date'] < int(time.time()):
+            return jsonify({'success': False, 'message': 'Expiry date cannot be for the past'}), 400
+
     order_data = get_order_data(lambda_client, order_mgr_lambda, restaurant_id)
     print(order_data)
 
@@ -67,7 +74,7 @@ def complete_order(restaurant_id, token):
     if not add_items(restaurant_id, submitted_data):
         return jsonify({'success': False, 'message': 'Failed to add items to inventory'}), 400
 
-    # # And delete the orders
+    # And delete the orders
     order_ids = [order['id'] for order in order_data]
     if not delete_orders(restaurant_id, order_ids):
         return jsonify({'success': False, 'message': 'Failed to delete orders'}), 400
@@ -157,10 +164,7 @@ def delete_orders(restaurant_id, order_ids):
             }
         }
 
-        print(payload)
-
         response = make_lambda_request(lambda_client, payload, order_mgr_lambda)
-        print(response)
         if response['statusCode'] != 200:
             flash(f"Failed to delete order: {response}", 'error')
             return False

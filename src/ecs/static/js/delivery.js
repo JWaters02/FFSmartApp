@@ -38,7 +38,6 @@ if (completeOrderButton) {
             };
             orderItems.push(item);
         });
-        console.log(orderItems)
 
         fetch('/delivery/complete_order/' + getRestaurantId() + '/' + getToken(), {
             method: 'POST',
@@ -48,18 +47,14 @@ if (completeOrderButton) {
         .then(data => {
             if(data.success) {
                 changeDoorState(false);
-                location.reload();
                 sendFlashMessage(data.message, 'success');
-
-                setTimeout(function() {
-                    endDelivery();
-                }, 5000);
+                endDelivery();
             } else {
-                sendFlashMessage(data.message, 'danger');
+                alert(data.message);
             }
         }).catch(error => {
             console.error('Error:', error);
-            sendFlashMessage(error, 'danger');
+            alert(error);
         });
     });
 }
@@ -72,10 +67,13 @@ function endDelivery() {
     .then(data => {
         if(data.success) {
             location.reload();
+            window.location.href = '/404/'
         } else {
+            location.reload();
             sendFlashMessage(data.message, 'danger');
         }
     }).catch(error => {
+        location.reload();
         console.error('Error:', error);
         sendFlashMessage(error, 'danger');
     });
