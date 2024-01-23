@@ -2,6 +2,7 @@ import json
 import unittest
 from unittest.mock import patch, MagicMock
 from src.inventory_utils import modify_door_state, generate_response, delete_entire_item
+from src.inventory_utils import delete_zero_quantity_items, modify_items
 from src.index import handler
 
 class TestDynamoDBHandler(unittest.TestCase):
@@ -168,6 +169,110 @@ class TestDeleteEntireItem(unittest.TestCase):
         self.assertEqual(len(item['items']), 1)
         self.assertEqual(item['items'][0]['item_name'], 'Tea')
 
+class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
+
+    def test_remove_empty_items(self):
+        # Create input parameters for function
+        test_item = {'items':[{'item_list':[{'current_quantity': 5}]},{'item_list': []}]}
+
+        # Execute function
+        delete_zero_quantity_items(test_item)
+
+        # Verify response
+        self.assertEqual(test_item['items'],[{'item_list':[{'current_quantity': 5}]}])
+
+    def test_remove_zero_quantity_item(self):
+        # Create input parameters for function
+        test_item = {'items':[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':0}]},{'item_list':[{'current_quantity':5}]}]}
+
+        # Execute function
+        delete_zero_quantity_items(test_item)
+
+        # Verify response
+        self.assertEqual(test_item['items'],[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]}])
+
+
+    def test_keep_non_zero_quantity_item(self):
+        # Create input parameters for function
+        test_item = {'items':[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]}]}
+
+        # Execute function
+        delete_zero_quantity_items(test_item)
+
+        # Verify response
+        self.assertEqual(test_item['items'],[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]}])
+
+    def test_wrong_input(self):
+        # Create input parameters for function
+        test_item = {'test_key':'test_value'}
+
+        # Execute function
+        delete_zero_quantity_items(test_item)
+
+        # Verify response
+        self.assertEqual(test_item, {'test_key':'test_value'})
+
+class TestModifyItemsFunction(unittest.TestCase):
+
+    @patch('src.inventory_utils.get_current_time_gmt')
+    def test_update_existing_item(self, mock_get_current_time):
+
+        # Create input parameters for function
+        item = {'items': [{ 'item_name': 'apple', 'desired_quantity': 5, 'item_list': [ {  'current_quantity': 3, 'expiry_date': '2024-02-01', 'date_added': 1643424000, 'date_removed': 0}]}]}
+        body = {'item_name': 'apple', 'quantity_change': 2, 'expiry_date': '2024-02-01'}
+        action = ""
+        mock_get_current_time.return_value = 1643424000  # Mock current time
+
+        # Execute function
+        modify_items(item, body, action, mock_get_current_time())
+
+        # Verify response
+        self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 5,'item_list': [{'current_quantity': 5,'expiry_date': '2024-02-01','date_added': 1643424000,'date_removed': 0}]}])
+
+    @patch('src.inventory_utils.get_current_time_gmt')
+    def test_create_new_item(self, mock_get_current_time):
+
+        # Create input parameters for function
+        item = {'items': []}
+        body = {'item_name': 'apple', 'quantity_change': 5, 'expiry_date': '2024-02-01'}
+        action = ""
+        mock_get_current_time.return_value = 1643491200  # Mock current time
+
+        # Execute function
+        modify_items(item, body, action, mock_get_current_time())
+
+        # Verify response
+        self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 5,'item_list': [{'current_quantity': 5,'expiry_date': '2024-02-01','date_added': 1643491200,'date_removed': 0}]}])
+
+    @patch('src.inventory_utils.get_current_time_gmt')
+    def test_create_new_item_with_desired_quantity(self, mock_get_current_time):
+
+        # Create input parameters for function
+        item = {'items': []}
+        body = {'item_name': 'apple', 'quantity_change': 5, 'expiry_date': '2024-02-01', 'desired_quantity': 10}
+        action = ""
+        mock_get_current_time.return_value = 1643491200  # Mock current time
+
+        # Execute function
+        modify_items(item, body, action, mock_get_current_time())
+
+        # Verify response
+        self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 10,'item_list': [{'current_quantity': 5,'expiry_date': '2024-02-01','date_added': 1643491200,'date_removed': 0}]}])
+
+    @patch('src.inventory_utils.get_current_time_gmt')
+    def test_update_existing_item_with_different_expiry(self, mock_get_current_time):
+
+        # Create input parameters for function
+        item = {'items': [{ 'item_name': 'apple', 'desired_quantity': 5, 'item_list': [ {  'current_quantity': 3, 'expiry_date': '2024-02-01', 'date_added': 1643424000, 'date_removed': 0}]}]}
+        body = {'item_name': 'apple', 'quantity_change': 2, 'expiry_date': '2024-03-01'}
+        action = ""
+        mock_get_current_time.return_value = 1643424000  # Mock current time
+
+        # Execute function
+        modify_items(item, body, action, mock_get_current_time())
+
+        # Verify response
+        self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 5,'item_list': [{'current_quantity': 3,'expiry_date': '2024-02-01','date_added': 1643424000,'date_removed': 0},{'current_quantity': 2,'expiry_date': '2024-03-01','date_added': 1643424000,'date_removed': 0}]}])
 
 
 if __name__ == '__main__':
