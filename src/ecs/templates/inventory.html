@@ -52,11 +52,14 @@
                                         <input type="hidden" name="quantity_change" value="{{ item_detail.current_quantity }}">
                                         <button type="submit" class="btn btn-danger mt-auto">Delete Item</button>
                                     </form>
-                                    
                                 {% endfor %}
                                 <div class="mb-2">
-                                    <strong>Desired Quantity:</strong> 
-                                    <input type="number" class="form-control" value="{{ item.desired_quantity }}">
+                                    <strong>Desired Quantity:</strong>
+                                    <form action="{{ url_for('inventory.update_desired_quantity') }}" method="post">
+                                        <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                        <input type="number" name="desired_quantity" class="form-control" value="{{ item.desired_quantity }}">
+                                        <button type="submit" class="btn btn-sm btn-success">Save Desired Quantity</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
