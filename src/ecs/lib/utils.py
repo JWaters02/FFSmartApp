@@ -4,6 +4,10 @@ from flask import flash
 from botocore.exceptions import ClientError, BotoCoreError
 from datetime import datetime
 
+from lib.globals import (
+    users_mgr_lambda
+)
+
 
 def create_user(cognito_client, username, email, restaurant_id, user_pool_id):
     """
@@ -199,8 +203,7 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
             }
         }
 
-        response = make_lambda_request(lambda_client, payload, os.environ.get('USERS_MGR_NAME'))
-
+        response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
         if response['statusCode'] != 200:
             return 'Chef'
 

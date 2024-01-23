@@ -242,10 +242,12 @@ def close_door():
         "httpMethod": "POST",
         "action": "close_door",
         "body": {
-            "restaurant_name": restaurant_name
+            "restaurant_name": restaurant_name,
+            "is_front_door_open": False
         }
     }
     response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+    print(response)
     if response['statusCode'] != 200:
         flash(f"Failed to close door: {response['body']['details']}", 'error')
     return redirect(url_for('inventory.inventory'))

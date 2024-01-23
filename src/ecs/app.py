@@ -72,7 +72,6 @@ def flash_message():
 @app.route('/home')
 def home():
     user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
-
     return render_template('home.html', user_role=user_role)
 
 
