@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 from src.index import handler
 from src.emails import send_delivery_email, send_expired_items
 from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails
+from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 
 class TestPost(unittest.TestCase):
 
@@ -115,7 +116,206 @@ class TestGetCognitoUserEmail(unittest.TestCase):
         del os.environ['USER_POOL_ID']
 
         self.assertIsNone(result)
+class TestCreateOrderToken(unittest.TestCase):
+    @patch('src.lambda_requests.make_lambda_request')
+    def test_create_an_order_token_success(self, mock_make_lambda_request):
 
+        mock_response = {
+            'statusCode': 200,
+            'body': {
+                'token': 'your_token_here'
+            }
+        }
+        mock_make_lambda_request.return_value = mock_response
+
+
+        lambda_client = Mock()
+        lambda_arn = 'your_lambda_arn'
+        restaurant = {'pk': 'your_restaurant_id'}
+        order_id = 'your_order_id'
+
+
+        result = create_an_order_token(lambda_client, lambda_arn, restaurant, order_id)
+
+
+        self.assertEqual(result, 'your_token_here')
+        mock_make_lambda_request.assert_called_once_with(
+            lambda_client,
+            {
+                'httpMethod': 'PATCH',
+                'action': 'set_token',
+                'body': {
+                    'restaurant_id': restaurant['pk'],
+                    'id_type': 'order',
+                    'object_id': order_id
+                }
+            },
+            lambda_arn
+        )
+
+    @patch('src.lambda_requests.make_lambda_request')
+    def test_create_an_order_token_failure(self, mock_make_lambda_request):
+        # Mock the lambda response for a failed call
+        mock_response = {
+            'statusCode': 500,
+            'body': 'Internal Server Error'
+        }
+        mock_make_lambda_request.return_value = mock_response
+
+
+        lambda_client = Mock()
+        lambda_arn = 'your_lambda_arn'
+        restaurant = {'pk': 'your_restaurant_id'}
+        order_id = 'your_order_id'
+        result = create_an_order_token(lambda_client, lambda_arn, restaurant, order_id)
+
+
+        self.assertIsNone(result)
+        mock_make_lambda_request.assert_called_once_with(
+            lambda_client,
+            {
+                'httpMethod': 'PATCH',
+                'action': 'set_token',
+                'body': {
+                    'restaurant_id': restaurant['pk'],
+                    'id_type': 'order',
+                    'object_id': order_id
+                }
+            },
+            lambda_arn
+        )
+class TestRemoveOldTokens(unittest.TestCase):
+    @patch('src.lambda_requests.make_lambda_request')
+    def test_remove_old_tokens_success(self, mock_make_lambda_request):
+        mock_response = {
+            'statusCode': 200,
+            'body': {
+                'objects_removed': [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}]
+            }
+        }
+        mock_make_lambda_request.return_value = mock_response
+
+        lambda_client = Mock()
+        lambda_arn = 'your_lambda_arn'
+        restaurant = {'pk': 'your_restaurant_id'}
+
+        result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
+
+        # Assertions
+        self.assertEqual(result, [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}])
+        mock_make_lambda_request.assert_called_once_with(
+            lambda_client,
+            {
+                'httpMethod': 'DELETE',
+                'action': 'clean_up_old_tokens',
+                'body': {
+                    'restaurant_id': restaurant['pk']
+                }
+            },
+            lambda_arn
+        )
+
+    @patch('src.lambda_requests.make_lambda_request')
+    def test_remove_old_tokens_failure(self, mock_make_lambda_request):
+        mock_response = {
+            'statusCode': 500,
+            'body': 'Internal Server Error'
+        }
+        mock_make_lambda_request.return_value = mock_response
+
+        lambda_client = Mock()
+        lambda_arn = 'your_lambda_arn'
+        restaurant = {'pk': 'your_restaurant_id'}
+
+        result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
+
+        self.assertEqual(result, [])
+        mock_make_lambda_request.assert_called_once_with(
+            lambda_client,
+            {
+                'httpMethod': 'DELETE',
+                'action': 'clean_up_old_tokens',
+                'body': {
+                    'restaurant_id': restaurant['pk']
+                }
+            },
+            lambda_arn
+        )
+class TestRemoveOldObjects(unittest.TestCase):
+    @patch('src.lambda_requests.make_lambda_request')
+    def test_remove_old_objects(self, mock_make_lambda_request):
+        mock_response = {
+            'statusCode': 200
+        }
+        mock_make_lambda_request.return_value = mock_response
+        lambda_client = Mock()
+        order_lambda_arn = 'your_order_lambda_arn'
+        restaurant = {'pk': 'your_restaurant_id'}
+        old_tokens = [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}]
+        remove_old_objects(lambda_client, order_lambda_arn, restaurant, old_tokens)
+        expected_calls = [
+            mock.call(
+                lambda_client,
+                {
+                    'httpMethod': 'DELETE',
+                    'action': 'delete_order',
+                    'body': {
+                        'restaurant_id': restaurant['pk'],
+                        'order_id': 'order_id_1'
+                    }
+                },
+                order_lambda_arn
+            ),
+            mock.call(
+                lambda_client,
+                {
+                    'httpMethod': 'DELETE',
+                    'action': 'delete_order',
+                    'body': {
+                        'restaurant_id': restaurant['pk'],
+                        'order_id': 'order_id_2'
+                    }
+                },
+                order_lambda_arn
+            )
+        ]
+
+        mock_make_lambda_request.assert_has_calls(expected_calls)
+        
+class TestCreateNewOrder(unittest.TestCase):
+    @patch('src.lambda_requests.make_lambda_request')
+    def test_create_new_order_success(self, mock_make_lambda_request):
+        mock_response = {
+            'statusCode': 200,
+            'body': {
+                'order_id': 'new_order_id'
+            }
+        }
+        mock_make_lambda_request.return_value = mock_response
+        lambda_client = Mock()
+        lambda_arn = 'your_order_lambda_arn'
+        restaurant = {'pk': 'your_restaurant_id'}
+        result = create_new_order(lambda_client, lambda_arn, restaurant)
+
+        expected_result = {
+            'statusCode': 200,
+            'body': {
+                'order_id': 'new_order_id'
+            }
+        }
+        self.assertEqual(result, expected_result)
+
+        mock_make_lambda_request.assert_called_once_with(
+            lambda_client,
+            {
+                'httpMethod': 'POST',
+                'action': 'create_order',
+                'body': {
+                    'restaurant_id': restaurant['pk']
+                }
+            },
+            lambda_arn
+        )
 
 if __name__ == '__main__':
     unittest.main()
