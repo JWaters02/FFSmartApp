@@ -2,7 +2,7 @@ import os
 import boto3
 import json
 import logging
-from .inventory_utils import (view_inventory, delete_entire_item, add_new_item,
+from .inventory_utils import (view_inventory, delete_item, add_new_item,
                               add_delivery_item, update_item_quantity, modify_door_state,
                               get_low_stock, update_desired_quantity, generate_response)
 
@@ -39,7 +39,7 @@ def handler(event, context):
         elif action == "update_item_quantity":
             return update_item_quantity(table, pk, body)
         elif action == "delete_item":
-            return delete_entire_item(table, pk, body)
+            return delete_item(table, pk, body)
         elif action in ["open_back_door", "close_back_door", "open_front_door", "close_front_door"]:
             return modify_door_state(table, pk, body, action)
         elif action == "get_low_stock":

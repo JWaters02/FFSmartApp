@@ -44,7 +44,7 @@ def add_new_item(table, pk, body):
     item_name = body.get('item_name').lower()
     desired_quantity = body.get('desired_quantity', 0)
     expiry_date = body.get('expiry_date')
-    quantity = body.get('quantity', 0) # delivery of new item edge case
+    quantity = body.get('quantity', 0)  # delivery of new item edge case
     current_time = get_current_time_gmt()
 
     table_response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
@@ -129,13 +129,20 @@ def update_item_quantity(table, pk, body):
             for item_detail in stored_item['item_list']:
                 if item_detail['expiry_date'] == expiry_date:
                     item_detail['current_quantity'] += quantity_change
-                    table.put_item(Item=item)
-                    return generate_response(200, f'Quantity updated for {item_name}')
+                    if item_detail['current_quantity'] < 0: 
+                        return generate_response(400, f'Quantity cannot be negative for {item_name}')
 
+                    table.put_item(Item=item)
+
+                    # if current_quantity is 0, delete the item
+                    if item_detail['current_quantity'] == 0:
+                        return delete_item(table, pk, body)
+                    else:
+                        return generate_response(200, f'Quantity updated for {item_name}')
     return generate_response(404, f'Item {item_name} not found in inventory')
 
 
-def delete_entire_item(table, pk, body):
+def delete_item(table, pk, body):
     """
     Deletes an item entirely from the inventory.
     :param table: DynamoDB table.
@@ -144,7 +151,7 @@ def delete_entire_item(table, pk, body):
     :return: API response with operation result.
     """
     item_name = body.get('item_name')
-    quantity_change = body.get('quantity_change', 0)
+    current_quantity = body.get('current_quantity', 0)
     expiry_date = body.get('expiry_date')
 
     table_response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
@@ -155,9 +162,14 @@ def delete_entire_item(table, pk, body):
 
     for stored_item in item['items']:
         if stored_item['item_name'] == item_name:
-            stored_item['item_list'] = [detail for detail in stored_item['item_list']
-                                        if not (detail['expiry_date'] == expiry_date and
-                                                detail['current_quantity'] == quantity_change)]
+            # if quantity_change is 0, ignore looking at the expiry date
+            if current_quantity == 0:
+                stored_item['item_list'] = [detail for detail in stored_item['item_list']
+                                            if not detail['current_quantity'] == current_quantity]
+            else:
+                stored_item['item_list'] = [detail for detail in stored_item['item_list']
+                                            if not (detail['expiry_date'] == expiry_date and
+                                                    detail['current_quantity'] == current_quantity)]
 
             if not stored_item['item_list']:
                 item['items'] = [i for i in item['items'] if i['item_name'] != item_name]

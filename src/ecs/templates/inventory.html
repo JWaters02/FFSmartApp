@@ -66,7 +66,7 @@
                                     <form action="{{ url_for('inventory.delete_item') }}" method="post">
                                         <input type="hidden" name="item_name" value="{{ item.item_name }}">
                                         <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
-                                        <input type="hidden" name="quantity_change" value="{{ item_detail.current_quantity }}">
+                                        <input type="hidden" name="current_quantity" value="{{ item_detail.current_quantity }}">
                                         <button type="submit" class="btn btn-danger mt-auto">Delete Item</button>
                                     </form>
                                 {% endfor %}

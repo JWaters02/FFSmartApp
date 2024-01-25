@@ -98,7 +98,7 @@ def delete_item():
 
     try:
         expiry_date = int(request.form.get('expiry_date'))
-        quantity_change = int(request.form.get('quantity_change'))
+        current_quantity = int(request.form.get('current_quantity'))
         restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
         lambda_payload = {
@@ -107,7 +107,7 @@ def delete_item():
             "body": {
                 "restaurant_name": restaurant_name,
                 "item_name": item_name,
-                "quantity_change": quantity_change,
+                "current_quantity": current_quantity,
                 "expiry_date": expiry_date
             }
         }

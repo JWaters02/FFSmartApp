@@ -102,8 +102,13 @@ def complete_order(restaurant_id, token):
             'message': 'Failed to add some items to inventory', 
             'retry_items': order_data
         }), 400
+    
+    
+    # f all items are added successfully, delete mocked items
+    if not deleted_mocked_items(restaurant_id, order_data[0]['items']):
+        return jsonify({'success': False, 'message': 'Failed to delete mocked items'}), 400
 
-    # If all items are added successfully, delete orders
+    # Then delete orders
     order_ids = [order['id'] for order in order_data]
     if not delete_orders(restaurant_id, order_ids):
         return jsonify({'success': False, 'message': 'Failed to delete orders'}), 400
@@ -224,6 +229,27 @@ def delete_orders(restaurant_id, order_ids):
         response = make_lambda_request(lambda_client, payload, order_mgr_lambda)
         if response['statusCode'] != 200:
             flash(f"Failed to delete order: {response}", 'error')
+            return False
+    return True
+
+
+def deleted_mocked_items(restaurant_id, items):
+    for item in items:
+        payload = {
+            "httpMethod": "POST",
+            "action": "delete_item",
+            "body": {
+                "restaurant_name": restaurant_id,
+                "item_name": item['item_name'],
+                "current_quantity": 0,
+                "expiry_date": 0
+            }
+        }
+
+        response = make_lambda_request(lambda_client, payload, fridge_mgr_lambda)
+        print(response)
+        if response['statusCode'] != 200:
+            flash(f"Failed to delete mocked item: {response}", 'error')
             return False
     return True
 
