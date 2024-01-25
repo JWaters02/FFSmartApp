@@ -44,6 +44,7 @@ def add_new_item(table, pk, body):
     item_name = body.get('item_name').lower()
     desired_quantity = body.get('desired_quantity', 0)
     expiry_date = body.get('expiry_date')
+    quantity = body.get('quantity', 0) # delivery of new item edge case
     current_time = get_current_time_gmt()
 
     table_response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
@@ -57,7 +58,7 @@ def add_new_item(table, pk, body):
         'item_name': item_name,
         'desired_quantity': desired_quantity,
         'item_list': [{
-            'current_quantity': 0,
+            'current_quantity': quantity,
             'expiry_date': expiry_date,
             'date_added': current_time,
             'date_removed': 0
@@ -85,9 +86,7 @@ def add_delivery_item(table, pk, body):
     item = table_response.get('Item')
 
     if not item:
-        # add the item as a new item
-        body['desired_quantity'] = quantity
-        return add_new_item(table, pk, body)
+        return generate_response(404, 'Inventory item not found')
 
     for stored_item in item['items']:
         if stored_item['item_name'].lower() == item_name:
@@ -101,7 +100,10 @@ def add_delivery_item(table, pk, body):
             table.put_item(Item=item)
             return generate_response(200, f'Delivery item {item_name} added successfully')
 
-    return generate_response(404, f'Item {item_name} not found in inventory')
+    # add the item as a new item
+    body['desired_quantity'] = quantity
+    return add_new_item(table, pk, body)
+    # return generate_response(404, f'Item {item_name} not found in inventory')
 
 
 def update_item_quantity(table, pk, body):
