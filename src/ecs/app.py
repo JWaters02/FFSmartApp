@@ -80,6 +80,11 @@ def error_404():
     return render_template('404.html')
 
 
+@app.route('/404-delivery', methods=['GET', 'PATCH'])
+def error_404_delivery():
+    return render_template('404-delivery.html')
+
+
 # run
 if __name__ == '__main__':
     app.run(debug=True)
