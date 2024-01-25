@@ -1,6 +1,9 @@
 from flask import (
     Blueprint, 
-    render_template)
+    render_template,
+    redirect,
+    url_for
+)
 
 from lib.utils import (
     get_user_role, 
@@ -15,6 +18,14 @@ from lib.globals import (
 )
 
 orders_route = Blueprint('orders', __name__)
+
+@orders_route.before_request
+def before_request():
+    if not session.get('access_token'):
+        return redirect(url_for('index'))
+    
+    if get_user_role(cognito_client, session['access_token'], lambda_client, session['username']) == 'None':
+        return redirect(url_for('error_404'))
 
 @orders_route.route('/orders')
 def orders():

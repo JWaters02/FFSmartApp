@@ -22,6 +22,14 @@ from lib.globals import (
 
 admin_route = Blueprint('admin', __name__)
 
+@admin_route.before_request
+def before_request():
+    if not session.get('access_token'):
+        return redirect(url_for('index'))
+    
+    if get_user_role(cognito_client, session['access_token'], lambda_client, session['username']) != 'Admin':
+        return redirect(url_for('error_404'))
+
 @admin_route.route('/admin', methods=['POST', 'GET'])
 def admin_settings():
     user_role = get_user_role(cognito_client, session['access_token'], lambda_client, session['username'])
@@ -59,10 +67,8 @@ def admin_settings():
                 }
             }
         })
-        print(payload)
         
         response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
-        print(response)
         if response['statusCode'] == 200:
             flash('Settings updated successfully!', 'success')
             return redirect(url_for('admin_settings'))

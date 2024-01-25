@@ -2,7 +2,7 @@ import json
 import os
 from flask import flash
 from botocore.exceptions import ClientError, BotoCoreError
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from lib.globals import (
     users_mgr_lambda
@@ -186,7 +186,7 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
     :param lambda_client: Client for lambda.
     :param username: Username of current user.
     :return: Role of current user, restaurant accounts are assumed to be
-    Admin. If anything goes wrong, chef is returned.
+    Admin. If anything goes wrong, None is returned.
     """
     try:
         restaurant_id = get_restaurant_id(cognito_client, access_token)
@@ -205,15 +205,15 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
 
         response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
         if response['statusCode'] != 200:
-            return 'Chef'
+            return 'None'
 
         return response['body']['role']
 
     except ClientError as ignore:
-        return 'Chef'
+        return 'None'
 
     except BotoCoreError as ignore:
-        return 'Chef'
+        return 'None'
 
 
 def get_admin_settings(username, lambda_client, function_name):

@@ -23,6 +23,14 @@ from lib.globals import (
 
 report_route = Blueprint('report', __name__)
 
+@report_route.before_request
+def before_request():
+    if not session.get('access_token'):
+        return redirect(url_for('index'))
+    
+    if get_user_role(cognito_client, session['access_token'], lambda_client, session['username']) == 'None':
+        return redirect(url_for('error_404'))
+
 @report_route.route('/send-health-report', methods=['POST'])
 def send_health_report():
     restaurant_name = get_restaurant_id(cognito_client, session['access_token'])

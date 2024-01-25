@@ -25,6 +25,14 @@ from lib.globals import (
 
 inventory_route = Blueprint('inventory', __name__)
 
+@inventory_route.before_request
+def before_request():
+    if not session.get('access_token'):
+        return redirect(url_for('index'))
+    
+    if get_user_role(cognito_client, session['access_token'], lambda_client, session['username']) == 'None':
+        return redirect(url_for('error_404'))
+
 @inventory_route.route('/inventory')
 def inventory():
     try:
@@ -37,16 +45,36 @@ def inventory():
                 "restaurant_name": restaurant_name
             }
         }
-        
+
         response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
         if response['statusCode'] == 200:
             items = response['body']['additional_details']['items']
             is_front_door_open = response['body']['additional_details']['is_front_door_open']
-            
+            today = datetime.now().date()
+
             for item in items:
+                # Convert expiry_date from timestamp to date object for comparison
                 for detail in item['item_list']:
-                    detail['expiry_date'] = datetime.fromtimestamp(detail['expiry_date']).strftime('%Y-%m-%d')
-            
+                    expiry_date = datetime.fromtimestamp(detail['expiry_date']).date()
+                    detail['is_expired'] = expiry_date < today
+                    detail['expiry_date_formatted'] = expiry_date.strftime('%Y-%m-%d')
+                
+                # Calculate the total non-expired quantity
+                item['total_non_expired_quantity'] = sum(
+                    detail['current_quantity'] for detail in item['item_list']
+                    if not detail['is_expired']
+                )
+
+                # Determine if an order is needed for non-expired items
+                item['is_order_needed'] = item['total_non_expired_quantity'] < item['desired_quantity']
+
+                for detail in item['item_list']:
+                    # Show quantity buttons if the current quantity is greater than 0
+                    detail['show_quantity_buttons'] = detail['current_quantity'] > 0
+
+                    # Determine if no order is required for expired items
+                    detail['no_order_required'] = detail['is_expired'] and item['total_non_expired_quantity'] >= item['desired_quantity']
+
             return render_template('inventory.html', 
                     user_role=get_user_role(cognito_client, session['access_token'], lambda_client, session['username']), 
                     items=items, 
@@ -69,8 +97,7 @@ def delete_item():
     item_name = request.form.get('item_name')
 
     try:
-        expiry_date_str = request.form.get('expiry_date')
-        expiry_date = int(time.mktime(datetime.strptime(expiry_date_str, '%Y-%m-%d').timetuple()))
+        expiry_date = int(request.form.get('expiry_date'))
         quantity_change = int(request.form.get('quantity_change'))
         restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
@@ -101,16 +128,14 @@ def delete_item():
 @inventory_route.route('/update-item', methods=['POST'])
 def update_item():
     item_name = request.form.get('item_name')
-    expiry_date_str = request.form.get('expiry_date')
+    expiry_date = int(request.form.get('expiry_date'))
     quantity_change = int(request.form.get('quantity_change'))
     restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
     try:
-        expiry_date = int(time.mktime(datetime.strptime(expiry_date_str, '%Y-%m-%d').timetuple()))
-
         lambda_payload = {
             "httpMethod": "POST",
-            "action": "update_item",
+            "action": "update_item_quantity",
             "body": {
                 "restaurant_name": restaurant_name,
                 "item_name": item_name,
@@ -179,7 +204,6 @@ def add_item():
     if not validate_inputs(item_name, desired_quantity):
         return redirect(url_for('inventory.inventory'))
 
-    logger.info(f"Received add request for item: {item_name}, Expiry Date: {expiry_date_str}, Quantity: {desired_quantity}")
     restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
     try:
@@ -187,22 +211,18 @@ def add_item():
 
         lambda_payload = {
             "httpMethod": "POST",
-            "action": "add_item",
+            "action": "add_new_item",
             "body": {
                 "restaurant_name": restaurant_name,
                 "item_name": item_name,
-                "desired_quantity": desired_quantity,
-                "expiry_date": expiry_date
+                "expiry_date": expiry_date,
+                "desired_quantity": desired_quantity
             }
         }
 
-        logger.info(f"Lambda payload: {lambda_payload}")
-
         response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
-        logger.info(f"Lambda response: {response}")
-
         if response['statusCode'] == 200:
-            flash('Item added successfully!', 'success')
+            flash('Item added successfully! Your item will show in the next order.', 'success')
         elif response['statusCode'] == 409:
             flash('Item already exists', 'warning')
         else:
@@ -221,10 +241,9 @@ def open_door():
 
     lambda_payload = {
         "httpMethod": "POST",
-        "action": "open_door",
+        "action": "open_front_door",
         "body": {
-            "restaurant_name": restaurant_name,
-            "is_front_door_open": True
+            "restaurant_name": restaurant_name
         }
     }
 
@@ -240,10 +259,9 @@ def close_door():
     
     lambda_payload = {
         "httpMethod": "POST",
-        "action": "close_door",
+        "action": "close_front_door",
         "body": {
-            "restaurant_name": restaurant_name,
-            "is_front_door_open": False
+            "restaurant_name": restaurant_name
         }
     }
     response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
@@ -251,6 +269,7 @@ def close_door():
     if response['statusCode'] != 200:
         flash(f"Failed to close door: {response['body']['details']}", 'error')
     return redirect(url_for('inventory.inventory'))
+
 
 def validate_inputs(item_name, desired_quantity):
     if not item_name:

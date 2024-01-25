@@ -134,16 +134,20 @@ def compare_order_data(expected, submitted):
 
 def add_items(restaurant_id, items):
     for item in items:
-        item['quantity'] = int(item['quantity'])
-        item['restaurant_name'] = restaurant_id
-
         payload = {
             "httpMethod": "POST",
-            "action": "add_item",
-            "body": item
+            "action": "add_delivery_item",
+            "body": {
+                "restaurant_name": restaurant_id,
+                "item_name": item['item_name'],
+                "quantity": int(item['quantity']),
+                "expiry_date": item['expiry_date']
+            }
         }
 
+        print(payload)
         response = make_lambda_request(lambda_client, payload, fridge_mgr_lambda)
+        print(response)
         if response['statusCode'] != 200:
             flash(f"Failed to add item: {response}", 'error')
             return False
@@ -171,10 +175,9 @@ def delete_orders(restaurant_id, order_ids):
 def open_door(restaurant_id):
     payload = {
         "httpMethod": "POST",
-        "action": "open_door",
+        "action": "open_back_door",
         "body": {
-            "restaurant_name": restaurant_id,
-            "is_back_door_open": True
+            "restaurant_name": restaurant_id
         }
     }
 
@@ -188,7 +191,7 @@ def open_door(restaurant_id):
 def close_door(restaurant_id):
     payload = {
         "httpMethod": "POST",
-        "action": "close_door",
+        "action": "close_back_door",
         "body": {
             "restaurant_name": restaurant_id
         }
