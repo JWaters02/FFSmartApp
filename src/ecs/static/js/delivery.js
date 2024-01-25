@@ -22,7 +22,7 @@ if (completeOrderButton) {
         var itemCards = document.querySelectorAll('.card-body');
         itemCards.forEach(function(card) {
             var orderId = card.querySelector('.card-title').textContent;
-            var itemName = card.querySelector('.item-name');
+            var itemName = card.querySelector('.item-name').getAttribute("data-item-name");
             var quantityInput = card.querySelector('.item-quantity');
             var expiryDateInput = card.querySelector('.item-expiry-date');
 
@@ -32,7 +32,7 @@ if (completeOrderButton) {
 
             var item = {
                 order_id: orderId,
-                item_name: itemName.value,
+                item_name: itemName,
                 quantity: quantityInput.value,
                 expiry_date: expiryTimestamp
             };
@@ -50,12 +50,52 @@ if (completeOrderButton) {
                 sendFlashMessage(data.message, 'success');
                 endDelivery();
             } else {
-                alert(data.message);
+                if (data.retry_items && data.retry_items.length > 0) {
+                    localStorage.setItem('retry_items', JSON.stringify(data.retry_items));
+                    sendRetryItemsToServer().then(() => {
+                        window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+                    }).catch(error => {
+                        console.error('Failed to send retry items:', error);
+                    });
+                } else {
+                    alert(data.message);
+                }
             }
         }).catch(error => {
             console.error('Error:', error);
             alert(error);
         });
+    });
+}
+
+function sendRetryItemsToServer() {
+    return new Promise((resolve, reject) => {
+        const retryItems = localStorage.getItem('retry_items');
+        if (retryItems) {
+            fetch('/delivery/update_retry_items/' + getRestaurantId() + '/' + getToken(), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ retry_items: JSON.parse(retryItems) }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                resolve(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                reject(error);
+            });
+        } else {
+            resolve();
+        }
     });
 }
 

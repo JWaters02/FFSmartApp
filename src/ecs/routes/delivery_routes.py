@@ -26,12 +26,11 @@ from lib.globals import (
 
 delivery_route = Blueprint('delivery', __name__)
 
-@delivery_route.route('/delivery/<restaurant_id>/<token>/', methods=['GET', 'POST', 'PATCH'])
+@delivery_route.route('/delivery/<restaurant_id>/<token>/', methods=['GET', 'PATCH'])
 def delivery(restaurant_id, token):
-    if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda): return redirect(url_for('error_404'))
+    if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda): 
+        return redirect(url_for('error_404'))
     
-    order_data = get_order_data(lambda_client, order_mgr_lambda, restaurant_id)
-
     if request.method == 'PATCH':
         door_data = request.json
         if door_data['is_back_door_open']:
@@ -40,6 +39,20 @@ def delivery(restaurant_id, token):
             close_door(restaurant_id)
         return make_response(jsonify({'success': True}), 200)
 
+    order_data = get_order_data(lambda_client, order_mgr_lambda, restaurant_id)
+    print("Original order_data:", order_data)
+
+    retry_items = session.get('retry_items', None)
+    print("Retry items:", retry_items)
+
+    if retry_items is not None:
+        for order in order_data:
+            retry_order = next((ro for ro in retry_items if ro['id'] == order['id']), None)
+            if retry_order:
+                order['items'] = [item for item in order['items'] if item in retry_order['items']]
+            else:
+                order['items'] = []
+
     return render_template('delivery.html', 
             order_data=order_data, 
             restaurant_id=restaurant_id, 
@@ -47,18 +60,28 @@ def delivery(restaurant_id, token):
             is_back_door_open=session.get('is_back_door_open', False))
 
 
+@delivery_route.route('/delivery/update_retry_items/<restaurant_id>/<token>/', methods=['POST'])
+def update_retry_items(restaurant_id, token):
+    if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
+        return redirect(url_for('error_404'))
+    
+    data = request.json
+    session['retry_items'] = data.get('retry_items')
+    print(session['retry_items'])
+    return jsonify({'status': 'success', 'message': 'Retry items updated in session.'})
+
+
 @delivery_route.route('/delivery/complete_order/<restaurant_id>/<token>/', methods=['POST'])
 def complete_order(restaurant_id, token):
-    if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda): return redirect(url_for('error_404'))
+    if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
+        return redirect(url_for('error_404'))
     
     submitted_data = request.json['items']
 
     # If any order expiry dates are before tomorrow or don't exist, don't complete
     for item in submitted_data:
-        if item['expiry_date'] is None:
-            return jsonify({'success': False, 'message': 'Expiry date must be specified'}), 400
-        if item['expiry_date'] < int(time.time()):
-            return jsonify({'success': False, 'message': 'Expiry date cannot be for the past'}), 400
+        if item['expiry_date'] is None or item['expiry_date'] < int(time.time()):
+            return jsonify({'success': False, 'message': 'Invalid expiry date'}), 400
 
     order_data = get_order_data(lambda_client, order_mgr_lambda, restaurant_id)
 
@@ -67,19 +90,28 @@ def complete_order(restaurant_id, token):
     if not success:
         return jsonify({'success': False, 'message': discrepancies}), 400
 
-    # If all items match, add the item to the inventory
-    if not add_items(restaurant_id, submitted_data):
-        return jsonify({'success': False, 'message': 'Failed to add items to inventory'}), 400
+    success, successfully_added_items = add_items(restaurant_id, submitted_data)
 
-    # And delete the orders
+    if not success:
+        for order in order_data:
+            order['items'] = [item for item in order['items']
+                            if not is_item_successfully_added(item, successfully_added_items, order['id'])]
+        
+        return jsonify({
+            'success': False, 
+            'message': 'Failed to add some items to inventory', 
+            'retry_items': order_data
+        }), 400
+
+    # If all items are added successfully, delete orders
     order_ids = [order['id'] for order in order_data]
     if not delete_orders(restaurant_id, order_ids):
         return jsonify({'success': False, 'message': 'Failed to delete orders'}), 400
     
     # And close the door
     close_door(restaurant_id)
-
     return jsonify({'success': True, 'message': 'Order completed successfully'})
+
 
 @delivery_route.route('/delivery/end_delivery/<restaurant_id>/<token>/', methods=['POST'])
 def delete_token(restaurant_id, token):
@@ -99,7 +131,17 @@ def delete_token(restaurant_id, token):
     return redirect(url_for('error_404'))
 
 
+def item_needs_retry(item, retry_orders):
+    for order in retry_orders:
+        for retry_item in order['items']:
+            if item['item_name'] == retry_item['item_name'] and item['quantity'] == retry_item['quantity']:
+                return True
+    return False
+
+
 def compare_order_data(expected, submitted):
+    print("Expected:", expected)
+    print("Submitted:", submitted)
     discrepancies = []
     success = True
 
@@ -133,6 +175,8 @@ def compare_order_data(expected, submitted):
 
 
 def add_items(restaurant_id, items):
+    successfully_added = []
+
     for item in items:
         payload = {
             "httpMethod": "POST",
@@ -145,13 +189,25 @@ def add_items(restaurant_id, items):
             }
         }
 
-        print(payload)
         response = make_lambda_request(lambda_client, payload, fridge_mgr_lambda)
-        print(response)
         if response['statusCode'] != 200:
             flash(f"Failed to add item: {response}", 'error')
-            return False
-    return True
+            break
+        successfully_added.append(item)
+
+    if len(successfully_added) == len(items):
+        return True, successfully_added
+    else:
+        return False, successfully_added
+
+
+def is_item_successfully_added(item, successfully_added_items, order_id):
+    for added_item in successfully_added_items:
+        if added_item['item_name'] == item['item_name'] and \
+            added_item['quantity'] == item['quantity'] and \
+            added_item['order_id'] == order_id:
+            return True
+    return False
 
 
 def delete_orders(restaurant_id, order_ids):
@@ -198,6 +254,7 @@ def close_door(restaurant_id):
     }
 
     response = make_lambda_request(lambda_client, payload, fridge_mgr_lambda)
+    print(response)
     if response['statusCode'] == 200:
         session['is_back_door_open'] = False
     else:
