@@ -106,16 +106,15 @@ function endDelivery() {
     }).then(response => response.json())
     .then(data => {
         if(data.success) {
-            location.reload();
             window.location.href = '/404/'
         } else {
-            location.reload();
+            window.location.href = '/404/'
             sendFlashMessage(data.message, 'danger');
         }
     }).catch(error => {
         location.reload();
         console.error('Error:', error);
-        sendFlashMessage(error, 'danger');
+        window.location.href = '/404/'
     });
 }
 

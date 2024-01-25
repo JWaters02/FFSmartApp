@@ -75,7 +75,7 @@ def home():
     return render_template('home.html', user_role=user_role)
 
 
-@app.route('/404')
+@app.route('/404', methods=['GET', 'PATCH'])
 def error_404():
     return render_template('404.html')
 

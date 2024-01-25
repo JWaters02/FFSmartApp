@@ -96,7 +96,7 @@ def add_delivery_item(table, pk, body):
                 'date_added': current_time,
                 'date_removed': 0
             })
-            stored_item['desired_quantity'] = quantity
+            # stored_item['desired_quantity'] = quantity
             table.put_item(Item=item)
             return generate_response(200, f'Delivery item {item_name} added successfully')
 
