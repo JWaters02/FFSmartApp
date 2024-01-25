@@ -73,10 +73,11 @@ def get_item_quantity_fridge(fridge_item):
     :param fridge_item: Item to be checked for unexpired entries.
     :return: Quantity of unexpired fridge item.
     """
+    quantity = 0
     for entry in fridge_item['item_list']:
         if entry['expiry_date'] > int(time.time()):
-            return entry['current_quantity']
-    return 0
+            quantity += entry['current_quantity']
+    return quantity
 
 
 def get_item_quantity_orders(order_items, item_name):
