@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
+from unittest.mock import Mock
 from src.index import handler
 from src.post import validate_token
 from src.patch import set_token
@@ -227,10 +228,6 @@ class TestCleanUpOldTokens(unittest.TestCase):
         self.table.get_item.return_value = {}
         response = clean_up_old_tokens(self.valid_event, self.table)
         self.assertEqual(response['statusCode'], 404)
-
-
-if __name__ == '__main__':
-    unittest.main(verbosity=2)
 
 
 if __name__ == '__main__':
