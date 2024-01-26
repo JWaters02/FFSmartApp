@@ -11,8 +11,8 @@ steps:
   displayName: 'List all files in the repo recursively'
 
 - script: |
-    echo Installing Python dependencies
-    pip install -r requirements.txt
+    echo Installing Python dependencies from src/fridge_mgr/lambda_dependencies.txt
+    pip install -r src/fridge_mgr/lambda_dependencies.txt
   displayName: 'Install Dependencies'
 
 - script: |
