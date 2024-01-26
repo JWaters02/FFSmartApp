@@ -3,6 +3,9 @@ from unittest.mock import patch, MagicMock
 from src.index import handler
 import json
 from boto3.dynamodb.conditions import Key
+import unittest
+from unittest.mock import Mock, patch
+from src.utils import get_health_and_safety_email, get_filtered_items
 
 
 class TestHandler(unittest.TestCase):
@@ -50,3 +53,57 @@ class TestHandler(unittest.TestCase):
         # Assert response
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(response['body'], json.dumps('Email sent!'))
+
+class TestDynamoDBFunctions(unittest.TestCase):
+
+    @patch('src.utils.boto3')
+    def test_get_health_and_safety_email_found(self, mock_boto3):
+        mock_table = Mock()
+        mock_table.get_item.return_value = {
+            'Item': {'health_and_safety_email': 'test@example.com'}
+        }
+
+        email = get_health_and_safety_email(mock_table, 'TestRestaurant')
+        self.assertEqual(email, 'test@example.com')
+
+    @patch('src.utils.boto3')
+    def test_get_health_and_safety_email_not_found(self, mock_boto3):
+        mock_table = Mock()
+        mock_table.get_item.return_value = {'Item': {}}
+
+        email = get_health_and_safety_email(mock_table, 'TestRestaurant')
+        self.assertIsNone(email)
+
+    @patch('src.utils.boto3')
+    def test_get_filtered_items(self, mock_boto3):
+        mock_table = Mock()
+        mock_table.query.return_value = {
+            'Items': [
+                {
+                    'pk': 'TestRestaurant',
+                    'type': 'fridge',
+                    'items': [
+                        {
+                            'item_name': 'Milk',
+                            'item_list': [
+                                {
+                                    'date_added': '1609459200',
+                                    'date_removed': '1609545600',
+                                    'current_quantity': '10',
+                                    'expiry_date': '1609824800'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        start_date, end_date = 1609459200, 1609824800
+        items = get_filtered_items(mock_table, 'TestRestaurant', start_date, end_date)
+        self.assertTrue(len(items) > 0)
+
+
+if __name__ == '__main__':
+    unittest.main()
+
