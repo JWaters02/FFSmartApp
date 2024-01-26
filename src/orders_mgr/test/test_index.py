@@ -6,7 +6,7 @@ from src.delete import delete_order, ClientError
 from src.post import create_order, NotFoundException, order_check
 class TestDynamoDBHandler(unittest.TestCase):
     @patch('boto3.resource')
-    def test_handler_function(self, mock_boto3_resource):  # use highly descriptive function names, not what like this
+    def test_handler_function(self, mock_boto3_resource):
         """Basic functionality test"""
         # Mock boto3 setup
         mock_dynamodb_resource = MagicMock()
