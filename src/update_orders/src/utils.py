@@ -153,6 +153,29 @@ def generate_expired_items_email_body(restaurant_admin_settings, expired_items):
     """
 
 
+def generate_low_stock_email_body(restaurant_admin_settings, low_stock):
+    """
+    Creates the body of the email sent to the restaurant showing all the low stock items.
+
+    :param restaurant_admin_settings: The restaurant settings.
+    :param low_stock: A list of all the low stock items.
+    :return: The emails body.
+    """
+    list_of_items = ''
+
+    for item in low_stock:
+        list_of_items += f"{item['item_name']}\tdesired stock: {item['desired_quantity']}\tcurrent stock: {item['current_quantity']}\r\t"
+
+    return f"""
+    Hello {restaurant_admin_settings['restaurant_details']['restaurant_name']},
+
+    The following items are low in stock:
+    {list_of_items}
+
+    Thanks
+    """
+
+
 def get_cognito_user_email(username):
     """
     Gets the email address for a cognito user.
