@@ -11,9 +11,12 @@ document.getElementById("edit-user").addEventListener("click", async function ()
     });
 
     if(!response.ok) {
-        sendFlashMessage('User was not updated.', 'danger');
+        sendFlashMessage('User was not updated.', 'danger').then(() => {
+            window.location.href = "/users";
+        });
     } else {
-        window.location.href = "/users";
-        sendFlashMessage('User updated successfully.', 'success');
+        endFlashMessage('User updated successfully.', 'success').then(() => {
+            window.location.href = "/users";
+        });
     }
 });

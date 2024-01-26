@@ -35,8 +35,8 @@ async function fetchConfig() {
     }
 }
 
-async function sendFlashMessage(message, category) {
-    fetch('/flash', {
+function sendFlashMessage(message, category) {
+    return fetch('/flash', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

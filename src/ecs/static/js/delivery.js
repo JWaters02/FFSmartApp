@@ -47,7 +47,9 @@ if (completeOrderButton) {
         .then(data => {
             if(data.success) {
                 changeDoorState(false);
-                sendFlashMessage(data.message, 'success');
+                sendFlashMessage(data.message, 'success').then(() => {
+                    window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+                });
                 endDelivery();
             } else {
                 if (data.retry_items && data.retry_items.length > 0) {
@@ -55,15 +57,21 @@ if (completeOrderButton) {
                     sendRetryItemsToServer().then(() => {
                         window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
                     }).catch(error => {
-                        console.error('Failed to send retry items:', error);
+                        sendFlashMessage(error, 'danger').then(() => {
+                            window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+                        });
                     });
                 } else {
-                    alert(data.message);
+                    sendFlashMessage(data.message, 'danger').then(() => {
+                        window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+                    });
                 }
             }
         }).catch(error => {
             console.error('Error:', error);
-            alert(error);
+            sendFlashMessage(error, 'danger').then(() => {
+                window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+            });
         });
     });
 }
@@ -106,15 +114,19 @@ function endDelivery() {
     }).then(response => response.json())
     .then(data => {
         if(data.success) {
-            window.location.href = '/404/'
+            sendFlashMessage(data.message, 'success').then(() => {
+                window.location.href = '/404-delivery'
+            });
         } else {
-            window.location.href = '/404/'
-            sendFlashMessage(data.message, 'danger');
+            sendFlashMessage(data.message, 'danger').then(() => {
+                window.location.href = '/404-delivery'
+            });
         }
     }).catch(error => {
         location.reload();
-        console.error('Error:', error);
-        window.location.href = '/404/'
+        sendFlashMessage(error, 'danger').then(() => {
+            window.location.href = '/404-delivery'
+        });
     });
 }
 
@@ -134,10 +146,14 @@ function changeDoorState(state) {
         if(data.success) {
             location.reload();
         } else {
-            sendFlashMessage(data.message, 'danger');
+            sendFlashMessage(data.message, 'danger').then(() => {
+                window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+            });
         }
     }).catch(error => {
         console.error('Error:', error);
-        sendFlashMessage(error, 'danger');
+        sendFlashMessage(error, 'danger').then(() => {
+            window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+        });
     });
 }

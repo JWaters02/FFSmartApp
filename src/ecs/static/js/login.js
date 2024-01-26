@@ -89,20 +89,22 @@ document.getElementById("login").addEventListener("click", function () {
             await updateCredentials(username, JSON.stringify(userData), accessToken);
             updateLogin();
 
-            sendFlashMessage('Logged in successfully.', 'success');
-
             window.location.href = "/home";
         },
         newPasswordRequired: function (userAttributes, requiredAttributes) {
-            window.location.href = "/new-password";
+            sendFlashMessage('New password required.', 'warning').then(() => {
+                window.location.href = "/new-password";
+            });
         },
         onFailure: function (err) {
-            document.getElementById("loginIPE").style.display = "none";
-            document.getElementById("loginNAE").style.display = "none";
             if (err.code === "InvalidParameterException") {
-                document.getElementById("loginIPE").style.display = "block";
+                sendFlashMessage('Please fill in username and password!', 'warning').then(() => {
+                    window.location.href = "/";
+                });
             } else if (err.code === "NotAuthorizedException") {
-                document.getElementById("loginNAE").style.display = "block";
+                sendFlashMessage('Incorrect username or password!', 'warning').then(() => {
+                    window.location.href = "/";
+                });
             }
         }
     });

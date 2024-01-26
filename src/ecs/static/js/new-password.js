@@ -26,7 +26,9 @@ document.getElementById("UpdatePassword").addEventListener("click", function () 
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function (result) {},
         onFailure: function (err) {
-            console.error(err);
+            sendFlashMessage('An error occured setting your new password, please check your details are correct.', 'danger').then(() => {
+                window.location.href = "/new-password";
+            });
         },
         newPasswordRequired: function(userAttributes, requiredAttributes) {
             delete userAttributes.email_verified;
@@ -34,11 +36,14 @@ document.getElementById("UpdatePassword").addEventListener("click", function () 
 
             cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
                 onSuccess: function(result) {
-                    window.location.href = "/";
-                    sendFlashMessage('Password updated successfully, please login', 'success');
+                    sendFlashMessage('Password updated successfully, please login.', 'success').then(() => {
+                        window.location.href = "/";
+                    });
                 },
                 onFailure: function(err) {
-                    sendFlashMessage(err, 'danger');
+                    sendFlashMessage('An error occured setting your new password, please check your details are correct.', 'danger').then(() => {
+                        window.location.href = "/new-password";
+                    });
                 }
             });
         }
