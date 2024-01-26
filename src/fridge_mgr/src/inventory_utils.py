@@ -96,14 +96,13 @@ def add_delivery_item(table, pk, body):
                 'date_added': current_time,
                 'date_removed': 0
             })
-            # stored_item['desired_quantity'] = quantity
+
             table.put_item(Item=item)
             return generate_response(200, f'Delivery item {item_name} added successfully')
 
     # add the item as a new item
     body['desired_quantity'] = quantity
     return add_new_item(table, pk, body)
-    # return generate_response(404, f'Item {item_name} not found in inventory')
 
 
 def update_item_quantity(table, pk, body):
@@ -162,7 +161,9 @@ def delete_item(table, pk, body):
 
     for stored_item in item['items']:
         if stored_item['item_name'] == item_name:
-            # if quantity_change is 0, ignore looking at the expiry date
+            for detail in stored_item['item_list']:
+                if detail['current_quantity'] == 0:
+                    detail['date_removed'] = get_current_time_gmt()
             if current_quantity == 0:
                 stored_item['item_list'] = [detail for detail in stored_item['item_list']
                                             if not detail['current_quantity'] == current_quantity]
@@ -170,11 +171,10 @@ def delete_item(table, pk, body):
                 stored_item['item_list'] = [detail for detail in stored_item['item_list']
                                             if not (detail['expiry_date'] == expiry_date and
                                                     detail['current_quantity'] == current_quantity)]
-
-            if not stored_item['item_list']:
-                item['items'] = [i for i in item['items'] if i['item_name'] != item_name]
-            table.put_item(Item=item)
-            return generate_response(200, f'Item {item_name} deleted successfully')
+                if not stored_item['item_list']:
+                    item['items'] = [i for i in item['items'] if i['item_name'] != item_name]
+            table.put_item(Item=item, overwrite=True)
+            return generate_response(200, f'Item {item_name} updated successfully')
 
     return generate_response(404, f'Item {item_name} not found in inventory')
 
@@ -287,7 +287,7 @@ def view_inventory(table, pk):
         table_response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
         item = table_response.get('Item', {})
 
-        # delete_zero_quantity_items(item)
+        delete_removed_items(item)
 
         return generate_response(200, 'Inventory retrieved successfully', item)
     except Exception as e:
@@ -303,4 +303,16 @@ def delete_zero_quantity_items(item):
     if 'items' in item:
         for stored_item in item['items']:
             stored_item['item_list'] = [detail for detail in stored_item['item_list'] if detail['current_quantity'] > 0]
+        item['items'] = [stored_item for stored_item in item['items'] if stored_item['item_list']]
+
+
+def delete_removed_items(item):
+    """
+    Removes items with a populated date removed field from inventory.
+    :param item: Inventory data.
+    :return: None.
+    """
+    if 'items' in item:
+        for stored_item in item['items']:
+            stored_item['item_list'] = [detail for detail in stored_item['item_list'] if detail['date_removed'] == 0]
         item['items'] = [stored_item for stored_item in item['items'] if stored_item['item_list']]
