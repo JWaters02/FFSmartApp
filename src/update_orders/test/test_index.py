@@ -4,7 +4,7 @@ from unittest import mock
 from unittest.mock import patch, MagicMock, Mock
 from src.index import handler
 from src.emails import send_delivery_email, send_expired_items
-from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails
+from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body
 from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 
 class TestPost(unittest.TestCase):
@@ -324,6 +324,88 @@ class TestCreateNewOrder(unittest.TestCase):
             },
             lambda_arn
         )
+
+
+
+
+class TestGenerateDeliveryEmailBody(unittest.TestCase):
+    # Explaination here for what the test is actually doing in general
+
+    def test_generate_delivery_email_body(self):
+        mock_restaurant_admin_settings = {
+            'pk': 'restaurant_id',
+            'restaurant_details': {
+                'restaurant_name': 'Test Restaurant',
+                'location': {
+                    'city': 'City',
+                    'postcode': '12345',
+                    'street_address_1': 'Street 1',
+                    'street_address_2': 'Street 2',
+                    'street_address_3': 'Street 3'
+                }
+            }
+        }
+        mock_token = 'test_token'
+
+        expected_email_body = f'''
+                   Hello Driver,
+    
+    You have a delivery for {mock_restaurant_admin_settings['restaurant_details']['restaurant_name']}.
+    
+    Delivery link: http://0.0.0.0:80/delivery/{mock_restaurant_admin_settings['pk']}/{mock_token}
+    
+    Address:
+    {mock_restaurant_admin_settings['restaurant_details']['location']['city']}
+    {mock_restaurant_admin_settings['restaurant_details']['location']['postcode']}
+    {mock_restaurant_admin_settings['restaurant_details']['location']['street_address_1']}
+    {mock_restaurant_admin_settings['restaurant_details']['location']['street_address_2']}
+    {mock_restaurant_admin_settings['restaurant_details']['location']['street_address_3']}
+    
+    Good luck!
+    This link will self-destruct in 3 days.
+               '''
+
+        result = generate_delivery_email_body(mock_restaurant_admin_settings, mock_token)
+
+        self.assertEqual(result.strip(), expected_email_body.strip())
+
+
+class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
+    # Explaination here for what the test is actually doing in general
+
+    def test_generate_expired_items_email_body(self):
+        mock_restaurant_admin_settings = {
+            'restaurant_details': {
+                'restaurant_name': 'Test Restaurant',
+                'location': {
+                    'city': 'City',
+                    'postcode': '12345',
+                    'street_address_1': 'Street 1',
+                    'street_address_2': 'Street 2',
+                    'street_address_3': 'Street 3'
+                }
+            }
+        }
+        mock_expired_items = [
+            {'item_name': 'Expired Item 1', 'quantity': 5},
+            {'item_name': 'Expired Item 2', 'quantity': 10}
+        ]
+
+        result = generate_expired_items_email_body(mock_restaurant_admin_settings, mock_expired_items)
+
+        expected_email_body = ('Hello Test Restaurant,\n'
+                               '    \n'
+                               '    The following items have expired:\n'
+                               '    Expired Item 1: 5\r'
+                               '\tExpired Item 2: 10\r'
+                               '\t\n'
+                               '    \n'
+                               '    This has been reported as a part of your health report.\n'
+                               '    \n'
+                               '    Thanks')
+
+        self.assertEqual(result.strip(), expected_email_body.strip())
+
 
 if __name__ == '__main__':
     unittest.main()
