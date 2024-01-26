@@ -83,7 +83,7 @@ class TestDynamoDBHandler(unittest.TestCase):
 
 
 class TestDeleteOrderLambda(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     def setUp(self):
         self.event = {
             'body': {
@@ -93,6 +93,7 @@ class TestDeleteOrderLambda(unittest.TestCase):
         }
         self.table = MagicMock()
 
+    # Explaination here for what the test is actually doing in general
     def test_delete_order_successful(self):
         # Mocking DynamoDB response
         self.table.get_item.return_value = {
@@ -108,8 +109,8 @@ class TestDeleteOrderLambda(unittest.TestCase):
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(self.table.update_item.call_count, 1)
 
+    # Explaination here for what the test is actually doing in general
     def test_delete_order_not_found(self):
-        # Mocking DynamoDB response for non-existent restaurant
         self.table.get_item.return_value = {}
 
         response = delete_order(self.event, self.table)
@@ -117,8 +118,8 @@ class TestDeleteOrderLambda(unittest.TestCase):
         self.assertEqual(response['statusCode'], 404)
         self.assertIn('Restaurant does not exist', response['body'])
 
+    # Explaination here for what the test is actually doing in general
     def test_delete_order_invalid_order_id(self):
-        # Mocking DynamoDB response with a different order_id
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -132,8 +133,8 @@ class TestDeleteOrderLambda(unittest.TestCase):
         self.assertEqual(response['statusCode'], 404)
         self.assertIn('Order does not exist', response['body'])
 
+    # Explaination here for what the test is actually doing in general
     def test_dynamodb_error(self):
-        # Mocking DynamoDB ClientError
         self.table.get_item.side_effect = ClientError({'Error': {'Code': 'TestException'}},
                                                       'operation_name')
 
@@ -144,7 +145,7 @@ class TestDeleteOrderLambda(unittest.TestCase):
 
 
 class TestCreateOrderFunction(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     def setUp(self):
         self.dynamodb_client = MagicMock()
         self.table = MagicMock()
@@ -153,6 +154,7 @@ class TestCreateOrderFunction(unittest.TestCase):
         self.expired_items = [{'item_id': 'expired_item', 'quantity': 1}]
         self.table_name = 'example_table'
 
+    # Explaination here for what the test is actually doing in general
     def test_create_order_successful(self):
         with patch('src.post.generate_order_id', return_value='example_order_id'):
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
@@ -188,6 +190,7 @@ class TestCreateOrderFunction(unittest.TestCase):
             },
         )
 
+    # Explaination here for what the test is actually doing in general
     def test_create_order_not_found_exception(self):
         with patch('src.post.generate_order_id', return_value='example_order_id'):
             self.table.update_item.side_effect = NotFoundException('Restaurant does not exist')
@@ -196,6 +199,7 @@ class TestCreateOrderFunction(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 404)
 
+    # Explaination here for what the test is actually doing in general
     def test_create_order_client_error_exception(self):
         with patch('src.post.generate_order_id', return_value='example_order_id'):
             self.table.update_item.side_effect = ClientError({'Error': {'Code': 'TestException'}}, 'operation_name')
@@ -209,6 +213,7 @@ class TestOrderCheck(unittest.TestCase):
     @patch('src.post.get_total_item_quantity')
     @patch('src.post.get_expired_item_quantity_fridge')
     @patch('src.post.create_order')
+    # Explaination here for what the test is actually doing in general
     def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
         def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
             mock_table = MagicMock()
