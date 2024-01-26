@@ -87,7 +87,7 @@ class TestDynamoDBHandler(unittest.TestCase):
 
 
 class TestValidateTokenLambda(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     def setUp(self):
         self.event = {
             'body': {
@@ -97,8 +97,8 @@ class TestValidateTokenLambda(unittest.TestCase):
         }
         self.table = MagicMock()
 
+    # Explaination here for what the test is actually doing in general
     def test_valid_token(self):
-        # Mocking DynamoDB response with a valid token that has not expired
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -116,8 +116,8 @@ class TestValidateTokenLambda(unittest.TestCase):
         self.assertEqual(response['body']['object_id'], 'example_id')
         self.assertEqual(response['body']['id_type'], 'example_type')
 
+    # Explaination here for what the test is actually doing in general
     def test_expired_token(self):
-        # Mocking DynamoDB response with an expired token
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -133,8 +133,8 @@ class TestValidateTokenLambda(unittest.TestCase):
         self.assertEqual(response['statusCode'], 401)
         self.assertIn('Invalid token', response['body'])
 
+    # Explaination here for what the test is actually doing in general
     def test_invalid_token(self):
-        # Mocking DynamoDB response with no matching token
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -153,6 +153,7 @@ class TestValidateTokenLambda(unittest.TestCase):
 
 
 class TestSetTokenFunction(unittest.TestCase):
+    # Explaination here for what the test is actually doing in general
     def test_set_token_with_expected_parameters(self):
         event = {'body': {'restaurant_id': 'example_restaurant', 'id_type': 'order', 'object_id': 'example_id'}}
         self.table = MagicMock()
@@ -171,6 +172,7 @@ class TestSetTokenFunction(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 200)
 
+    # Explaination here for what the test is actually doing in general
     def test_invalid_event_format(self):
         event = {'example': 'example'}
         self.table = MagicMock()
@@ -180,7 +182,7 @@ class TestSetTokenFunction(unittest.TestCase):
         self.assertEqual(str(context.exception), 'No request body exists.')
 
 class TestDeleteToken(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     def setUp(self):
         self.table = Mock()
         self.valid_event = {
@@ -193,12 +195,14 @@ class TestDeleteToken(unittest.TestCase):
             'body': {}
         }
 
+    # Explaination here for what the test is actually doing in general
     def test_delete_token_success(self):
         # Mocking DynamoDB response
         self.table.get_item.return_value = {'Item': {'tokens': [{'token': 'token123', 'object_id': 'obj1', 'id_type': 'type1'}]}}
         response = delete_token(self.valid_event, self.table)
         self.assertEqual(response['statusCode'], 200)
 
+    # Explaination here for what the test is actually doing in general
     def test_delete_token_not_found(self):
         self.table.get_item.return_value = {'Item': {'tokens': []}}
         response = delete_token(self.valid_event, self.table)
@@ -206,7 +210,7 @@ class TestDeleteToken(unittest.TestCase):
 
 
 class TestCleanUpOldTokens(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     def setUp(self):
         self.table = Mock()
         self.valid_event = {
@@ -218,12 +222,14 @@ class TestCleanUpOldTokens(unittest.TestCase):
             'body': {}
         }
 
+    # Explaination here for what the test is actually doing in general
     def test_clean_up_old_tokens_success(self):
         # Mocking DynamoDB response
         self.table.get_item.return_value = {'Item': {'tokens': [{'expiry_date': 1643086920, 'object_id': 'obj1', 'id_type': 'type1'}]}}
         response = clean_up_old_tokens(self.valid_event, self.table)
         self.assertEqual(response['statusCode'], 200)
 
+    # Explaination here for what the test is actually doing in general
     def test_clean_up_old_tokens_not_found(self):
         self.table.get_item.return_value = {}
         response = clean_up_old_tokens(self.valid_event, self.table)
