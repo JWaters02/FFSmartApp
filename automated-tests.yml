@@ -12,7 +12,7 @@ steps:
 
 - script: |
     echo Installing Python dependencies for each module
-    for dep_file in $(find src -name 'lambda_dependencies.txt'); do
+    for dep_file in $(find src -name 'local_dependencies.txt'); do
       echo "Installing dependencies from $dep_file"
       pip install -r $dep_file
     done
