@@ -1,6 +1,7 @@
 import unittest
 import os
-from unittest.mock import patch, MagicMock
+from unittest import mock
+from unittest.mock import patch, MagicMock, Mock
 from src.index import handler
 from src.emails import send_delivery_email, send_expired_items
 from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails
@@ -25,7 +26,7 @@ class TestPost(unittest.TestCase):
 
 
 class TestEmailFunctions(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     @patch('src.emails.generate_delivery_email_body')
     @patch('src.emails.generate_and_send_email')
     def test_send_delivery_email(self, mock_generate_and_send_email, mock_generate_delivery_email_body):
@@ -49,6 +50,7 @@ class TestEmailFunctions(unittest.TestCase):
     @patch('src.emails.get_cognito_user_email')
     @patch('src.emails.generate_expired_items_email_body')
     @patch('src.emails.generate_and_send_email')
+    # Explaination here for what the test is actually doing in general
     def test_send_expired_items(self, mock_generate_and_send_email, mock_generate_expired_items_email_body,
                                 mock_get_cognito_user_email):
         ses_client = MagicMock()
@@ -75,7 +77,7 @@ class TestEmailFunctions(unittest.TestCase):
 
 
 class TestGetCognitoUserEmail(unittest.TestCase):
-
+    # Explaination here for what the test is actually doing in general
     @patch('src.utils.boto3.client')
     def test_get_cognito_user_email(self, mock_boto3_client):
         mock_cognito_client = MagicMock()
@@ -96,6 +98,7 @@ class TestGetCognitoUserEmail(unittest.TestCase):
         del os.environ['USER_POOL_ID']
 
         self.assertEqual(result, 'user@example.com')
+        # Explaination here for what the test is actually doing in general
     @patch('src.utils.boto3.client')
     def test_get_cognito_user_email_no_email_attribute(self, mock_boto3_client):
         mock_cognito_client = MagicMock()
@@ -117,6 +120,7 @@ class TestGetCognitoUserEmail(unittest.TestCase):
 
         self.assertIsNone(result)
 class TestCreateOrderToken(unittest.TestCase):
+    # Explaination here for what the test is actually doing in general
     @patch('src.lambda_requests.make_lambda_request')
     def test_create_an_order_token_success(self, mock_make_lambda_request):
 
@@ -154,6 +158,7 @@ class TestCreateOrderToken(unittest.TestCase):
         )
 
     @patch('src.lambda_requests.make_lambda_request')
+    # Explaination here for what the test is actually doing in general
     def test_create_an_order_token_failure(self, mock_make_lambda_request):
         # Mock the lambda response for a failed call
         mock_response = {
@@ -185,6 +190,7 @@ class TestCreateOrderToken(unittest.TestCase):
             lambda_arn
         )
 class TestRemoveOldTokens(unittest.TestCase):
+    # Explaination here for what the test is actually doing in general
     @patch('src.lambda_requests.make_lambda_request')
     def test_remove_old_tokens_success(self, mock_make_lambda_request):
         mock_response = {
@@ -201,7 +207,6 @@ class TestRemoveOldTokens(unittest.TestCase):
 
         result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
 
-        # Assertions
         self.assertEqual(result, [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}])
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
@@ -217,6 +222,7 @@ class TestRemoveOldTokens(unittest.TestCase):
 
     @patch('src.lambda_requests.make_lambda_request')
     def test_remove_old_tokens_failure(self, mock_make_lambda_request):
+        # Explaination here for what the test is actually doing in general
         mock_response = {
             'statusCode': 500,
             'body': 'Internal Server Error'
@@ -243,6 +249,7 @@ class TestRemoveOldTokens(unittest.TestCase):
         )
 class TestRemoveOldObjects(unittest.TestCase):
     @patch('src.lambda_requests.make_lambda_request')
+    # Explaination here for what the test is actually doing in general
     def test_remove_old_objects(self, mock_make_lambda_request):
         mock_response = {
             'statusCode': 200
@@ -284,6 +291,7 @@ class TestRemoveOldObjects(unittest.TestCase):
         
 class TestCreateNewOrder(unittest.TestCase):
     @patch('src.lambda_requests.make_lambda_request')
+    # Explaination here for what the test is actually doing in general
     def test_create_new_order_success(self, mock_make_lambda_request):
         mock_response = {
             'statusCode': 200,
