@@ -71,7 +71,7 @@ def admin_settings():
         response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
         if response['statusCode'] == 200:
             flash('Settings updated successfully!', 'success')
-            return redirect(url_for('admin_settings'))
+            return redirect(url_for('admin.admin_settings'))
         else:
             flash('Failed to update settings.', 'danger')
-            return redirect(url_for('admin_settings'))
+            return redirect(url_for('admin.admin_settings'))
