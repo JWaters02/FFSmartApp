@@ -37,7 +37,8 @@ class TestDynamoDBHandler(unittest.TestCase):
         self.assertEqual(response, expected_response)
 
 class TestModifyDoorStateFunction(unittest.TestCase):
-
+    #Explaination here for what the test is actually doing in general
+    #Comment for each indivual function along with comments of what the code is doing
     def test_open_door_action(self):
         item = {'is_front_door_open': False, 'is_back_door_open': False}
         body = {'is_front_door_open': True, 'is_back_door_open': False}
@@ -48,6 +49,7 @@ class TestModifyDoorStateFunction(unittest.TestCase):
         self.assertTrue(item['is_front_door_open'])
         self.assertFalse(item['is_back_door_open'])
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_open_door_action_with_default_values(self):
         item = {'is_front_door_open': False, 'is_back_door_open': False}
         body = {}
@@ -55,9 +57,10 @@ class TestModifyDoorStateFunction(unittest.TestCase):
 
         modify_door_state(item, body, action)
 
-        self.assertFalse(item['is_front_door_open'])  # Default value should be False
-        self.assertFalse(item['is_back_door_open'])   # Default value should be False
+        self.assertFalse(item['is_front_door_open'])
+        self.assertFalse(item['is_back_door_open'])
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_close_door_action(self):
         item = {'is_front_door_open': True, 'is_back_door_open': True}
         body = {}
@@ -68,6 +71,7 @@ class TestModifyDoorStateFunction(unittest.TestCase):
         self.assertFalse(item['is_front_door_open'])
         self.assertFalse(item['is_back_door_open'])
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_close_door_action_with_existing_values(self):
         item = {'is_front_door_open': True, 'is_back_door_open': True}
         body = {'is_front_door_open': False, 'is_back_door_open': True}
@@ -79,7 +83,7 @@ class TestModifyDoorStateFunction(unittest.TestCase):
         self.assertFalse(item['is_back_door_open'])
 
 class TestGenerateResponse(unittest.TestCase):
-
+    # Comment for each indivual function along with comments of what the code is doing
     def test_generate_response_with_additional_details(self):
         status_code = 200
         message = "Success"
@@ -89,6 +93,7 @@ class TestGenerateResponse(unittest.TestCase):
         self.assertEqual(response['body']['details'], "Success")
         self.assertEqual(response['body']['additional_details'], {'key': 'value'})
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_generate_response_without_additional_details(self):
         status_code = 500
         message = "Error"
@@ -98,7 +103,7 @@ class TestGenerateResponse(unittest.TestCase):
         self.assertNotIn('additional_details', response['body'])
 
 class TestDeleteEntireItem(unittest.TestCase):
-
+    # Comment for each indivual function along with comments of what the code is doing
     def test_delete_entire_item_existing(self):
         item = {
             'items': [
@@ -114,12 +119,14 @@ class TestDeleteEntireItem(unittest.TestCase):
         delete_entire_item(item, body)
         self.assertEqual(len(item['items']), 0)
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_delete_entire_item_non_existing(self):
         item = {'items': []}
         body = {'item_name': 'Milk', 'quantity_change': 10, 'expiry_date': '2024-01-01'}
         delete_entire_item(item, body)
         self.assertEqual(len(item['items']), 0)
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_delete_partial_item(self):
         item = {
             'items': [
@@ -153,6 +160,7 @@ class TestDeleteEntireItem(unittest.TestCase):
         self.assertEqual(len(item['items'][0]['item_list']), 1)
         self.assertIn({'expiry_date': '2024-04-01', 'current_quantity': 30}, item['items'][0]['item_list'])
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_delete_nonexistent_item_name(self):
         item = {
             'items': [
@@ -170,7 +178,7 @@ class TestDeleteEntireItem(unittest.TestCase):
         self.assertEqual(item['items'][0]['item_name'], 'Tea')
 
 class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
-
+    # Comment for each indivual function along with comments of what the code is doing
     def test_remove_empty_items(self):
         # Create input parameters for function
         test_item = {'items':[{'item_list':[{'current_quantity': 5}]},{'item_list': []}]}
@@ -181,6 +189,7 @@ class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
         # Verify response
         self.assertEqual(test_item['items'],[{'item_list':[{'current_quantity': 5}]}])
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_remove_zero_quantity_item(self):
         # Create input parameters for function
         test_item = {'items':[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':0}]},{'item_list':[{'current_quantity':5}]}]}
@@ -191,7 +200,7 @@ class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
         # Verify response
         self.assertEqual(test_item['items'],[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]}])
 
-
+    # Comment for each indivual function along with comments of what the code is doing
     def test_keep_non_zero_quantity_item(self):
         # Create input parameters for function
         test_item = {'items':[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]}]}
@@ -202,6 +211,7 @@ class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
         # Verify response
         self.assertEqual(test_item['items'],[{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]},{'item_list':[{'current_quantity':5}]}])
 
+    # Comment for each indivual function along with comments of what the code is doing
     def test_wrong_input(self):
         # Create input parameters for function
         test_item = {'test_key':'test_value'}
@@ -213,7 +223,7 @@ class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
         self.assertEqual(test_item, {'test_key':'test_value'})
 
 class TestModifyItemsFunction(unittest.TestCase):
-
+    # Comment for each indivual function along with comments of what the code is doing
     @patch('src.inventory_utils.get_current_time_gmt')
     def test_update_existing_item(self, mock_get_current_time):
 
@@ -229,6 +239,7 @@ class TestModifyItemsFunction(unittest.TestCase):
         # Verify response
         self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 5,'item_list': [{'current_quantity': 5,'expiry_date': '2024-02-01','date_added': 1643424000,'date_removed': 0}]}])
 
+    # Comment for each indivual function along with comments of what the code is doing
     @patch('src.inventory_utils.get_current_time_gmt')
     def test_create_new_item(self, mock_get_current_time):
 
@@ -244,6 +255,7 @@ class TestModifyItemsFunction(unittest.TestCase):
         # Verify response
         self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 5,'item_list': [{'current_quantity': 5,'expiry_date': '2024-02-01','date_added': 1643491200,'date_removed': 0}]}])
 
+    # Comment for each indivual function along with comments of what the code is doing
     @patch('src.inventory_utils.get_current_time_gmt')
     def test_create_new_item_with_desired_quantity(self, mock_get_current_time):
 
@@ -259,6 +271,7 @@ class TestModifyItemsFunction(unittest.TestCase):
         # Verify response
         self.assertEqual(item['items'], [{'item_name': 'apple','desired_quantity': 10,'item_list': [{'current_quantity': 5,'expiry_date': '2024-02-01','date_added': 1643491200,'date_removed': 0}]}])
 
+    # Comment for each indivual function along with comments of what the code is doing
     @patch('src.inventory_utils.get_current_time_gmt')
     def test_update_existing_item_with_different_expiry(self, mock_get_current_time):
 
