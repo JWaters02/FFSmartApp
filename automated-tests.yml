@@ -9,3 +9,13 @@ steps:
     echo Listing all files and directories in the repository at all levels
     find .
   displayName: 'List all files in the repo recursively'
+
+- script: |
+    echo Finding and running tests for each Lambda function
+    find . -path '*/src/*' -name 'index.py' | while read lambda_file; do
+      test_file="${lambda_file/src/test}"
+      test_file="${test_file/index.py/test_index.py}"
+      echo "Running test for ${lambda_file}: ${test_file}"
+      python "${test_file}"
+    done
+  displayName: 'Run Lambda function tests'
