@@ -13,7 +13,7 @@ steps:
 - script: |
     echo Finding and running tests for each Lambda function
     find . -path '*/src/*' -name 'index.py' | while read lambda_file; do
-      test_file=$(echo "${lambda_file}" | sed 's|/src/|/test/|;s|index.py|test_index.py|')
+      test_file=$(echo "${lambda_file}" | sed 's|/src/index.py|/test/test_index.py|')
       echo "Running test for ${lambda_file}: ${test_file}"
       if [ -f "${test_file}" ]; then
         python -m unittest "${test_file}"
