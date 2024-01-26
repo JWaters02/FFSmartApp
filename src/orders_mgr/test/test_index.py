@@ -3,7 +3,7 @@ import time
 from unittest.mock import patch, MagicMock
 from src.index import handler
 from src.delete import delete_order, ClientError
-from src.post import create_order, NotFoundException
+from src.post import create_order, NotFoundException, order_check
 class TestDynamoDBHandler(unittest.TestCase):
     @patch('boto3.resource')
     def test_handler_function(self, mock_boto3_resource):  # use highly descriptive function names, not what like this
@@ -203,6 +203,51 @@ class TestCreateOrderFunction(unittest.TestCase):
                                     self.expired_items, self.table_name)
 
         self.assertEqual(response['statusCode'], 500)
+
+class TestOrderCheck(unittest.TestCase):
+
+    @patch('src.post.get_total_item_quantity')
+    @patch('src.post.get_expired_item_quantity_fridge')
+    @patch('src.post.create_order')
+    def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
+        def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
+            mock_table = MagicMock()
+            mock_dynamodb_client = MagicMock()
+            mock_event = {'body': {'restaurant_id': 'restaurant_id'}}
+            mock_table_name = 'your_table_name'
+
+            fridge_response = {
+                'Items': [
+                    {'item_name': 'item1', 'desired_quantity': 10,
+                     'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]}
+                ]
+            }
+
+            orders_response = {
+                'Items': [
+                    {'item_name': 'item1', 'orders': [{'expiry_date': '2024-01-01', 'quantity': 2}]}
+                ]
+            }
+
+            mock_table.query.side_effect = [fridge_response, orders_response]
+
+            result = order_check(mock_dynamodb_client, mock_event, mock_table, mock_table_name)
+
+            mock_total_quantity.assert_called_once_with(
+                {'item_name': 'item1', 'desired_quantity': 10,
+                 'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]},
+                [{'item_name': 'item1', 'orders': [{'expiry_date': '2024-01-01', 'quantity': 2}]}]
+            )
+            mock_expired_quantity.assert_called_once_with(
+                {'item_name': 'item1', 'desired_quantity': 10,
+                 'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]}
+            )
+            mock_create_order.assert_called_once_with(
+                mock_dynamodb_client, mock_table,
+                'restaurant_id', [{'M': {'item_name': {'S': 'item1'}, 'quantity': {'N': '3'}}}], [], mock_table_name
+            )
+
+            self.assertEqual(result['statusCode'], 201)
 
 
 if __name__ == '__main__':
