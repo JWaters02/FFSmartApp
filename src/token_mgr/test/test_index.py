@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import patch, MagicMock
 from src.index import handler
 from src.post import validate_token
+from src.patch import set_token
+from src.custom_exceptions import BadRequestException
+
 
 class TestDynamoDBHandler(unittest.TestCase):
     @patch('boto3.resource')
@@ -79,6 +82,8 @@ class TestDynamoDBHandler(unittest.TestCase):
         }
 
         self.assertEqual(response, expected_exception_response)
+
+
 class TestValidateTokenLambda(unittest.TestCase):
 
     def setUp(self):
@@ -97,7 +102,8 @@ class TestValidateTokenLambda(unittest.TestCase):
                 'pk': 'example_restaurant',
                 'type': 'tokens',
                 'tokens': [
-                    {'token': 'example_token', 'expiry_date': 9999999999, 'object_id': 'example_id', 'id_type': 'example_type'}
+                    {'token': 'example_token', 'expiry_date': 9999999999, 'object_id': 'example_id',
+                     'id_type': 'example_type'}
                 ]
             }
         }
@@ -132,7 +138,8 @@ class TestValidateTokenLambda(unittest.TestCase):
                 'pk': 'example_restaurant',
                 'type': 'tokens',
                 'tokens': [
-                    {'token': 'another_token', 'expiry_date': 9999999999, 'object_id': 'example_id', 'id_type': 'example_type'}
+                    {'token': 'another_token', 'expiry_date': 9999999999, 'object_id': 'example_id',
+                     'id_type': 'example_type'}
                 ]
             }
         }
@@ -141,6 +148,35 @@ class TestValidateTokenLambda(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 401)
         self.assertIn('Invalid token', response['body'])
+
+
+class TestSetTokenFunction(unittest.TestCase):
+    def test_set_token_with_expected_parameters(self):
+        event = {'body': {'restaurant_id': 'example_restaurant', 'id_type': 'order', 'object_id': 'example_id'}}
+        self.table = MagicMock()
+        self.table.get_item.return_value = {
+            'Item': {
+                'pk': 'example_restaurant',
+                'type': 'tokens',
+                'tokens': [
+                    {'token': 'another_token', 'expiry_date': 9999999999, 'object_id': 'example_id',
+                     'id_type': 'example_type'}
+                ]
+            }
+        }
+
+        response = set_token(event, self.table)
+
+        self.assertEqual(response['statusCode'], 200)
+
+    def test_invalid_event_format(self):
+        event = {'example': 'example'}
+        self.table = MagicMock()
+
+        with self.assertRaises(BadRequestException) as context:
+            set_token(event, self.table)
+        self.assertEqual(str(context.exception), 'No request body exists.')
+
 
 if __name__ == '__main__':
     unittest.main()

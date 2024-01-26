@@ -51,29 +51,3 @@ class TestHandler(unittest.TestCase):
         # Assert response
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(response['body'], json.dumps('Email sent!'))
-
-
-@patch('src.your_module.boto3.client')
-@patch('src.your_module.create_csv_content')
-class test_send_email_with_attachment_function():
-    def test_send_email(self):
-        mock_ses_client = MagicMock()
-        mock_boto3_client.return_value = mock_ses_client
-        mock_create_csv_content.return_value = 'CSV_CONTENT'
-
-        # Create input parameters for function
-        email = 'test@example.com'
-        restaurant_name = 'Placeholder Restaurant'
-        start_date = '2024-01-01'
-        end_date = '2024-02-01'
-        filtered_items = [{'item': 'example_item'}]
-
-        # Execute function
-        send_email_with_attachment(email, restaurant_name, start_date, end_date, filtered_items)
-
-        # Verify response
-        mock_boto3_client.assert_called_with('ses')
-        mock_ses_client.send_raw_email.assert_called_once()
-        mock_create_csv_content.assert_called_with(filtered_items)
-        mock_ses_client.send_raw_email.assert_called_with(Source='no-reply@ffsmart.benlewisjones.com',  Destinations=[
-            email], RawMessage={'Data': mock_ses_client.send_raw_email.call_args[1]['RawMessage']['Data']})
