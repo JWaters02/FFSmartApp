@@ -115,7 +115,7 @@ function endDelivery() {
     .then(data => {
         if(data.success) {
             sendFlashMessage(data.message, 'success').then(() => {
-                window.location.href = '/404-delivery'
+                window.location.href = '/'
             });
         } else {
             sendFlashMessage(data.message, 'danger').then(() => {
@@ -123,7 +123,6 @@ function endDelivery() {
             });
         }
     }).catch(error => {
-        location.reload();
         sendFlashMessage(error, 'danger').then(() => {
             window.location.href = '/404-delivery'
         });

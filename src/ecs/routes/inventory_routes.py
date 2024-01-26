@@ -272,8 +272,11 @@ def close_door():
 
 
 def validate_inputs(item_name, desired_quantity):
-    if not item_name:
+    if not item_name or item_name == '':
         flash('Item name must be specified', 'error')
+        return False
+    if len(item_name) > 20:
+        flash('Item name must 20 characters or less', 'error')
         return False
     if not desired_quantity:
         flash('Desired quantity must be specified', 'error')
