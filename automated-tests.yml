@@ -11,6 +11,11 @@ steps:
   displayName: 'List all files in the repo recursively'
 
 - script: |
+    echo Installing Python dependencies
+    pip install -r requirements.txt
+  displayName: 'Install Dependencies'
+
+- script: |
     echo Adjusting PYTHONPATH
     export PYTHONPATH=$PYTHONPATH:$(pwd)
     echo $PYTHONPATH
