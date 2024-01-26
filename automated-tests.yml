@@ -11,6 +11,8 @@ steps:
   displayName: 'List all files in the repo recursively'
 
 - script: |
+    echo Adding project root to PYTHONPATH
+    export PYTHONPATH=$PYTHONPATH:$(pwd)
     echo Finding and running tests for each Lambda function
     find . -path '*/src/*' -name 'index.py' | while read lambda_file; do
       test_file=$(echo "${lambda_file}" | sed 's|/src/index.py|/test/test_index.py|')
@@ -22,3 +24,4 @@ steps:
       fi
     done
   displayName: 'Run Lambda function tests'
+
