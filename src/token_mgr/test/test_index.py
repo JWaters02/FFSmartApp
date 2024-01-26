@@ -4,6 +4,7 @@ from src.index import handler
 from src.post import validate_token
 from src.patch import set_token
 from src.custom_exceptions import BadRequestException
+from src.delete import delete_token, clean_up_old_tokens
 
 
 class TestDynamoDBHandler(unittest.TestCase):
@@ -176,6 +177,60 @@ class TestSetTokenFunction(unittest.TestCase):
         with self.assertRaises(BadRequestException) as context:
             set_token(event, self.table)
         self.assertEqual(str(context.exception), 'No request body exists.')
+
+class TestDeleteToken(unittest.TestCase):
+
+    def setUp(self):
+        self.table = Mock()
+        self.valid_event = {
+            'body': {
+                'restaurant_id': 'restaurant123',
+                'request_token': 'token123'
+            }
+        }
+        self.invalid_event = {
+            'body': {}
+        }
+
+    def test_delete_token_success(self):
+        # Mocking DynamoDB response
+        self.table.get_item.return_value = {'Item': {'tokens': [{'token': 'token123', 'object_id': 'obj1', 'id_type': 'type1'}]}}
+        response = delete_token(self.valid_event, self.table)
+        self.assertEqual(response['statusCode'], 200)
+
+    def test_delete_token_not_found(self):
+        self.table.get_item.return_value = {'Item': {'tokens': []}}
+        response = delete_token(self.valid_event, self.table)
+        self.assertEqual(response['statusCode'], 404)
+
+
+class TestCleanUpOldTokens(unittest.TestCase):
+
+    def setUp(self):
+        self.table = Mock()
+        self.valid_event = {
+            'body': {
+                'restaurant_id': 'restaurant123'
+            }
+        }
+        self.invalid_event = {
+            'body': {}
+        }
+
+    def test_clean_up_old_tokens_success(self):
+        # Mocking DynamoDB response
+        self.table.get_item.return_value = {'Item': {'tokens': [{'expiry_date': 1643086920, 'object_id': 'obj1', 'id_type': 'type1'}]}}
+        response = clean_up_old_tokens(self.valid_event, self.table)
+        self.assertEqual(response['statusCode'], 200)
+
+    def test_clean_up_old_tokens_not_found(self):
+        self.table.get_item.return_value = {}
+        response = clean_up_old_tokens(self.valid_event, self.table)
+        self.assertEqual(response['statusCode'], 404)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
 
 
 if __name__ == '__main__':
