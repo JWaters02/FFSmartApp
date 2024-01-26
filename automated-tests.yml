@@ -11,10 +11,8 @@ steps:
   displayName: 'List all files in the repo recursively'
 
 - script: |
-    echo Adjusting PYTHONPATH for each module
-    for module_dir in $(find . -type d -name 'src' -exec dirname {} \;); do
-      export PYTHONPATH=$PYTHONPATH:$(pwd)/$module_dir
-    done
+    echo Adjusting PYTHONPATH
+    export PYTHONPATH=$PYTHONPATH:$(pwd)
     echo $PYTHONPATH
     echo Finding and running tests for each Lambda function
     find . -path '*/src/*' -name 'index.py' | while read lambda_file; do
