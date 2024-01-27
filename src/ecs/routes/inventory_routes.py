@@ -140,7 +140,8 @@ def update_item():
                 "restaurant_name": restaurant_name,
                 "item_name": item_name,
                 "quantity_change": quantity_change,
-                "expiry_date": expiry_date
+                "expiry_date": expiry_date,
+                "date_added": date_added 
             }
         }
 

@@ -48,12 +48,14 @@
                                             <form action="{{ url_for('inventory.update_item') }}" method="post" class="d-inline">
                                                 <input type="hidden" name="item_name" value="{{ item.item_name }}">
                                                 <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                                <input type="hidden" name="date_added" value="{{ item_detail.date_added }}">
                                                 <input type="hidden" name="quantity_change" value=1>
                                                 <button type="submit" class="btn btn-sm btn-outline-success">+</button>
                                             </form>
                                             <form action="{{ url_for('inventory.update_item') }}" method="post" class="d-inline">
                                                 <input type="hidden" name="item_name" value="{{ item.item_name }}">
                                                 <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                                <input type="hidden" name="date_added" value="{{ item_detail.date_added }}">
                                                 <input type="hidden" name="quantity_change" value=-1>
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">-</button>
                                             </form>
