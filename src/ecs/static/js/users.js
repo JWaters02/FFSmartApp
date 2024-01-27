@@ -15,14 +15,16 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                sendFlashMessage('User was not removed correctly, please try again later.', 'danger');
+                sendFlashMessage('User was not removed correctly, please try again later.', 'danger').then(() => {
+                    window.location.href = "/users";
+                });
                 console.error('Error:', 'Network response was not ok: ' + response.statusText);
                 return;
             }
 
-            window.location.href = "/users";
-
-            sendFlashMessage('User removed successfully.', 'success');
+            sendFlashMessage('User removed successfully.', 'success').then(() => {
+                window.location.href = "/users";
+            });
         })
     })
 
@@ -40,13 +42,17 @@ document.addEventListener("DOMContentLoaded", function () {
 document.getElementById("create-new-user").addEventListener("click", async function () {
 
     if(document.getElementById("role").value === "") {
-        sendFlashMessage('Please select a role.', 'danger');
+        sendFlashMessage('Please select a role.', 'danger').then(() => {
+            window.location.href = "/users";
+        });       
         return;
     }
 
     let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     if(!document.getElementById("email").value.match(emailPattern)) {
-        sendFlashMessage('Please enter a valid email address.', 'danger');
+        sendFlashMessage('Please enter a valid email address.', 'danger').then(() => {
+            window.location.href = "/users";
+        }); 
         return;
     }
 
@@ -63,12 +69,14 @@ document.getElementById("create-new-user").addEventListener("click", async funct
     });
 
     if (!response.ok) {
-        sendFlashMessage('User was not created correctly, please try again later.', 'danger');
+        sendFlashMessage('User was not created correctly, please try again later.', 'danger').then(() => {
+            window.location.href = "/users";
+        });
         console.error('Error:', 'Network response was not ok: ' + response.statusText);
         return;
     }
 
-    window.location.href = "/users";
-
-    sendFlashMessage('User created successfully.', 'success');
+    sendFlashMessage('User created successfully.', 'success').then(() => {
+        window.location.href = "/users";
+    });
 });

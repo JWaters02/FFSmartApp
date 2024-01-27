@@ -1,6 +1,12 @@
 import json
 import os
+from flask import flash
 from botocore.exceptions import ClientError, BotoCoreError
+from datetime import datetime, timedelta
+
+from lib.globals import (
+    users_mgr_lambda
+)
 
 
 def create_user(cognito_client, username, email, restaurant_id, user_pool_id):
@@ -180,7 +186,7 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
     :param lambda_client: Client for lambda.
     :param username: Username of current user.
     :return: Role of current user, restaurant accounts are assumed to be
-    Admin. If anything goes wrong, chef is returned.
+    Admin. If anything goes wrong, None is returned.
     """
     try:
         restaurant_id = get_restaurant_id(cognito_client, access_token)
@@ -197,18 +203,18 @@ def get_user_role(cognito_client, access_token, lambda_client, username):
             }
         }
 
-        response = make_lambda_request(lambda_client, payload, os.environ.get('USERS_MGR_NAME'))
-
+        response = make_lambda_request(lambda_client, payload, users_mgr_lambda)
         if response['statusCode'] != 200:
-            return 'Chef'
+            return 'None'
 
         return response['body']['role']
 
     except ClientError as ignore:
-        return 'Chef'
+        return 'None'
 
     except BotoCoreError as ignore:
-        return 'Chef'
+        return 'None'
+
 
 def get_admin_settings(username, lambda_client, function_name):
     """
@@ -228,3 +234,69 @@ def get_admin_settings(username, lambda_client, function_name):
         })
 
     return make_lambda_request(lambda_client, payload, function_name)
+
+
+def get_order_data(lambda_client, function_name, restaurant_id):
+    """
+    Gets the order data for the current restaurant.
+    :param lambda_client: Client of the lambda.
+    :param function_name: ID of the restaurant.
+    :param restaurant_id: Current restaurant_id.
+    :return: The order data.
+    """
+
+    try:
+        payload = json.dumps({
+            "httpMethod": "GET",
+            "action": "get_all_orders",
+            "body": {
+                "restaurant_id": restaurant_id
+            }
+        })
+
+        response = make_lambda_request(lambda_client, payload, function_name)
+        if response['statusCode'] == 200:
+            orders = response['body']['items']
+            for order in orders:
+                order['date_ordered'] = datetime.fromtimestamp(order['date_ordered']).strftime('%Y-%m-%d')
+                order['delivery_date'] = datetime.fromtimestamp(order['delivery_date']).strftime('%Y-%m-%d')
+            return orders
+        else:
+            return []
+
+    except Exception as e:
+        print(e)
+        return []
+
+
+def validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
+    """
+    Validates a token.
+    :param token: Token to validate.
+    :param lambda_client: Client of the lambda.
+    :param restaurant_id: ID of the restaurant.
+    :param token_mgr_lambda: Name of the lambda.
+    :return: True if valid.
+    """
+    
+    try:
+        payload = {
+            "httpMethod": "POST",
+            "action": "validate_token",
+            "body": {
+                "restaurant_id": restaurant_id,
+                "request_token": token
+            }
+        }
+
+        response = make_lambda_request(lambda_client, payload, token_mgr_lambda)
+        if response['statusCode'] == 200:
+            return True
+        else:
+            flash('Invalid or expired token.', 'danger')
+            return False
+
+    except Exception as e:
+        print(e)
+        flash('Invalid or expired token.', 'danger')
+        return False

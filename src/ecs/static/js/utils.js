@@ -35,8 +35,8 @@ async function fetchConfig() {
     }
 }
 
-async function sendFlashMessage(message, category) {
-    fetch('/flash', {
+function sendFlashMessage(message, category) {
+    return fetch('/flash', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -45,7 +45,6 @@ async function sendFlashMessage(message, category) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Success:', data);
     })
     .catch((error) => {
         console.error('Error:', error);

@@ -1,4 +1,26 @@
-from .utils import generate_delivery_email_body, generate_and_send_email, get_cognito_user_email, generate_expired_items_email_body
+from .utils import generate_delivery_email_body, generate_and_send_email, get_cognito_user_email, \
+    generate_expired_items_email_body, generate_low_stock_email_body
+
+
+def send_low_stocks_email(ses_client, restaurant, low_stock):
+    """
+    Sends the low stock email.
+
+    :param ses_client: SES Client.
+    :param restaurant: The restaurant setting to the restaurant of interest.
+    :param low_stock: List of items with low stock.
+    :return: None
+    """
+    email = get_cognito_user_email(restaurant['pk'])
+    if email is None:
+        return
+
+    destination = [email]
+    sender = 'no-reply@ffsmart.benlewisjones.com'
+    subject = 'LOW STOCK WARNING'
+    body = generate_low_stock_email_body(restaurant, low_stock)
+
+    generate_and_send_email(ses_client, subject, body, destination, sender)
 
 
 def send_delivery_email(ses_client, restaurant, token):

@@ -1,14 +1,16 @@
 import os
 import boto3
 
-from .emails import send_delivery_email, send_expired_items
-from .lambda_requests import create_new_order, create_an_order_token, remove_old_tokens, remove_old_objects
+from .emails import send_delivery_email, send_expired_items, send_low_stocks_email
+from .lambda_requests import create_new_order, create_an_order_token, remove_old_tokens, remove_old_objects,\
+    get_list_of_low_stock
 from .utils import list_of_all_pks_and_delivery_emails
 
 
 def handler(event, data):
     __token_mgr_arn__ = os.environ.get('TOKEN_MGR_ARN')
     __orders_mgr_arn__ = os.environ.get('ORDERS_MGR_ARN')
+    __fridge_mgr_arn__ = os.environ.get('FRIDGE_MGR_ARN')
     __master_db_name__ = os.environ.get('MASTER_DB')
 
     ses_client = boto3.client('ses')
@@ -43,13 +45,18 @@ def handler(event, data):
                 )
                 send_delivery_email(ses_client, restaurant, token)
 
+            ##########################
+            # Send email for low stock
+            low_stock = get_list_of_low_stock(lambda_client, __fridge_mgr_arn__, restaurant)
+            if low_stock:
+                send_low_stocks_email(ses_client, restaurant, low_stock)
+
             ############################
             # Clean up all tokens no matter the type
             old_token_object_ids = remove_old_tokens(lambda_client, __token_mgr_arn__, restaurant)
             remove_old_objects(lambda_client, __orders_mgr_arn__, restaurant, old_token_object_ids)
 
         except Exception as ignore:
-
             # If anything goes wrong, this is important for malformed data
             try:
                 failed_entries.append(restaurant['pk'])
