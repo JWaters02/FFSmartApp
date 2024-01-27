@@ -130,6 +130,7 @@ def update_item():
     item_name = request.form.get('item_name')
     expiry_date = int(request.form.get('expiry_date'))
     quantity_change = int(request.form.get('quantity_change'))
+    date_added = int(request.form.get('date_added'))
     restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
 
     try:
@@ -146,6 +147,7 @@ def update_item():
         }
 
         response = make_lambda_request(lambda_client, lambda_payload, fridge_mgr_lambda)
+
         if response['statusCode'] == 200:
             flash('Item updated successfully!', 'success')
         else:

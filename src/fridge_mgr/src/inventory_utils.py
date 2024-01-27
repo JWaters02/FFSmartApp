@@ -116,6 +116,7 @@ def update_item_quantity(table, pk, body):
     item_name = body.get('item_name').lower()
     quantity_change = body.get('quantity_change', 0)
     expiry_date = body.get('expiry_date')
+    date_added = body.get('date_added')
 
     table_response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
     item = table_response.get('Item')
@@ -126,7 +127,7 @@ def update_item_quantity(table, pk, body):
     for stored_item in item['items']:
         if stored_item['item_name'].lower() == item_name:
             for item_detail in stored_item['item_list']:
-                if item_detail['expiry_date'] == expiry_date:
+                if item_detail['expiry_date'] == expiry_date and item_detail['date_added'] == date_added:
                     item_detail['current_quantity'] += quantity_change
                     if item_detail['current_quantity'] < 0: 
                         return generate_response(400, f'Quantity cannot be negative for {item_name}')
@@ -173,7 +174,7 @@ def delete_item(table, pk, body):
                                                     detail['current_quantity'] == current_quantity)]
                 if not stored_item['item_list']:
                     item['items'] = [i for i in item['items'] if i['item_name'] != item_name]
-            table.put_item(Item=item, overwrite=True)
+            table.put_item(Item=item)
             return generate_response(200, f'Item {item_name} updated successfully')
 
     return generate_response(404, f'Item {item_name} not found in inventory')
