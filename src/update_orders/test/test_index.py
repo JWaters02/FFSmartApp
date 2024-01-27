@@ -4,7 +4,7 @@ from unittest import mock
 from unittest.mock import patch, MagicMock, Mock
 from src.index import handler
 from src.emails import send_delivery_email, send_expired_items
-from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body
+from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email
 from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 
 class TestPost(unittest.TestCase):
@@ -405,6 +405,72 @@ class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
                                '    Thanks')
 
         self.assertEqual(result.strip(), expected_email_body.strip())
+
+class TestMakeLambdaRequest(unittest.TestCase):
+
+    @patch('src.utils.json.dumps')
+    def test_make_lambda_request(self, mock_json_dumps):
+        # Set up mock objects
+        mock_lambda_client = Mock()
+        mock_response = {
+            'Payload': Mock(read=Mock(return_value=b'{"key": "value"}'))
+        }
+        mock_lambda_client.invoke.return_value = mock_response
+        mock_json_dumps.return_value = '{"test": "data"}'
+
+
+        test_payload = {'test': 'data'}
+        test_function_name = 'testFunction'
+
+
+        response = make_lambda_request(mock_lambda_client, test_payload, test_function_name)
+
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='testFunction',
+            InvocationType='RequestResponse',
+            Payload='{"test": "data"}'
+        )
+        mock_json_dumps.assert_called_once_with(test_payload)
+        self.assertEqual(response, {'key': 'value'})
+
+class TestGenerateAndSendEmail(unittest.TestCase):
+
+    @patch('src.utils.boto3.client')
+    def test_generate_and_send_email_success(self, mock_boto3_client):
+        mock_ses_client = Mock()
+        mock_ses_client.send_email.return_value = {'MessageId': '12345'}
+        mock_boto3_client.return_value = mock_ses_client
+
+        # Define test data
+        subject = 'Test Subject'
+        body = 'Test Body'
+        destinations = ['test@example.com']
+        sender = 'sender@example.com'
+
+        result = generate_and_send_email(mock_ses_client, subject, body, destinations, sender)
+
+        self.assertTrue(result)
+
+        mock_ses_client.send_email.assert_called_once_with(
+            Destination={'ToAddresses': destinations},
+            Message={
+                'Body': {'Text': {'Charset': 'UTF-8', 'Data': body}},
+                'Subject': {'Charset': 'UTF-8', 'Data': subject}
+            },
+            Source=sender
+        )
+
+    @patch('src.utils.boto3.client')
+    def test_generate_and_send_email_failure(self, mock_boto3_client):
+        mock_ses_client = Mock()
+        error_response = {'Error': {'Code': 'TestException', 'Message': 'Test Message'}}
+        mock_ses_client.send_email.side_effect = ClientError(error_response, 'send_email')
+        mock_boto3_client.return_value = mock_ses_client
+
+        result = generate_and_send_email(mock_ses_client, 'subject', 'body', ['test@example.com'], 'sender@example.com')
+
+        self.assertFalse(result)
 
 
 if __name__ == '__main__':
