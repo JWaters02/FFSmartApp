@@ -47,9 +47,7 @@ if (completeOrderButton) {
         .then(data => {
             if(data.success) {
                 changeDoorState(false);
-                sendFlashMessage(data.message, 'success').then(() => {
-                    window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
-                });
+                sendFlashMessage(data.message, 'success').then(() => {});
                 endDelivery();
             } else {
                 if (data.retry_items && data.retry_items.length > 0) {
@@ -111,15 +109,17 @@ function endDelivery() {
     fetch('/delivery/end_delivery/' + getRestaurantId() + '/' + getToken(), {
         method: 'POST',
         headers: {'Content-Type': 'application/json'}
-    }).then(response => response.json())
+    }).then(response => {
+        return response.json()
+    })
     .then(data => {
         if(data.success) {
             sendFlashMessage(data.message, 'success').then(() => {
-                window.location.href = '/'
+                window.location.href = data.redirect_url
             });
         } else {
             sendFlashMessage(data.message, 'danger').then(() => {
-                window.location.href = '/404-delivery'
+                window.location.href = data.redirect_url
             });
         }
     }).catch(error => {
@@ -150,7 +150,6 @@ function changeDoorState(state) {
             });
         }
     }).catch(error => {
-        console.error('Error:', error);
         sendFlashMessage(error, 'danger').then(() => {
             window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
         });
