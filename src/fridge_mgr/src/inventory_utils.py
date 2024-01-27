@@ -243,11 +243,20 @@ def get_low_stock(table, pk):
                     'current_quantity': current_quantity
                 })
 
-        return generate_response(200, 'Low stock items retrieved successfully', {'low_stock': low_stock})
-    except ClientError as e:
-        return generate_response(500, 'Error accessing DynamoDB: ' + str(e))
-    except Exception as e:
-        return generate_response(500, 'Internal Server Error: ' + str(e))
+        response = {
+            'statusCode': 200,
+            'body': {
+                'low_stock': low_stock
+            }
+        }
+
+    except ClientError as ignore:
+        response = generate_response(500, 'Internal Server Error1' + str(ignore))
+
+    except Exception as ignore:
+        response = generate_response(500, 'Internal Server Error2' + str(ignore))
+
+    return response
 
 
 def update_desired_quantity(table, pk, body):
