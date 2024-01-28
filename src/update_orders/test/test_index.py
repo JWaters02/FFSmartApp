@@ -4,7 +4,7 @@ from unittest import mock
 from unittest.mock import patch, MagicMock, Mock
 from src.index import handler
 from src.emails import send_delivery_email, send_expired_items
-from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email
+from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email,ClientError
 from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 
 class TestPost(unittest.TestCase):
