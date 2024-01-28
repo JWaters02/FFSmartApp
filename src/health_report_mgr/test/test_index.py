@@ -5,7 +5,7 @@ import json
 from boto3.dynamodb.conditions import Key
 import unittest
 from unittest.mock import Mock, patch
-from src.utils import get_health_and_safety_email, get_filtered_items
+from src.utils import get_health_and_safety_email, get_filtered_items, send_email_with_attachment
 
 
 class TestHandler(unittest.TestCase):
@@ -102,6 +102,27 @@ class TestDynamoDBFunctions(unittest.TestCase):
         start_date, end_date = 1609459200, 1609824800
         items = get_filtered_items(mock_table, 'TestRestaurant', start_date, end_date)
         self.assertTrue(len(items) > 0)
+
+
+class TestSendEmailWithAttachmentFunction (unittest.TestCase):
+    @patch('src.utils.boto3.client')
+    @patch('src.utils.create_csv_content')
+    def test_normal_parameters(self, mock_create_csv_content, mock_boto3_client):
+        mock_ses_client = MagicMock()
+        mock_boto3_client.return_value = mock_ses_client
+        mock_create_csv_content.return_value = 'CSV_CONTENT'
+
+        email = 'example@example.com'
+        restaurant_name = 'example_name'
+        start_date = '2024-01-01'
+        end_date = '2025-01-01'
+        filtered_items = [{'example': 'example'}]
+
+        send_email_with_attachment(email, restaurant_name, start_date, end_date, filtered_items)
+
+        mock_boto3_client.assert_called_with('ses')
+        mock_ses_client.send_raw_email.assert_called_once()
+        mock_create_csv_content.assert_called_with(filtered_items)
 
 
 if __name__ == '__main__':
