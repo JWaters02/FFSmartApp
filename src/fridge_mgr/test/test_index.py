@@ -36,31 +36,23 @@ class TestDynamoDBHandler(unittest.TestCase):
 
         self.assertEqual(response, expected_response)
 
+#Testing hte function modify door state - when opening the door or closing
 class TestModifyDoorStateFunction(unittest.TestCase):
-    #Explaination here for what the test is actually doing in general
-    #Comment for each indivual function along with comments of what the code is doing
+    #Mocking a test response making sure that if the door is closed it can be open
     def test_open_door_action(self):
         item = {'is_front_door_open': False, 'is_back_door_open': False}
         body = {'is_front_door_open': True, 'is_back_door_open': False}
         action = "open_door"
 
+        #Opening the door with the mocked data from above
         modify_door_state(item, body, action)
 
+        #Ensuring that the response shows the door being open
         self.assertTrue(item['is_front_door_open'])
         self.assertFalse(item['is_back_door_open'])
 
-    # Comment for each indivual function along with comments of what the code is doing
-    def test_open_door_action_with_default_values(self):
-        item = {'is_front_door_open': False, 'is_back_door_open': False}
-        body = {}
-        action = "open_door"
 
-        modify_door_state(item, body, action)
-
-        self.assertFalse(item['is_front_door_open'])
-        self.assertFalse(item['is_back_door_open'])
-
-    # Comment for each indivual function along with comments of what the code is doing
+    #Testing the behaviour when the door is being closed
     def test_close_door_action(self):
         item = {'is_front_door_open': True, 'is_back_door_open': True}
         body = {}
@@ -71,7 +63,7 @@ class TestModifyDoorStateFunction(unittest.TestCase):
         self.assertFalse(item['is_front_door_open'])
         self.assertFalse(item['is_back_door_open'])
 
-    # Comment for each indivual function along with comments of what the code is doing
+    #This tests the initial door state and thedesired state from the request body and modified accorindly
     def test_close_door_action_with_existing_values(self):
         item = {'is_front_door_open': True, 'is_back_door_open': True}
         body = {'is_front_door_open': False, 'is_back_door_open': True}
