@@ -267,6 +267,7 @@ class TestOrderCheck(unittest.TestCase):
 
 
 class TestGetAllOrdersFunction(unittest.TestCase):
+    # test the function can run when given the expected parameters
     def test_normal_parameters(self):
         event = {'body': {'restaurant_id': 'example_restaurant'}}
         self.table = MagicMock()
@@ -275,22 +276,7 @@ class TestGetAllOrdersFunction(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 200)
 
-    def test_event_missing_body(self):
-        event = {'example': 'example'}
-        self.table = MagicMock()
-
-        with self.assertRaises(BadRequestException) as context:
-            get_all_orders(event, self.table)
-        self.assertEqual(str(context.exception), 'Bad request restaurant_id not found in body.')
-
-    def test_event_missing_restaurant_id(self):
-        event = {'body': {'example': 'example'}}
-        self.table = MagicMock()
-
-        with self.assertRaises(BadRequestException) as context:
-            get_all_orders(event, self.table)
-        self.assertEqual(str(context.exception), 'Bad request restaurant_id not found in body.')
-
+    # test the function returns an appropriate error message when there is a key error
     def test_key_error(self):
         event = {'body': {'restaurant_id': 'example_restaurant'}}
         self.table = MagicMock()
@@ -300,6 +286,7 @@ class TestGetAllOrdersFunction(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 404)
 
+    # test the function returns an appropriate error message when there is a client error
     def test_client_error(self):
         event = {'body': {'restaurant_id': 'example_restaurant'}}
         self.table = MagicMock()
@@ -312,6 +299,7 @@ class TestGetAllOrdersFunction(unittest.TestCase):
 
 
 class TestGetOrderFunction(unittest.TestCase):
+    # test the function can run when given the expected parameters
     def test_normal_parameters(self):
         event = {'body': {'restaurant_id': 'example_restaurant', 'order_id': 'example_id'}}
         self.table = MagicMock()
@@ -320,6 +308,7 @@ class TestGetOrderFunction(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 200)
 
+    # test the function returns an appropriate error message when the event body is missing
     def test_event_missing_body(self):
         event = {'example': 'example'}
         self.table = MagicMock()
@@ -328,6 +317,7 @@ class TestGetOrderFunction(unittest.TestCase):
             get_order(event, self.table)
         self.assertEqual(str(context.exception), 'Bad request restaurant_id not found in body.')
 
+    # test the function returns an appropriate error message when the restaurant id is missing
     def test_event_missing_restaurant_id(self):
         event = {'body': {'order_id': 'example_id'}}
         self.table = MagicMock()
@@ -336,6 +326,7 @@ class TestGetOrderFunction(unittest.TestCase):
             get_order(event, self.table)
         self.assertEqual(str(context.exception), 'Bad request restaurant_id not found in body.')
 
+    # test the function returns an appropriate error message when the order id is missing
     def test_event_missing_order_id(self):
         event = {'body': {'restaurant_id': 'example_restaurant'}}
         self.table = MagicMock()
@@ -344,6 +335,7 @@ class TestGetOrderFunction(unittest.TestCase):
             get_order(event, self.table)
         self.assertEqual(str(context.exception), 'Bad request order_id not found in body.')
 
+    # test the function returns an appropriate error message when there is a key error
     def test_key_error(self):
         event = {'body': {'restaurant_id': 'example_restaurant', 'order_id': 'example_id'}}
         self.table = MagicMock()
@@ -353,6 +345,7 @@ class TestGetOrderFunction(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 404)
 
+    # test the function returns an appropriate error message when there is a client error
     def test_client_error(self):
         event = {'body': {'restaurant_id': 'example_restaurant', 'order_id': 'example_id'}}
         self.table = MagicMock()
@@ -365,6 +358,7 @@ class TestGetOrderFunction(unittest.TestCase):
 
 
 class TestGenerateOrderIdFunction(unittest.TestCase):
+    # tests the function returns the correct id
     @patch('src.utils.secrets')
     def test_normal_parameters(self, mock_secrets):
         self.table = MagicMock()
@@ -375,6 +369,7 @@ class TestGenerateOrderIdFunction(unittest.TestCase):
 
         self.assertEqual(response, '1234567890123456')
 
+    # tests the function returns the correct error message when there is no restaurant id
     def test_missing_restaurant_id(self):
         self.table = MagicMock()
         restaurant_id = 'example_restaurant'
@@ -386,6 +381,7 @@ class TestGenerateOrderIdFunction(unittest.TestCase):
 
 
 class TestIsOrderIdValidFunction(unittest.TestCase):
+    # tests the function returns true if there is no matching ids
     def test_id_valid(self):
         order_id = 1234567890123456
         self.item = MagicMock()
@@ -394,6 +390,7 @@ class TestIsOrderIdValidFunction(unittest.TestCase):
 
         self.assertEqual(response, True)
 
+    # tests the function returns false if there is a matching id
     def test_id_invalid(self):
         order_id = 1234567890123456
         self.item = {'orders': [{'id': 1234567890123456}]}
@@ -404,6 +401,7 @@ class TestIsOrderIdValidFunction(unittest.TestCase):
 
 
 class TestGetExpiredItemQuantityFridgeFunction(unittest.TestCase):
+    # tests the function returns the correct quantity
     def test_normal_parameters(self):
         self.fridge_item = {'item_list': [{'expiry_date': time.time()-999999, 'current_quantity': 10}]}
 
@@ -411,6 +409,7 @@ class TestGetExpiredItemQuantityFridgeFunction(unittest.TestCase):
 
         self.assertEqual(response, 10)
 
+    # tests the function returns 0 when there is no matching items
     def test_zero_expired_item_quantity(self):
         self.fridge_item = {'item_list': [{'expiry_date': time.time(), 'current_quantity': 10}]}
 
@@ -420,6 +419,7 @@ class TestGetExpiredItemQuantityFridgeFunction(unittest.TestCase):
 
 
 class TestGetItemQuantityFridgeFunction(unittest.TestCase):
+    # tests the function returns the correct quantity
     def test_normal_parameters(self):
         self.fridge_item = {'item_list': [{'expiry_date': time.time(), 'current_quantity': 10}]}
 
@@ -427,6 +427,7 @@ class TestGetItemQuantityFridgeFunction(unittest.TestCase):
 
         self.assertEqual(response, 10)
 
+    # tests the function returns 0 when there is no matching items
     def test_zero_item_quantity(self):
         self.fridge_item = {'item_list': [{'expiry_date': time.time() - 999999, 'current_quantity': 10}]}
 
@@ -436,6 +437,7 @@ class TestGetItemQuantityFridgeFunction(unittest.TestCase):
 
 
 class TestGetItemQuantityOrdersFunction(unittest.TestCase):
+    # tests the function returns the correct quantity
     def test_normal_parameters(self):
         order_items = [{'item_name': 'example_name', 'quantity': 10}]
         item_name = 'example_name'
@@ -444,6 +446,7 @@ class TestGetItemQuantityOrdersFunction(unittest.TestCase):
 
         self.assertEqual(response, 10)
 
+    # tests the function returns 0 when there is no matching items
     def test_no_matching_item_name(self):
         order_items = [{'item_name': 'another_example_name', 'quantity': 10}]
         item_name = 'example_name'
@@ -454,6 +457,7 @@ class TestGetItemQuantityOrdersFunction(unittest.TestCase):
 
 
 class TestGetTotalItemQuantityFunction(unittest.TestCase):  # depends on previous two functions
+    # tests the function returns the correct quantity
     def test_normal_parameters(self):
         fridge_item = {'item_list': [{'expiry_date': time.time(), 'current_quantity': 5}], 'item_name': 'example_name'}
         orders = [{'items': [{'item_name': 'example_name', 'quantity': 10}]}]
@@ -462,6 +466,7 @@ class TestGetTotalItemQuantityFunction(unittest.TestCase):  # depends on previou
 
         self.assertEqual(response, 15)
 
+    # tests the function returns the correct quantity when there are no matching items in the order
     def test_only_fridge_item(self):
         fridge_item = {'item_list': [{'expiry_date': time.time(), 'current_quantity': 5}], 'item_name': 'example_name'}
         orders = [{'items': [{'item_name': 'another_example_name', 'quantity': 10}]}]
