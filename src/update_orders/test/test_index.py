@@ -24,21 +24,28 @@ class TestPost(unittest.TestCase):
 
         self.assertEqual(response, expected_response)
 
-
+# This is testing the email functions that we use with our application adn their mocked responses
 class TestEmailFunctions(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # This is patching in a mocked resource
     @patch('src.emails.generate_delivery_email_body')
     @patch('src.emails.generate_and_send_email')
+
+    # This is testing the sending of the delivery email when an order is created
     def test_send_delivery_email(self, mock_generate_and_send_email, mock_generate_delivery_email_body):
+        # This is the mocked data
         ses_client = MagicMock()
         restaurant = {'delivery_company_email': 'delivery@example.com'}
         token = 'example_token'
 
+        # This is mocking the body of the email
         mock_generate_delivery_email_body.return_value = 'example_body'
 
+        # Running the function against our mocked data
         send_delivery_email(ses_client, restaurant, token)
 
+        # Ensure that the function is only called once
         mock_generate_delivery_email_body.assert_called_once_with(restaurant, token)
+        # Ensure that the function is only called once with this data
         mock_generate_and_send_email.assert_called_once_with(
             ses_client,
             'Your delivery link',
@@ -47,12 +54,14 @@ class TestEmailFunctions(unittest.TestCase):
             'no-reply@ffsmart.benlewisjones.com'
         )
 
+    # This is patching in a mocked resource
     @patch('src.emails.get_cognito_user_email')
     @patch('src.emails.generate_expired_items_email_body')
     @patch('src.emails.generate_and_send_email')
-    # Explaination here for what the test is actually doing in general
+    # This is sending an email to the chefs based on the expired items that are in the fridge
     def test_send_expired_items(self, mock_generate_and_send_email, mock_generate_expired_items_email_body,
                                 mock_get_cognito_user_email):
+
         ses_client = MagicMock()
         restaurant = {'pk': 'example_pk'}
         expired_items = ['item1', 'item2']
@@ -75,7 +84,7 @@ class TestEmailFunctions(unittest.TestCase):
 
 
 
-
+# This is testing the cognito emails to the user with mocked data and responses
 class TestGetCognitoUserEmail(unittest.TestCase):
     # Explaination here for what the test is actually doing in general
     @patch('src.utils.boto3.client')
