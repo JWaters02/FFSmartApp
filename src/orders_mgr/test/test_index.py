@@ -89,9 +89,9 @@ class TestDynamoDBHandler(unittest.TestCase):
 
         self.assertEqual(response, expected_exception_response)
 
-
+#This call is testing the delete order lambda by mocking the data
 class TestDeleteOrderLambda(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # Mocking up data that will be used over the various tests below
     def setUp(self):
         self.event = {
             'body': {
@@ -99,11 +99,12 @@ class TestDeleteOrderLambda(unittest.TestCase):
                 'order_id': 'example_order'
             }
         }
+        #creating the mocked table
         self.table = MagicMock()
 
-    # Explaination here for what the test is actually doing in general
+    # Testing if what happens when a successful order is deleted and how the program handles this
     def test_delete_order_successful(self):
-        # Mocking DynamoDB response
+        #This is creating the dynamoDB response and mocking it
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -112,24 +113,28 @@ class TestDeleteOrderLambda(unittest.TestCase):
             }
         }
 
+        #This will return the status code from running the mocked table against the response in setup
         response = delete_order(self.event, self.table)
 
+        #This will pass the test if the status code is 200 and its ran once
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(self.table.update_item.call_count, 1)
 
-    # Explaination here for what the test is actually doing in general
+    #Testing what happens when the function does not find the order when deleted
     def test_delete_order_not_found(self):
-        # Mocking DynamoDB response for non-existent restaurant
+        # This is mocking a response for a resturant that does not exist
         self.table.get_item.return_value = {}
 
+        #This will return the status code from running the mocked table against the response in setup
         response = delete_order(self.event, self.table)
 
+        #This will pass the test if the status code is 404 and the body contains a error
         self.assertEqual(response['statusCode'], 404)
         self.assertIn('Restaurant does not exist', response['body'])
 
-    # Explaination here for what the test is actually doing in general
+    #This is testing when deleting a order what the function does when the ID is malformed
     def test_delete_order_invalid_order_id(self):
-        # Mocking DynamoDB response with a different order_id
+        # Mocking a Dynamodb response with a incorrect ID
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -138,25 +143,30 @@ class TestDeleteOrderLambda(unittest.TestCase):
             }
         }
 
+        #This will return the status code from running the mocked table against the response in setup
         response = delete_order(self.event, self.table)
 
+        #This will pass the test if the status code is 404 and the body contains a error
         self.assertEqual(response['statusCode'], 404)
         self.assertIn('Order does not exist', response['body'])
 
-    # Explaination here for what the test is actually doing in general
+    # Testing what happens if the dynamoDb encounters a failure during a delete
     def test_dynamodb_error(self):
-        # Mocking DynamoDB ClientError
+        # This mocks a dynamodb error without using the database
         self.table.get_item.side_effect = ClientError({'Error': {'Code': 'TestException'}},
                                                       'operation_name')
 
+        #This will return the status code from running the mocked table against the response in setup
         response = delete_order(self.event, self.table)
 
+        #This will pass the test if the status code is 500 and the body contains a error
         self.assertEqual(response['statusCode'], 500)
         self.assertIn('Error accessing DynamoDB', response['body'])
 
 
+#Testing the create order function with mocking data and responses
 class TestCreateOrderFunction(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # This is the mocked setup of all data we will use for these tests
     def setUp(self):
         self.dynamodb_client = MagicMock()
         self.table = MagicMock()
@@ -165,16 +175,20 @@ class TestCreateOrderFunction(unittest.TestCase):
         self.expired_items = [{'item_id': 'expired_item', 'quantity': 1}]
         self.table_name = 'example_table'
 
-    # Explaination here for what the test is actually doing in general
+    #Testing the response when an order is created successfully
     def test_create_order_successful(self):
+        # Here we are modifying the generate order function to isolate the behaviour of this method
         with patch('src.post.generate_order_id', return_value='example_order_id'):
+            #Creating the response from all the mocked data into the function
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
                                     self.expired_items, self.table_name)
 
+        #This will only pass the test with the correct status code and an successful order creation along with mocked expiry date of an item
         self.assertEqual(response['statusCode'], 201)
         self.assertEqual(response['body']['order_id'], 'example_order_id')
         self.assertEqual(response['body']['expired_items'], self.expired_items)
 
+        #This verifyies that the update item method on the mocked client has been called only once based on teh parameters chosen
         self.dynamodb_client.update_item.assert_called_once_with(
             TableName='example_table',
             Key={
@@ -201,37 +215,47 @@ class TestCreateOrderFunction(unittest.TestCase):
             },
         )
 
-    # Explaination here for what the test is actually doing in general
+    #Testing what happens when an creating an order cannot be found
     def test_create_order_not_found_exception(self):
+        # Here we are modifying the generate order function to isolate the behaviour of this method
         with patch('src.post.generate_order_id', return_value='example_order_id'):
+            #Creating the response from all the mocked data into the function
             self.table.update_item.side_effect = NotFoundException('Restaurant does not exist')
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
                                     self.expired_items, self.table_name)
 
+        #This will only pass the test with the correct status code
         self.assertEqual(response['statusCode'], 404)
 
-    # Explaination here for what the test is actually doing in general
+    #This is testing what happens when mocking a client error during a order creation
     def test_create_order_client_error_exception(self):
+        # Here we are modifying the generate order function to isolate the behaviour of this method
         with patch('src.post.generate_order_id', return_value='example_order_id'):
+            #Creating the response from all the mocked data into the function
             self.table.update_item.side_effect = ClientError({'Error': {'Code': 'TestException'}}, 'operation_name')
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
                                     self.expired_items, self.table_name)
 
+        #This will only pass the test with the correct status code
         self.assertEqual(response['statusCode'], 500)
 
+#Testing the checking for the fridge based on given ID of the resturant
 class TestOrderCheck(unittest.TestCase):
 
+    # Replacing the boto resource function with a mock object
     @patch('src.post.get_total_item_quantity')
     @patch('src.post.get_expired_item_quantity_fridge')
     @patch('src.post.create_order')
-    # Explaination here for what the test is actually doing in general
+    # This test mocks the dynamodb table with a resturant ID and checks against it that it cant find the fridge and orders response
     def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
         def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
             mock_table = MagicMock()
+            # Mocking fridge information
             mock_dynamodb_client = MagicMock()
             mock_event = {'body': {'restaurant_id': 'restaurant_id'}}
             mock_table_name = 'your_table_name'
 
+            # Mocking the fridge response
             fridge_response = {
                 'Items': [
                     {'item_name': 'item1', 'desired_quantity': 10,
@@ -239,6 +263,7 @@ class TestOrderCheck(unittest.TestCase):
                 ]
             }
 
+            # Mocking the orders response
             orders_response = {
                 'Items': [
                     {'item_name': 'item1', 'orders': [{'expiry_date': '2024-01-01', 'quantity': 2}]}
@@ -247,22 +272,27 @@ class TestOrderCheck(unittest.TestCase):
 
             mock_table.query.side_effect = [fridge_response, orders_response]
 
+            # Running the function against the mocked information
             result = order_check(mock_dynamodb_client, mock_event, mock_table, mock_table_name)
 
+            # Ensuring that the mock total quanity is only called once
             mock_total_quantity.assert_called_once_with(
                 {'item_name': 'item1', 'desired_quantity': 10,
                  'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]},
                 [{'item_name': 'item1', 'orders': [{'expiry_date': '2024-01-01', 'quantity': 2}]}]
             )
+            # ensuring that the mocked expired quanitity is only called once
             mock_expired_quantity.assert_called_once_with(
                 {'item_name': 'item1', 'desired_quantity': 10,
                  'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]}
             )
+            # Ensuring that the create order is called exactly once with specific arguments
             mock_create_order.assert_called_once_with(
                 mock_dynamodb_client, mock_table,
                 'restaurant_id', [{'M': {'item_name': {'S': 'item1'}, 'quantity': {'N': '3'}}}], [], mock_table_name
             )
 
+            # This will only pass the test with the correct status code
             self.assertEqual(result['statusCode'], 201)
 
 
