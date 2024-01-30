@@ -86,8 +86,9 @@ class TestDynamoDBHandler(unittest.TestCase):
         self.assertEqual(response, expected_exception_response)
 
 
+# Testing the validate token function with mocked test data
 class TestValidateTokenLambda(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # This is the data we'll be using for this test
     def setUp(self):
         self.event = {
             'body': {
@@ -97,7 +98,7 @@ class TestValidateTokenLambda(unittest.TestCase):
         }
         self.table = MagicMock()
 
-    # Explaination here for what the test is actually doing in general
+    # This is the response we want to use against the dynamoDB
     def test_valid_token(self):
         self.table.get_item.return_value = {
             'Item': {
@@ -110,14 +111,17 @@ class TestValidateTokenLambda(unittest.TestCase):
             }
         }
 
+        # Running the function against the mocked information
         response = validate_token(self.event, self.table)
 
+        # The test will pass if the status code is 200 'success' with the information in the body
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(response['body']['object_id'], 'example_id')
         self.assertEqual(response['body']['id_type'], 'example_type')
 
-    # Explaination here for what the test is actually doing in general
+    # This is testing what occurs when a token has expired against a resturant
     def test_expired_token(self):
+        # Mocked data we'll be running against our mocked db
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -128,13 +132,16 @@ class TestValidateTokenLambda(unittest.TestCase):
             }
         }
 
+        # Running the validate token with our mocked data
         response = validate_token(self.event, self.table)
 
+        # Test will pass if the response code is a 401 and the body shows the correct error
         self.assertEqual(response['statusCode'], 401)
         self.assertIn('Invalid token', response['body'])
 
-    # Explaination here for what the test is actually doing in general
+    # Testing what happens if a token is invalid
     def test_invalid_token(self):
+        # Test data with an invalid ID
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -146,8 +153,10 @@ class TestValidateTokenLambda(unittest.TestCase):
             }
         }
 
+        # Running the function against the test information
         response = validate_token(self.event, self.table)
 
+        # The test will pass if the status code is a 401 and a error is shown to the user
         self.assertEqual(response['statusCode'], 401)
         self.assertIn('Invalid token', response['body'])
 
