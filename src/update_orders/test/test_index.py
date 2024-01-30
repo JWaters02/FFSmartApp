@@ -61,16 +61,19 @@ class TestEmailFunctions(unittest.TestCase):
     # This is sending an email to the chefs based on the expired items that are in the fridge
     def test_send_expired_items(self, mock_generate_and_send_email, mock_generate_expired_items_email_body,
                                 mock_get_cognito_user_email):
-
+        # Creating example data
         ses_client = MagicMock()
         restaurant = {'pk': 'example_pk'}
         expired_items = ['item1', 'item2']
 
+        # Setting up the mock behaviour
         mock_get_cognito_user_email.return_value = 'user@example.com'
         mock_generate_expired_items_email_body.return_value = 'example_body'
 
+        # Running the function with the mock data and parameters
         send_expired_items(ses_client, restaurant, expired_items)
 
+        # This assertion is for passing the test, ensureing its all called once with the requested parameters
         mock_get_cognito_user_email.assert_called_once_with('example_pk')
         mock_generate_expired_items_email_body.assert_called_once_with(restaurant, expired_items)
         mock_generate_and_send_email.assert_called_once_with(
@@ -86,26 +89,33 @@ class TestEmailFunctions(unittest.TestCase):
 
 # This is testing the cognito emails to the user with mocked data and responses
 class TestGetCognitoUserEmail(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # Patching the mocked resources
     @patch('src.utils.boto3.client')
     def test_get_cognito_user_email(self, mock_boto3_client):
         mock_cognito_client = MagicMock()
         mock_boto3_client.return_value = mock_cognito_client
 
+        # Creating the mocked test data
         username = 'test_user'
         user_attributes = [{'Name': 'email', 'Value': 'user@example.com'}]
 
+        # Accessing the environment variables called User Pool ID which is used for AWS Congnito testing
         os.environ['USER_POOL_ID'] = 'your_user_pool_id'
 
         mock_cognito_client.admin_get_user.return_value = {'UserAttributes': user_attributes}
 
+        # This is running the function along with the username test data
         result = get_cognito_user_email(username)
 
+        # This is used to interact with AWS Cognito, this checks whether he boto client was called exactly once ensuring that its created for Cognito Identity provider
         mock_boto3_client.assert_called_once_with('cognito-idp')
+        # This is the mock object retriving information about the user
         mock_cognito_client.admin_get_user.assert_called_once_with(UserPoolId='your_user_pool_id', Username='test_user')
 
+        # Deleting the environment variable
         del os.environ['USER_POOL_ID']
 
+        # Test will pass if result equals the test result
         self.assertEqual(result, 'user@example.com')
         # Explaination here for what the test is actually doing in general
     @patch('src.utils.boto3.client')
