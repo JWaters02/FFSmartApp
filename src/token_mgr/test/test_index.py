@@ -151,24 +151,18 @@ class TestValidateTokenLambda(unittest.TestCase):
 
 
 class TestSetTokenFunction(unittest.TestCase):
+    # test the function returns the correct response when given expected parameters
     def test_set_token_with_expected_parameters(self):
         event = {'body': {'restaurant_id': 'example_restaurant', 'id_type': 'order', 'object_id': 'example_id'}}
-        self.table = MagicMock()
-        self.table.get_item.return_value = {
-            'Item': {
-                'pk': 'example_restaurant',
-                'type': 'tokens',
-                'tokens': [
-                    {'token': 'another_token', 'expiry_date': 9999999999, 'object_id': 'example_id',
-                     'id_type': 'example_type'}
-                ]
-            }
-        }
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {'pk': 'example_restaurant', 'type': 'tokens', 'tokens':
+            [{'token': 'another_token', 'expiry_date': 9999999999, 'object_id': 'example_id', 'id_type': 'example_type'}]}}
 
-        response = set_token(event, self.table)
+        response = set_token(event, table)
 
         self.assertEqual(response['statusCode'], 200)
 
+    # test the function returns the correct error message when given an event of the wrong format.
     def test_invalid_event_format(self):
         event = {'example': 'example'}
         self.table = MagicMock()
