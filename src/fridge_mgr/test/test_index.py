@@ -75,28 +75,34 @@ class TestModifyDoorStateFunction(unittest.TestCase):
         self.assertFalse(item['is_back_door_open'])
 
 class TestGenerateResponse(unittest.TestCase):
-    # Comment for each indivual function along with comments of what the code is doing
+    # This test verifies the behavior of the generate_response function when it is called
     def test_generate_response_with_additional_details(self):
+        #test parameters
         status_code = 200
         message = "Success"
         additional_details = {'key': 'value'}
         response = generate_response(status_code, message, additional_details)
+        #Verifies that the details field in the response body contains the correct message 
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(response['body']['details'], "Success")
         self.assertEqual(response['body']['additional_details'], {'key': 'value'})
 
-    # Comment for each indivual function along with comments of what the code is doing
+    # This test checks the behavior of the generate_response function when it is called without additional details.
     def test_generate_response_without_additional_details(self):
+        #test set up
         status_code = 500
         message = "Error"
         response = generate_response(status_code, message)
+        # Checks if the details field in the response body correctly contains the error message 
         self.assertEqual(response['statusCode'], 500)
         self.assertEqual(response['body']['details'], "Error")
         self.assertNotIn('additional_details', response['body'])
 
 class TestDeleteEntireItem(unittest.TestCase):
-    # Comment for each indivual function along with comments of what the code is doing
+    # The test is desgined to validate the functionality of the delete_entire_item function 
+    # test the deletion of an entire existing item from the list.
     def test_delete_entire_item_existing(self):
+        #test set up
         item = {
             'items': [
                 {
@@ -111,15 +117,17 @@ class TestDeleteEntireItem(unittest.TestCase):
         delete_entire_item(item, body)
         self.assertEqual(len(item['items']), 0)
 
-    # Comment for each indivual function along with comments of what the code is doing
+    # test the behavior of the function when attempting to delete an item that does not exist in the inventory.
     def test_delete_entire_item_non_existing(self):
+        #test set up
         item = {'items': []}
         body = {'item_name': 'Milk', 'quantity_change': 10, 'expiry_date': '2024-01-01'}
         delete_entire_item(item, body)
         self.assertEqual(len(item['items']), 0)
 
-    # Comment for each indivual function along with comments of what the code is doing
+    # test the function's ability to partially delete an item.
     def test_delete_partial_item(self):
+        #test set up
         item = {
             'items': [
                 {
@@ -136,7 +144,9 @@ class TestDeleteEntireItem(unittest.TestCase):
         self.assertEqual(len(item['items'][0]['item_list']), 1)
         self.assertNotIn({'expiry_date': '2024-02-01', 'current_quantity': 20}, item['items'][0]['item_list'])
 
+    # verify the function's behavior when the deletion request is for an item with a specific expiry date that does not exist in the inventory
     def test_delete_item_not_in_list(self):
+        #test set up
         item = {
             'items': [
                 {
@@ -152,8 +162,9 @@ class TestDeleteEntireItem(unittest.TestCase):
         self.assertEqual(len(item['items'][0]['item_list']), 1)
         self.assertIn({'expiry_date': '2024-04-01', 'current_quantity': 30}, item['items'][0]['item_list'])
 
-    # Comment for each indivual function along with comments of what the code is doing
+    #  test the function's response when attempting to delete an item name that does not exist in the inventory.
     def test_delete_nonexistent_item_name(self):
+        #test set up
         item = {
             'items': [
                 {
