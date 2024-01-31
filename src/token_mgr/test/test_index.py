@@ -183,7 +183,8 @@ class TestSetTokenFunction(unittest.TestCase):
         self.assertEqual(str(context.exception), 'No request body exists.')
 
 class TestDeleteToken(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # The purpose of the test is to view the behaviour of the delete token function in different scenarios.
+    #The test method is created by mocking an object that represents the dynamodb table. also creating a valid request event.
     def setUp(self):
         self.table = Mock()
         self.valid_event = {
@@ -196,22 +197,25 @@ class TestDeleteToken(unittest.TestCase):
             'body': {}
         }
 
-    # Explaination here for what the test is actually doing in general
+    # This method is designed to verify the successful deletion of a token
     def test_delete_token_success(self):
-        # Mocking DynamoDB response
+        # Mocking DynamoDB response that returns a response that includes a token when the get item method is called.
         self.table.get_item.return_value = {'Item': {'tokens': [{'token': 'token123', 'object_id': 'obj1', 'id_type': 'type1'}]}}
         response = delete_token(self.valid_event, self.table)
         self.assertEqual(response['statusCode'], 200)
 
-    # Explaination here for what the test is actually doing in general
+    # This test method checks the function's behavior when the token is not found in the database
     def test_delete_token_not_found(self):
+    # Sets up a mock response for the get item method of the self table object. The self table object is a mock object that simulates the behavior of a DynamoDB table.
         self.table.get_item.return_value = {'Item': {'tokens': []}}
+        #The two arguments
         response = delete_token(self.valid_event, self.table)
         self.assertEqual(response['statusCode'], 404)
 
 
 class TestCleanUpOldTokens(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # The purpose of the test is to view the behaviour of the clean up old token function in different scenarios.
+    # The set up we will be using a mock object to represent the dynamodb table and valid request events.
     def setUp(self):
         self.table = Mock()
         self.valid_event = {
@@ -223,17 +227,20 @@ class TestCleanUpOldTokens(unittest.TestCase):
             'body': {}
         }
 
-    # Explaination here for what the test is actually doing in general
+    # This test method checks the functionality of clean_up_old_tokens when it successfully processes a token
     def test_clean_up_old_tokens_success(self):
-        # Mocking DynamoDB response
+        # Mocking DynamoDB response that returns a token response when the get item method is called.
         self.table.get_item.return_value = {'Item': {'tokens': [{'expiry_date': 1643086920, 'object_id': 'obj1', 'id_type': 'type1'}]}}
         response = clean_up_old_tokens(self.valid_event, self.table)
+        # The test will use status code 200 to ensure if the test is a success
         self.assertEqual(response['statusCode'], 200)
 
-    # Explaination here for what the test is actually doing in general
+    #This test method checks the behavior of clean_up_old_tokens when no tokens are found.
     def test_clean_up_old_tokens_not_found(self):
+    #Mocking the DynamoDB response to return an empty result set.
         self.table.get_item.return_value = {}
         response = clean_up_old_tokens(self.valid_event, self.table)
+        # Response is 404 showsthat no relevant data was found.
         self.assertEqual(response['statusCode'], 404)
 
 
