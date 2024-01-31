@@ -139,8 +139,10 @@ class TestGetCognitoUserEmail(unittest.TestCase):
 
         self.assertIsNone(result)
 class TestCreateOrderToken(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    # Test case is designed to verify that create_an_order_token works correctly when the lambda function responds successfully.
+    # '@patch' mock the make_lambda_request function. This prevents the actual function from being called and allows us to define a custom response for testing purposes.
     @patch('src.lambda_requests.make_lambda_request')
+    # Function is called with a mock Lambda client
     def test_create_an_order_token_success(self, mock_make_lambda_request):
 
         mock_response = {
@@ -162,6 +164,7 @@ class TestCreateOrderToken(unittest.TestCase):
 
 
         self.assertEqual(result, 'your_token_here')
+        # Test assertion ensures the reponse matches the mocked response
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
             {
@@ -177,7 +180,7 @@ class TestCreateOrderToken(unittest.TestCase):
         )
 
     @patch('src.lambda_requests.make_lambda_request')
-    # Explaination here for what the test is actually doing in general
+    # Test validates how create_an_order_token behaves with a failure
     def test_create_an_order_token_failure(self, mock_make_lambda_request):
         # Mock the lambda response for a failed call
         mock_response = {
@@ -191,6 +194,7 @@ class TestCreateOrderToken(unittest.TestCase):
         lambda_arn = 'your_lambda_arn'
         restaurant = {'pk': 'your_restaurant_id'}
         order_id = 'your_order_id'
+        #function called with parameters
         result = create_an_order_token(lambda_client, lambda_arn, restaurant, order_id)
 
 
@@ -209,9 +213,11 @@ class TestCreateOrderToken(unittest.TestCase):
             lambda_arn
         )
 class TestRemoveOldTokens(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
+    #  Test function to remove old tokens associated with orders from a restaurant system.
     @patch('src.lambda_requests.make_lambda_request')
+    # mock object to the test function
     def test_remove_old_tokens_success(self, mock_make_lambda_request):
+        # the mocked reponse represeting items that have been removed.
         mock_response = {
             'statusCode': 200,
             'body': {
@@ -220,12 +226,14 @@ class TestRemoveOldTokens(unittest.TestCase):
         }
         mock_make_lambda_request.return_value = mock_response
 
+         #setting up parameters
         lambda_client = Mock()
         lambda_arn = 'your_lambda_arn'
         restaurant = {'pk': 'your_restaurant_id'}
 
-        result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
 
+        result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
+        #assertion to ensure thefunction call should be equal to the list of objects that were set up in the mock response
         self.assertEqual(result, [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}])
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
@@ -240,13 +248,16 @@ class TestRemoveOldTokens(unittest.TestCase):
         )
 
     @patch('src.lambda_requests.make_lambda_request')
+     # Test behavior of the remove_old_tokens function when it encounters a failure scenario
     def test_remove_old_tokens_failure(self, mock_make_lambda_request):
-        # Explaination here for what the test is actually doing in general
         mock_response = {
             'statusCode': 500,
             'body': 'Internal Server Error'
         }
+        # Sets the mock object to return the mock_response when called. This simulates the scenario where the Lambda function encounters an error.
         mock_make_lambda_request.return_value = mock_response
+
+        #test set up
 
         lambda_client = Mock()
         lambda_arn = 'your_lambda_arn'
@@ -254,6 +265,7 @@ class TestRemoveOldTokens(unittest.TestCase):
 
         result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
 
+        # Assertion checks that the remove_old_tokens function returns an empty list when the lambda function fails.
         self.assertEqual(result, [])
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
@@ -268,16 +280,18 @@ class TestRemoveOldTokens(unittest.TestCase):
         )
 class TestRemoveOldObjects(unittest.TestCase):
     @patch('src.lambda_requests.make_lambda_request')
-    # Explaination here for what the test is actually doing in general
+    # This test checks whether the remove_old_objects function makes the correct API calls to the AWS lambda function for deleting old objects.
     def test_remove_old_objects(self, mock_make_lambda_request):
         mock_response = {
             'statusCode': 200
         }
+        # test parameters
         mock_make_lambda_request.return_value = mock_response
         lambda_client = Mock()
         order_lambda_arn = 'your_order_lambda_arn'
         restaurant = {'pk': 'your_restaurant_id'}
         old_tokens = [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}]
+        #calling the test function
         remove_old_objects(lambda_client, order_lambda_arn, restaurant, old_tokens)
         expected_calls = [
             mock.call(
@@ -305,12 +319,12 @@ class TestRemoveOldObjects(unittest.TestCase):
                 order_lambda_arn
             )
         ]
-
+         # Assertion checks that the make_lambda_request function was called with the correct parameters for each order in old_tokens
         mock_make_lambda_request.assert_has_calls(expected_calls)
         
 class TestCreateNewOrder(unittest.TestCase):
     @patch('src.lambda_requests.make_lambda_request')
-    # Explaination here for what the test is actually doing in general
+    # Tests the create_new_order function to ensure it behaves as expected when it successfully creates a new order
     def test_create_new_order_success(self, mock_make_lambda_request):
         mock_response = {
             'statusCode': 200,
@@ -318,6 +332,7 @@ class TestCreateNewOrder(unittest.TestCase):
                 'order_id': 'new_order_id'
             }
         }
+        # Sets up necessary data  which are required to call the create_new_order function.
         mock_make_lambda_request.return_value = mock_response
         lambda_client = Mock()
         lambda_arn = 'your_order_lambda_arn'
@@ -330,8 +345,8 @@ class TestCreateNewOrder(unittest.TestCase):
                 'order_id': 'new_order_id'
             }
         }
+        #The test then asserts that the result returned by create_new_order matches the expected result
         self.assertEqual(result, expected_result)
-
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
             {
