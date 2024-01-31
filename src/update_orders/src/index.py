@@ -4,7 +4,7 @@ import boto3
 from .emails import send_delivery_email, send_expired_items, send_low_stocks_email
 from .lambda_requests import create_new_order, create_an_order_token, remove_old_tokens, remove_old_objects,\
     get_list_of_low_stock
-from .utils import list_of_all_pks_and_delivery_emails
+from .utils import list_of_all_pks_and_delivery_emails, get_emails
 
 
 def handler(event, data):
@@ -21,8 +21,9 @@ def handler(event, data):
     all_items = list_of_all_pks_and_delivery_emails(table)
 
     failed_entries = []
-
     for restaurant in all_items:
+        emails = get_emails(restaurant, table)
+
         try:
             ##########################
             # Orders
@@ -33,7 +34,11 @@ def handler(event, data):
 
             # Email the restaurant with all the expired items
             if orders_response['body']['expired_items']:
-                send_expired_items(ses_client, restaurant, orders_response['body']['expired_items'])
+                send_expired_items(ses_client,
+                                   restaurant,
+                                   emails,
+                                   orders_response['body']['expired_items'],
+                                   orders_response['body']['going_to_expire'])
 
             # Order is created, so an email must be sent to the delivery man
             if orders_response['statusCode'] == 201:
@@ -49,7 +54,7 @@ def handler(event, data):
             # Send email for low stock
             low_stock = get_list_of_low_stock(lambda_client, __fridge_mgr_arn__, restaurant)
             if low_stock:
-                send_low_stocks_email(ses_client, restaurant, low_stock)
+                send_low_stocks_email(ses_client, restaurant, emails, low_stock)
 
             ############################
             # Clean up all tokens no matter the type
