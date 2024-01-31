@@ -85,6 +85,11 @@ def error_404_delivery():
     return render_template('404-delivery.html')
 
 
+@app.route('/401-delivery', methods=['GET', 'PATCH'])
+def error_401_delivery():
+    return render_template('401-delivery.html')
+
+
 # run
 if __name__ == '__main__':
     app.run(debug=True)
