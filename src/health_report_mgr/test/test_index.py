@@ -71,7 +71,7 @@ class TestDynamoDBFunctions(unittest.TestCase):
         self.assertEqual(email, 'test@example.com')
 
     @patch('src.utils.boto3')
-    #Tests the get_health_and_safety_email function to ensure it returns nothing when the email address is not found in the DynamoDB table
+    #Tests the get_health_and_safety_email function to ensure it returns nothing when the email address is not found in the DynamoDB table.
     def test_get_health_and_safety_email_not_found(self, mock_boto3):
         mock_table = Mock()
         mock_table.get_item.return_value = {'Item': {}}
