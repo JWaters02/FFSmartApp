@@ -7,7 +7,8 @@ from flask import (
 
 from lib.utils import (
     get_user_role,
-    get_order_data, get_restaurant_id,
+    get_order_data, 
+    get_restaurant_id,
 )
 from lib.globals import (
     order_mgr_lambda,
