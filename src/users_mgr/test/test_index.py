@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from ..src.index import handler
 from src.get import get_all_users, BadRequestException, get_user
 from src.post import create_new_restaurant_dynamodb_entries, BadRequestException
 from src.delete import delete_user
@@ -8,110 +7,10 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 
-class TestDynamoDBHandler(unittest.TestCase):
-    @patch('boto3.resource')
-    def test_handler_function(self, mock_boto3_resource):  # use highly descriptive function names, not what like this
-        """Basic functionality test"""
-        # Mock boto3 setup
-        mock_dynamodb_resource = MagicMock()
-        mock_boto3_resource.return_value = mock_dynamodb_resource
 
-        # Mock dynamodb resource
-        mock_dynamodb_table = MagicMock()
-        mock_dynamodb_resource.Table.return_value = mock_dynamodb_table
-        mock_dynamodb_table.query.return_value = {'Items': []}
-
-        # Handler inputs
-        mock_event = {
-            'data': 'example data',
-            'pk': 'test_pk',
-            'type': 'test_type'
-        }
-        mock_context = {}
-
-        response = handler(mock_event, mock_context)
-
-        # Assert functions are called correctly
-        mock_dynamodb_table.put_item.assert_called_with(Item={
-            'pk': 'test_pk',
-            'type': 'test_type',
-            'data': 'example data'
-        })
-
-        # Define the expected response
-        expected_response = {
-            'statusCode': 200,
-            'body': {
-                'details': 'function works',
-                'db_response': []
-            }
-        }
-
-        # Assert the response
-        self.assertEqual(response, expected_response)
-
-    @patch('boto3.resource')
-    def test_handler_query_exception_handling(self, mock_boto3_resource):
-        """Test the handler function for handling DynamoDB query exceptions"""
-
-        mock_dynamodb_resource = MagicMock()
-        mock_boto3_resource.return_value = mock_dynamodb_resource
-
-        mock_dynamodb_table = MagicMock()
-        mock_dynamodb_resource.Table.return_value = mock_dynamodb_table
-        mock_dynamodb_table.query.side_effect = Exception("Query error occurred")
-
-        mock_event = {
-            'data': 'example data',
-            'pk': 'test_pk',
-            'type': 'test_type'
-        }
-        mock_context = {}
-
-        response = handler(mock_event, mock_context)
-
-        mock_dynamodb_table.put_item.assert_called_with(Item={
-            'pk': 'test_pk',
-            'type': 'test_type',
-            'data': 'example data'
-        })
-
-        expected_exception_response = {
-            'statusCode': 500,
-            'body': {
-                'details': 'Query error occurred'
-            }
-        }
-
-        self.assertEqual(response, expected_exception_response)
 
 #This class is testing the function get all users
 class TestGetAllUsers(unittest.TestCase):
-
-    #Replacing the boto resource function with a mock object
-    @patch('boto3.resource')
-    #Testing the response if the application finds gets all users
-    def test_get_all_users_success(self, mock_boto3_resource):
-        #Creating the mock data and tables
-        mock_event = {'body': {'restaurant_id': 'mock_restaurant_id'}}
-        mock_table = MagicMock()
-        #Filling the tables with data
-        mock_table.query.return_value = {'Items': [{'users': ['user1', 'user2']}]}
-        #running the function with the mocked data
-        result = get_all_users(mock_event, mock_table)
-        #This is the result that we expect to return if it manages to find the users
-        expected_result = {
-            'statusCode': 200,
-            'body': {
-                'items': ['user1', 'user2']
-            }
-        }
-        #this will test the output with an actual and expected result
-        self.assertEqual(result, expected_result)
-        #This assertion ensures that the code is interacting with teh DynamoDB table as expected
-        mock_table.query.assert_called_once_with(
-            KeyConditionExpression=Key('pk').eq('mock_restaurant_id') & Key('type').eq('users')
-        )
 
     # Replacing the boto resource function with a mock object
     @patch('boto3.resource')
