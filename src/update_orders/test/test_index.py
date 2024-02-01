@@ -1,5 +1,4 @@
 import unittest
-<<<<<<< HEAD
 import os
 from unittest import mock
 from unittest.mock import patch, MagicMock, Mock
@@ -7,25 +6,8 @@ from src.emails import send_delivery_email, send_expired_items
 from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email,ClientError
 from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 from unittest.mock import patch
-from ..src.index import handler
 
 
-class TestPost(unittest.TestCase):
-
-    def test_example(self):
-        mock_event = {}
-        mock_context = {}
-
-        response = handler(mock_event, mock_context)
-
-        expected_response = {
-            'statusCode': 200,
-            'body': {
-                'details': 'function works',
-            }
-        }
-
-        self.assertEqual(response, expected_response)
 
 # This is testing the email functions that we use with our application adn their mocked responses
 class TestEmailFunctions(unittest.TestCase):
@@ -58,37 +40,38 @@ class TestEmailFunctions(unittest.TestCase):
         )
 
     # This is patching in a mocked resource
-    @patch('src.emails.get_cognito_user_email')
+    @patch('boto3.client')
     @patch('src.emails.generate_expired_items_email_body')
     @patch('src.emails.generate_and_send_email')
-    # This is sending an email to the chefs based on the expired items that are in the fridge
     def test_send_expired_items(self, mock_generate_and_send_email, mock_generate_expired_items_email_body,
-                                mock_get_cognito_user_email):
-        # Creating example data
+                                mock_boto3_client):
+        # Mocking SES client using MagicMock
         ses_client = MagicMock()
-        restaurant = {'pk': 'example_pk'}
-        expired_items = ['item1', 'item2']
 
-        # Setting up the mock behaviour
-        mock_get_cognito_user_email.return_value = 'user@example.com'
+        # Mock the behavior of boto3.client to return the SES client MagicMock
+        mock_boto3_client.return_value = ses_client
+
+        # Mock the behavior of generate_expired_items_email_body
         mock_generate_expired_items_email_body.return_value = 'example_body'
 
-        # Running the function with the mock data and parameters
-        send_expired_items(ses_client, restaurant, expired_items)
+        # Test data
+        restaurant = {'pk': 'example_pk'}
+        emails = ['user@example.com']
+        expires_items = ['item1', 'item2']
+        going_to_expire_items = ['item3', 'item4']
 
-        # This assertion is for passing the test, ensureing its all called once with the requested parameters
-        mock_get_cognito_user_email.assert_called_once_with('example_pk')
-        mock_generate_expired_items_email_body.assert_called_once_with(restaurant, expired_items)
+        # Run the function with the mock data and parameters
+        send_expired_items(ses_client, restaurant, emails, expires_items, going_to_expire_items)
+
+        # Assertions
+        mock_generate_expired_items_email_body.assert_called_once_with(restaurant, expires_items, going_to_expire_items)
         mock_generate_and_send_email.assert_called_once_with(
             ses_client,
-            'Food has expired with your fridge',
+            'Food expiration in your fridge',
             'example_body',
-            ['user@example.com'],
+            emails,
             'no-reply@ffsmart.benlewisjones.com'
         )
-
-
-
 
 # This is testing the cognito emails to the user with mocked data and responses
 class TestGetCognitoUserEmail(unittest.TestCase):
@@ -411,37 +394,34 @@ class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
     # Explaination here for what the test is actually doing in general
 
     def test_generate_expired_items_email_body(self):
-        mock_restaurant_admin_settings = {
+        # Test data
+        restaurant_admin_settings = {
             'restaurant_details': {
-                'restaurant_name': 'Test Restaurant',
-                'location': {
-                    'city': 'City',
-                    'postcode': '12345',
-                    'street_address_1': 'Street 1',
-                    'street_address_2': 'Street 2',
-                    'street_address_3': 'Street 3'
-                }
+                'restaurant_name': 'Test Restaurant'
             }
+            # Add other necessary details from your restaurant_admin_settings
         }
-        mock_expired_items = [
-            {'item_name': 'Expired Item 1', 'quantity': 5},
-            {'item_name': 'Expired Item 2', 'quantity': 10}
-        ]
+        expired_items = [{'item_name': 'Expired Item 1', 'quantity': 2}]
+        going_to_expire_items = [{'item_name': 'Expiring Item 1', 'quantity': 3}]
 
-        result = generate_expired_items_email_body(mock_restaurant_admin_settings, mock_expired_items)
+        # Run the function with the test data
+        result = generate_expired_items_email_body(restaurant_admin_settings, expired_items, going_to_expire_items)
 
-        expected_email_body = ('Hello Test Restaurant,\n'
-                               '    \n'
-                               '    The following items have expired:\n'
-                               '    Expired Item 1: 5\r'
-                               '\tExpired Item 2: 10\r'
-                               '\t\n'
-                               '    \n'
-                               '    This has been reported as a part of your health report.\n'
-                               '    \n'
-                               '    Thanks')
-
-        self.assertEqual(result.strip(), expected_email_body.strip())
+        # Assertions
+        expected_result = """
+        Hello Test Restaurant,
+    
+    The following items have expired:
+    Expired Item 1: 2\r\t
+    
+    The following items are about to expire:
+    Expiring Item 1: 3\r\t
+    
+    This has been reported as a part of your health report.
+    
+    Thanks
+        """
+        self.assertEqual(result.strip(), expected_result.strip())
 
 class TestMakeLambdaRequest(unittest.TestCase):
 
