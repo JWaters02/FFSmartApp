@@ -6,7 +6,6 @@ from src.post import validate_token
 from src.patch import set_token
 from src.custom_exceptions import BadRequestException
 from src.delete import delete_token, clean_up_old_tokens
-from ..src.index import handler
 
 
 class TestDynamoDBHandler(unittest.TestCase):
