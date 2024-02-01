@@ -130,7 +130,7 @@ class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
                                               {'item_list': [{'current_quantity': 5}]},
                                               {'item_list': [{'current_quantity': 5}]}])
 
-    # test no changes are made if the parameter is the wrong format
+    # test no changes are made if the parameter is the wrong format.
     def test_wrong_input(self):
         test_item = {'test_key': 'test_value'}
 
