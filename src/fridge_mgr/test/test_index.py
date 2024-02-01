@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.index import handler
+from ..src.index import handler
 class TestDynamoDBHandler(unittest.TestCase):
     @patch('boto3.resource')
     def test_handler_function(self, mock_boto3_resource):  # use highly descriptive function names, not what like this

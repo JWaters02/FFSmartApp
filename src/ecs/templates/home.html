@@ -13,23 +13,23 @@
     <div class="row text-center mt-5">
         {% if user_role == 'Admin' or user_role == 'Head Chef' or user_role == 'Chef' %}
             <div class="col-md-4 mb-3">
-                <a href="{{ url_for('inventory') }}" class="btn btn-secondary btn-block btn-lg">Inventory</a>
+                <a href="{{ url_for('inventory.inventory') }}" class="btn btn-secondary btn-block btn-lg">Inventory</a>
             </div>
         {% endif %}
         {% if user_role == 'Admin' or user_role == 'Head Chef' %}
             <div class="col-md-4 mb-3">
-                <a href="{{ url_for('orders') }}" class="btn btn-secondary btn-block btn-lg">Orders</a>
+                <a href="{{ url_for('orders.orders') }}" class="btn btn-secondary btn-block btn-lg">Orders</a>
             </div>
             <div class="col-md-4 mb-3">
-                <a href="{{ url_for('health_report') }}" class="btn btn-secondary btn-block btn-lg">Health Report</a>
+                <a href="{{ url_for('report.health_report') }}" class="btn btn-secondary btn-block btn-lg">Health Report</a>
             </div>
         {% endif %}
         {% if user_role == 'Admin' %}
             <div class="col-md-4 mb-3">
-                <a href="{{ url_for('admin_settings') }}" class="btn btn-secondary btn-block btn-lg">Admin Settings</a>
+                <a href="{{ url_for('admin.admin_settings') }}" class="btn btn-secondary btn-block btn-lg">Admin Settings</a>
             </div>
             <div class="col-md-4 mb-3">
-                <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-block btn-lg">Manage Users</a>
+                <a href="{{ url_for('user.manage_users') }}" class="btn btn-secondary btn-block btn-lg">Manage Users</a>
             </div>
         {% endif %}
     </div>

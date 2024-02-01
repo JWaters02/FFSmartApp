@@ -1,11 +1,9 @@
 import unittest
 import time
-import secrets
 from unittest.mock import patch, MagicMock
 from src.index import handler
 from src.delete import delete_order, ClientError
 from src.post import create_order, NotFoundException, order_check
-from src.post import create_order, NotFoundException
 from src.get import get_all_orders, get_order
 from src.custom_exceptions import BadRequestException
 from src.utils import (generate_order_id, is_order_id_valid, get_expired_item_quantity_fridge, get_item_quantity_fridge,

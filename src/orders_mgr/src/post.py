@@ -48,6 +48,7 @@ def order_check(dynamodb_client, event, table, table_name):
 
         order_items = []
         expired_items = []
+        going_to_expire = []
         for fridge_item in fridge_items:
             item_quantity = get_total_item_quantity(fridge_item, orders)
 
@@ -61,7 +62,9 @@ def order_check(dynamodb_client, event, table, table_name):
                 }
                 order_items.append(item_to_order)
 
-            expired_item_quantity = get_expired_item_quantity_fridge(fridge_item)
+            # Expired items
+            current_date = int(time.time())
+            expired_item_quantity = get_expired_item_quantity_fridge(fridge_item, current_date)
 
             if expired_item_quantity > 0:
                 expired_item = {
@@ -71,6 +74,19 @@ def order_check(dynamodb_client, event, table, table_name):
 
                 expired_items.append(expired_item)
 
+            # Will expire within the next 3 days
+            future_date = current_date + 259200
+            going_to_expire_quantity = get_expired_item_quantity_fridge(fridge_item, future_date)
+            going_to_expire_quantity -= expired_item_quantity
+
+            if going_to_expire_quantity > 0:
+                expired_item = {
+                    'item_name': fridge_item['item_name'],
+                    'quantity': going_to_expire_quantity
+                }
+
+                going_to_expire.append(expired_item)
+
         if order_items:
             response = create_order(dynamodb_client, table, restaurant_name, order_items, expired_items, table_name)
         else:
@@ -78,7 +94,8 @@ def order_check(dynamodb_client, event, table, table_name):
             response = {
                 'statusCode': 204,
                 'body': {
-                    'expired_items': expired_items
+                    'expired_items': expired_items,
+                    'going_to_expire': going_to_expire
                 }
             }
 
