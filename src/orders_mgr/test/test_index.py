@@ -13,7 +13,7 @@ from src.utils import (generate_order_id, is_order_id_valid, get_expired_item_qu
 class TestDynamoDBHandler(unittest.TestCase):
     @patch('boto3.resource')
     def test_handler_function(self, mock_boto3_resource):
-        """Basic functionality test"""
+        """Basic functionality tests"""
         # Mock boto3 setup
         mock_dynamodb_resource = MagicMock()
         mock_boto3_resource.return_value = mock_dynamodb_resource
