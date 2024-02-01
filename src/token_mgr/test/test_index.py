@@ -53,7 +53,7 @@ class TestDynamoDBHandler(unittest.TestCase):
 
     @patch('boto3.resource')
     def test_handler_query_exception_handling(self, mock_boto3_resource):
-        """Test the handler function for handling DynamoDB query exceptions"""
+        """Test the handler function for handling DynamoDB query exception"""
 
         mock_dynamodb_resource = MagicMock()
         mock_boto3_resource.return_value = mock_dynamodb_resource
