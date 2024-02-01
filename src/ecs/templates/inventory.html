@@ -4,65 +4,116 @@
     Inventory
 {% endblock %}
 
-{% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
-{% endblock %}
-
 {% block content %}
-    <div class="container mt-5">
-        <div class="text-center mb-4">
-            {% if is_front_door_open %}
-                <form action="{{ url_for('close_door') }}" method="post" class="d-inline">
-                    <button id="doorButton" type="submit" class="btn btn-danger">Close Door</button>
-                </form>
-            {% else %}
-                <form action="{{ url_for('open_door') }}" method="post" class="d-inline">
-                    <button id="doorButton" type="submit" class="btn btn-success">Open Door</button>
-                </form>
-            {% endif %}   
-        </div>
-        <div class="d-flex flex-wrap justify-content-center">
-            {% for item in items %}
-                <div class="card table-card m-2">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex align-items-center mb-3">
-                            <h5 class="card-title">{{ item.item_name }}</h5>
-                        </div>
-                        {% for item_detail in item.item_list %}
-                            <div class="mb-2">
-                                <strong>Expiry Date:</strong> {{ item_detail.expiry_date }}
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center text-light">Inventory</h1>
+            <div class="text-center mb-4">
+                {% if is_front_door_open %}
+                    <form action="{{ url_for('inventory.close_door') }}" method="post" class="d-inline">
+                        <button id="doorButton" type="submit" class="btn btn-danger">Close Door</button>
+                    </form>
+                {% else %}
+                    <form action="{{ url_for('inventory.open_door') }}" method="post" class="d-inline">
+                        <button id="doorButton" type="submit" class="btn btn-success">Open Door</button>
+                    </form>
+                {% endif %}   
+            </div>
+            <div class="d-flex flex-wrap justify-content-center">
+                {% if is_front_door_open %}
+                    {% for item in items %}
+                        <div class="card table-card m-2">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex align-items-center mb-3">
+                                    <h5 class="card-title">{{ item.item_name }}</h5>
+                                </div>
+                                {% for item_detail in item.item_list %}
+                                    <div class="mb-2 {{ 'text-danger' if item_detail.is_expired else '' }}">
+                                        <strong>Expiry Date:</strong> {{ item_detail.expiry_date_formatted }}
+                                    </div>
+
+                                    {% if item_detail.is_expired %}
+                                        <div class="mb-2 text-warning">
+                                            <strong>Expired: {{ 'No Order Required' if item_detail.no_order_required else 'Order In Progress' }}</strong>
+                                        </div>
+                                    {% elif item.is_order_needed %}
+                                        <div class="mb-2 text-warning">
+                                            <strong>Order In Progress</strong>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if item_detail.show_quantity_buttons or item_detail.no_order_required %}
+                                        <div class="mb-2">
+                                            <strong>Quantity:</strong> {{ item_detail.current_quantity }} 
+                                            <form action="{{ url_for('inventory.update_item') }}" method="post" class="d-inline">
+                                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                                <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                                <input type="hidden" name="date_added" value="{{ item_detail.date_added }}">
+                                                <input type="hidden" name="quantity_change" value=1>
+                                                <button type="submit" class="btn btn-sm btn-outline-success">+</button>
+                                            </form>
+                                            <form action="{{ url_for('inventory.update_item') }}" method="post" class="d-inline">
+                                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                                <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                                <input type="hidden" name="date_added" value="{{ item_detail.date_added }}">
+                                                <input type="hidden" name="quantity_change" value=-1>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">-</button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <div class="mb-2">
+                                            <strong>Quantity:</strong> {{ item_detail.current_quantity }}
+                                        </div>
+                                    {% endif %}
+                                    <form action="{{ url_for('inventory.delete_item') }}" method="post">
+                                        <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                        <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
+                                        <input type="hidden" name="current_quantity" value="{{ item_detail.current_quantity }}">
+                                        <button type="submit" class="btn btn-danger mt-auto">Delete Item</button>
+                                    </form>
+                                {% endfor %}
+                                <div class="mb-2">
+                                    <strong>Desired Quantity:</strong>
+                                    <form action="{{ url_for('inventory.update_desired_quantity') }}" method="post">
+                                        <input type="hidden" name="item_name" value="{{ item.item_name }}">
+                                        <input type="number" name="desired_quantity" class="form-control" value="{{ item.desired_quantity }}">
+                                        <button type="submit" class="btn btn-sm btn-success">Save Desired Quantity</button>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <strong>Quantity:</strong> {{ item_detail.current_quantity }} 
-                                <form action="{{ url_for('update_item') }}" method="post" class="d-inline">
-                                    <input type="hidden" name="item_name" value="{{ item.item_name }}">
-                                    <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
-                                    <input type="hidden" name="quantity_change" value=1>
-                                    <button type="submit" class="btn btn-sm btn-outline-success">+</button>
-                                </form> 
-                                <form action="{{ url_for('update_item') }}" method="post" class="d-inline">
-                                    <input type="hidden" name="item_name" value="{{ item.item_name }}">
-                                    <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
-                                    <input type="hidden" name="quantity_change" value=-1>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">-</button>
-                                </form>
-                            </div>
-                            <form action="{{ url_for('delete_item') }}" method="post">
-                                <input type="hidden" name="item_name" value="{{ item.item_name }}">
-                                <input type="hidden" name="expiry_date" value="{{ item_detail.expiry_date }}">
-                                <input type="hidden" name="quantity_change" value="{{ item_detail.current_quantity }}">
-                                <button type="submit" class="btn btn-danger mt-auto">Delete Item</button>
-                            </form>
-                            
-                        {% endfor %}
-                        <div class="mb-2">
-                            <strong>Desired Quantity:</strong> 
-                            <input type="number" class="form-control" value="{{ item.desired_quantity }}">
                         </div>
+                    {% endfor %}
                     </div>
-                </div>
-            {% endfor %}
+                    <div class="col-12">
+                        <br><br>
+                        <h2>Add New Item</h2>
+                        <div class="add-item-form mb-4">
+                            <form action="{{ url_for('inventory.add_item') }}" method="post">
+                                <input type="text" name="add_item_name" class="form-control mb-2" placeholder="Item name" required>
+                                <input type="number" name="add_desired_quantity" class="form-control mb-2" placeholder="Desired quantity" required>
+                                <br>
+                                <button type="submit" class="btn btn-success">Add item</button>
+                            </form>
+                        </div>
+                        <br><br>
+                    </div>
+                {% endif %} 
+            </div>
         </div>
     </div>
-    
+    <script>
+        var isFrontDoorOpen = "{{ is_front_door_open }}";
+        console.log(isFrontDoorOpen);
+        window.onbeforeunload = function() {
+            if (isFrontDoorOpen === "true") {
+                console.log("Closing door");
+                fetch("{{ url_for('inventory.close_door') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+            }
+        };
+    </script>
 {% endblock %}

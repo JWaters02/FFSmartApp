@@ -27,16 +27,27 @@ document.getElementById("verify").addEventListener("click", function () {
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
     cognitoUser.confirmRegistration(code, true, function (err, result) {
         if (err) {
-            sendFlashMessage(err, 'danger');
+            if (err.code === 'InvalidParameterException') {
+                sendFlashMessage('Invalid verification code, please check your details and try again.', 'danger').then(() => {
+                    window.location.href = "/verify";
+                });
+            } else {
+                sendFlashMessage('Verification error, please check your details and try again.', 'danger').then(() => {
+                    window.location.href = "/verify";
+                });
+            }
             return;
         }
 
         console.log('call result: ' + result);
         if(result === 'SUCCESS') {
-            window.location.href = "/";
-            sendFlashMessage('Verification successful.', 'success');
+            sendFlashMessage('Verification successful.', 'success').then(() => {
+                window.location.href = "/";
+            });
         } else {
-            sendFlashMessage('An issue occurred, please try again.', 'danger');
+            sendFlashMessage('An issue occurred, please try again.', 'danger').then(() => {
+                window.location.href = "/verify";
+            });
         }
     });
 });

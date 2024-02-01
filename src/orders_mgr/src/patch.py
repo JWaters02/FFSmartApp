@@ -3,7 +3,7 @@ from botocore.exceptions import ClientError
 from .custom_exceptions import BadRequestException
 
 
-def update_fridge_with_delivery():
+def update_fridge_with_delivery(event, table):
     """
     Adds items to their existing fridge entries in fridge table
 

@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from src.index import handler
+from ..src.index import handler
 
 
 class TestPost(unittest.TestCase):

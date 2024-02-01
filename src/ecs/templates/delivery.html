@@ -5,82 +5,37 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-
-        <div class="add-item-form mb-4">
-            <h2>Add New Item</h2>
-            <form action="{{ url_for('add_item') }}" method="post">
-                <input type="text" name="item_name" class="form-control mb-2" placeholder="Item name" required>
-                <input type="number" name="quantity_change" class="form-control mb-2" placeholder="Quantity" required>
-                <input type="date" name="expiry_date" class="form-control mb-2" placeholder="Expiry Date" required>
-                <input type="number" name="desired_quantity" class="form-control mb-2" placeholder="Desired Quantity (Optional)">
-                <button type="submit" class="btn btn-success">Add item</button>
-            </form>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <h1 class="text-center text-light">Delivery</h1>
-                <div id="deliveryItems" class="d-flex flex-wrap justify-content-center">
-                    {% for item in order_data %}
-                    <div class="card table-card m-2">
-                        <div class="card-body">
-                            <div class="item-info">
-                                <h5 class="card-title">{{ item.name }}</h5>
-                                Expirty date<input type="date" class="form-control expiry-date" placeholder="Expiry Date" disabled>
-                                Quantity<input type="number" class="form-control quantity" placeholder="Quantity" disabled>
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center text-light">Delivery</h1>
+            <div class="text-center mb-4">
+                {% if not is_back_door_open %}
+                    <button id="openDoor" type="submit" class="btn btn-success">Open Door</button>
+                {% endif %}   
+            </div>
+            {% if is_back_door_open %}
+                <div class="d-flex flex-wrap justify-content-center">
+                    {% for order in order_data %}
+                        {% for item in order['items'] %}
+                            <div class="card table-card m-2">
+                                <h5></h5>
+                                    <div class="card-body d-flex flex-column">
+                                        <h5>Order ID:</h5>
+                                        <h5 class="card-title">{{ order.id }}</h5>
+                                        <h5>Item Name:</h5>
+                                        <input data-item-name="{{ item.item_name }}" type="string" value="{{ item.item_name }}" class="form-control mb-2 item-name" placeholder="Item Name">
+                                        <h5>Quantity:</h5>
+                                        <input data-item-name="{{ item.item_name }}" type="number" value="{{ item.quantity }}" class="form-control mb-2 item-quantity" placeholder="Quantity">
+                                        <h5>Expiry Date:</h5>
+                                        <input data-item-name="{{ item.item_name }}" type="date" class="form-control mb-2 item-expiry-date" placeholder="Expiry Date">
+                                    </div>
                             </div>
-                        </div>
-                    </div>
+                        {% endfor %}
                     {% endfor %}
                 </div>
-                <div class="text-center">
-                    <button class="btn btn-success" onclick="enableInputs()">Open door</button>
-                    <button class="btn btn-primary" onclick="completeOrder()">Complete Order</button>
-                </div>
-            </div>
+                <button id="completeOrderButton" type="button" class="btn btn-success">Complete Order</button>
+            {% endif %}
         </div>
     </div>
-
-    <script>
-        function enableInputs() {
-            document.querySelectorAll('.expiry-date, .quantity').forEach(function(input) {
-                input.disabled = false;
-            });
-            document.getElementById('openDoorButton').disabled = true;
-        }
-
-        function completeOrder() {
-            const items = [];
-            document.querySelectorAll('.table-card').forEach(function(card) {
-                const name = card.querySelector('.card-title').innerText;
-                const expiryDate = card.querySelector('.expiry-date').value;
-                const quantity = card.querySelector('.quantity').value;
-                items.push({ name, expiryDate, quantity });
-            });
-            console.log(items);
-
-            fetch('/api/complete-order', {
-                method: 'POST',
-                body: JSON.stringify({ items: items }),
-                headers: {
-                    'Content-Type': 'application/json'
-                    // probably need the token here too...
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Something went wrong with the order completion process');
-                }
-            })
-            .then(data => {
-                console.log('Order completed:', data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-    </script>
+    <script type="module" src="{{ url_for('static', filename='js/delivery.js') }}"></script>
 {% endblock %}

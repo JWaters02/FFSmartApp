@@ -1,6 +1,30 @@
 from .utils import make_lambda_request
 
 
+def get_list_of_low_stock(lambda_client, lambda_arn, restaurant):
+    """
+    Gets the list of low stock items.
+
+    :param lambda_client: Client of the lambda.
+    :param lambda_arn: Arn of fridge mgr.
+    :param restaurant: Admin settings of the restaurant.
+    :return: List of the low stock items.
+    """
+    orders_payload = {
+        'action': 'get_low_stock',
+        'body': {
+            'restaurant_name': restaurant['pk']
+        }
+    }
+
+    response = make_lambda_request(lambda_client, orders_payload, lambda_arn)
+
+    if response['statusCode'] != 200:
+        return []
+
+    return response['body']['low_stock']
+
+
 def create_new_order(lambda_client, lambda_arn, restaurant):
     """
     Creates a new order.
