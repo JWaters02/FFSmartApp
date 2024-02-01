@@ -1,6 +1,6 @@
 import json
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 from src.inventory_utils import modify_door_state, generate_response
 from src.inventory_utils import delete_zero_quantity_items
 from src.index import handler
@@ -37,41 +37,45 @@ class TestDynamoDBHandler(unittest.TestCase):
 
 #Testing hte function modify door state - when opening the door or closing
 class TestModifyDoorStateFunction(unittest.TestCase):
-    #Mocking a test response making sure that if the door is closed it can be open
-    def test_open_door_action(self):
-        item = {'is_front_door_open': False, 'is_back_door_open': False}
+
+    def test_open_back_door_action(self):
+        # Create a MagicMock for the DynamoDB table
+        mock_table = MagicMock()
+
+        # Set the return value of get_item() to a dictionary with the expected item
+        mock_table.get_item.return_value = {'Item': {'is_front_door_open': False, 'is_back_door_open': True}}
+
+        # Define your test data
+        pk = 'test_pk'
         body = {'is_front_door_open': True, 'is_back_door_open': False}
-        action = "open_door"
+        action = 'open_back_door'
 
-        #Opening the door with the mocked data from above
-        modify_door_state(item, body, action)
+        # Call the function with the mocked data
+        response = modify_door_state(mock_table, pk, body, action)
 
-        #Ensuring that the response shows the door being open
-        self.assertTrue(item['is_front_door_open'])
-        self.assertFalse(item['is_back_door_open'])
+        # Assert the expected behavior
+        expected_response = generate_response(200, 'Door state updated successfully', {
+            'is_front_door_open': False,
+            'is_back_door_open': True
+        })
+        self.assertEqual(response, expected_response)
 
+    def test_close_front_door_action(self):
+        mock_table = MagicMock()
+        mock_table.get_item.return_value = {'Item': {'is_front_door_open': True, 'is_back_door_open': True}}
 
-    #Testing the behaviour when the door is being closed
-    def test_close_door_action(self):
-        item = {'is_front_door_open': True, 'is_back_door_open': True}
-        body = {}
-        action = "close_door"
-
-        modify_door_state(item, body, action)
-
-        self.assertFalse(item['is_front_door_open'])
-        self.assertFalse(item['is_back_door_open'])
-
-    #This tests the initial door state and thedesired state from the request body and modified accorindly
-    def test_close_door_action_with_existing_values(self):
-        item = {'is_front_door_open': True, 'is_back_door_open': True}
+        pk = 'test_pk'
         body = {'is_front_door_open': False, 'is_back_door_open': True}
-        action = "close_door"
+        action = 'close_front_door'
 
-        modify_door_state(item, body, action)
+        response = modify_door_state(mock_table, pk, body, action)
 
-        self.assertFalse(item['is_front_door_open'])
-        self.assertFalse(item['is_back_door_open'])
+        expected_response = generate_response(200, 'Door state updated successfully', {
+            'is_front_door_open': False,
+            'is_back_door_open': True
+        })
+        self.assertEqual(response, expected_response)
+
 
 class TestGenerateResponse(unittest.TestCase):
     # This test verifies the behavior of the generate_response function when it is called
