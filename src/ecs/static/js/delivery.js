@@ -11,7 +11,9 @@ function getToken() {
 var openDoorElement = document.getElementById("openDoor");
 if (openDoorElement) {
     openDoorElement.addEventListener("click", function() {
-        changeDoorState(true);
+        changeDoorState(true).then(() => {
+            window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+        });
     });
 }
 
@@ -129,29 +131,27 @@ function endDelivery() {
     });
 }
 
-function changeDoorState(state) {
+async function changeDoorState(state) {
     var payload = {
         is_back_door_open: state
     };
 
     console.log(payload);
 
-    fetch('/delivery/' + getRestaurantId() + '/' + getToken() + '/', {
+    await fetch('/delivery/' + getRestaurantId() + '/' + getToken() + '/', {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
     }).then(response => response.json())
     .then(data => {
-        if(data.success) {
-            location.reload();
-        } else {
+        if(!data.success) {
             sendFlashMessage(data.message, 'danger').then(() => {
                 window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
             });
         }
     }).catch(error => {
         sendFlashMessage(error, 'danger').then(() => {
-            window.location.href = '/delivery/' + getRestaurantId() + '/' + getToken() + '/';
+            window.location.href = '/404-delivery';
         });
     });
 }

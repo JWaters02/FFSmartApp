@@ -30,6 +30,7 @@ from routes.report_routes import report_route
 from routes.user_routes import user_route
 from routes.delivery_routes import delivery_route
 from routes.admin_routes import admin_route
+from routes.forgot_password_route import forgot_password_route
 
 # init app
 app = Flask(__name__)
@@ -48,6 +49,7 @@ app.register_blueprint(report_route)
 app.register_blueprint(user_route)
 app.register_blueprint(delivery_route)
 app.register_blueprint(admin_route)
+app.register_blueprint(forgot_password_route)
 
 
 @app.route('/', methods=['GET'])
@@ -83,6 +85,11 @@ def error_404():
 @app.route('/404-delivery', methods=['GET', 'PATCH'])
 def error_404_delivery():
     return render_template('404-delivery.html')
+
+
+@app.route('/401-delivery', methods=['GET', 'PATCH'])
+def error_401_delivery():
+    return render_template('401-delivery.html')
 
 
 # run

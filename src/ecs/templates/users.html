@@ -11,15 +11,22 @@ Users
             <div class="d-flex flex-wrap justify-content-center">
                 {% for user in users %}
                 <div class="card table-card m-2">
-                    <div class="card-body">
+                    <div class="card-body ml-1 mr-1">
                         <h5 class="card-title">{{ user.name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{ user.email }}</h6>
+                        <h6 class="card-subtitle mb-2 text-white">{{ user.email }}</h6>
                         <p class="card-text">{{ user.role }}</p>
-                        <button class="card-link btn edit-user-btn"
-                                data-username="{{ user.name }}"
-                                data-email="{{ user.email }}"
-                                data-role="{{ user.role }}">Edit</button>
-                        <button class="card-link btn btn-danger remove-user-btn" data-username="{{ user.name }}">Remove</button>
+                        <div class="row">
+                            <div class="col">
+                                <button class="card-link btn btn-success text-white edit-user-btn w-100"
+                                        data-username="{{ user.name }}"
+                                        data-email="{{ user.email }}"
+                                        data-role="{{ user.role }}">Edit</button>
+                            </div>
+                            <div class="col">
+                                <button class="card-link btn btn-danger remove-user-btn w-100"
+                                        data-username="{{ user.name }}">Remove</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -31,7 +38,6 @@ Users
                 <input id="email" type="email" class="form-control" placeholder="Email">
                 <select id="role" class="form-control">
                     <option value="">Job Role</option>
-                    <option value="Admin">Admin</option>
                     <option value="Head Chef">Head Chef</option>
                     <option value="Chef">Chef</option>
                 </select>

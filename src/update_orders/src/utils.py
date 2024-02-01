@@ -1,7 +1,7 @@
 import json
 import os
 import boto3
-from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError, BotoCoreError
 
 
@@ -41,24 +41,42 @@ def list_of_all_pks_and_delivery_emails(table):
     while next_page_exists:
         # use the last key to get the next page if it exists
         if last_evaluated_key:
-            dynamo_response = table.scan(
+            admin_settings_response = table.scan(
                 FilterExpression=Attr('type').eq('admin_settings'),
                 ExclusiveStartKey=last_evaluated_key
-
             )
         else:
-            dynamo_response = table.scan(
+            admin_settings_response = table.scan(
                 FilterExpression=Attr('type').eq('admin_settings'),
             )
 
-        if 'Items' in dynamo_response:
-            all_pks.extend(dynamo_response['Items'])
+        if 'Items' in admin_settings_response:
+            all_pks.extend(admin_settings_response['Items'])
 
-        last_evaluated_key = dynamo_response.get('LastEvaluatedKey')
+        last_evaluated_key = admin_settings_response.get('LastEvaluatedKey')
         next_page_exists = last_evaluated_key is not None
 
     return all_pks
 
+
+def get_emails(restaurant, table):
+    """
+    Gets all the head chef and admin account emails.
+
+    :param restaurant: The restaurant of interest.
+    :param table: Master DB.
+    :return: A list containing all the emails.
+    """
+    emails = [get_cognito_user_email(restaurant['pk'])]
+
+    dynamo_response = table.query(
+        KeyConditionExpression=Key('pk').eq(restaurant['pk']) & Key('type').eq('users')
+    )
+
+    for user in dynamo_response['Items'][0]['users']:
+        emails.append(get_cognito_user_email(user['username']))
+
+    return emails
 
 def generate_and_send_email(ses_client, subject, body, destinations, sender):
     """
@@ -128,24 +146,32 @@ def generate_delivery_email_body(restaurant_admin_settings, token):
     '''
 
 
-def generate_expired_items_email_body(restaurant_admin_settings, expired_items):
+def generate_expired_items_email_body(restaurant_admin_settings, expired_items, going_to_expire_items):
     """
     Creates the body of the email sent to the restaurant showing all the expired items.
 
     :param restaurant_admin_settings: The restaurant settings.
     :param expired_items: A list of all the expired items.
+    :param going_to_expire_items: A list of items that are going to expire.
     :return: The emails body.
     """
-    list_of_items = ''
+    list_of_expired_items = ''
+    list_of_going_to_expire_items = ''
 
     for item in expired_items:
-        list_of_items += f"{item['item_name']}: {item['quantity']}\r\t"
+        list_of_expired_items += f"{item['item_name']}: {item['quantity']}\r\t"
+
+    for item in going_to_expire_items:
+        list_of_going_to_expire_items += f"{item['item_name']}: {item['quantity']}\r\t"
 
     return f"""
     Hello {restaurant_admin_settings['restaurant_details']['restaurant_name']},
     
     The following items have expired:
-    {list_of_items}
+    {list_of_expired_items}
+    
+    The following items are about to expire:
+    {list_of_going_to_expire_items}
     
     This has been reported as a part of your health report.
     

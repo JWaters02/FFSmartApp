@@ -52,16 +52,21 @@ def is_order_id_valid(order_id, item):
     return True
 
 
-def get_expired_item_quantity_fridge(fridge_item):
+def get_expired_item_quantity_fridge(fridge_item, expiry_time):
     """
     Gets quantity of expired fridge item.
 
     :param fridge_item: Item to be checked for expired entries.
+    :param expiry_time: The unix time when the food will be considered to have expired.
     :return: Quantity of expired fridge item.
     """
     quantity = 0
     for entry in fridge_item['item_list']:
-        if entry['expiry_date'] <= int(time.time()):
+        print(entry['expiry_date'], end=' ')
+        print('<=', end=' ')
+        print(expiry_time, end=' ')
+        print(entry['expiry_date'] <= expiry_time)
+        if entry['expiry_date'] <= expiry_time:
             quantity += entry['current_quantity']
     return quantity
 

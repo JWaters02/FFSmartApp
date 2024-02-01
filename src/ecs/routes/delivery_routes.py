@@ -26,10 +26,16 @@ from lib.globals import (
 
 delivery_route = Blueprint('delivery', __name__)
 
+
+@delivery_route.route('/delivery/complete', methods=['GET', 'PATCH'])
+def deliver_complete():
+    return render_template('successful-delivery.html')
+
+
 @delivery_route.route('/delivery/<restaurant_id>/<token>/', methods=['GET', 'PATCH'])
 def delivery(restaurant_id, token):
     if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda): 
-        return redirect(url_for('error_404_delivery'))
+        return redirect(url_for('error_401_delivery'))
     
     if request.method == 'PATCH':
         door_data = request.json
@@ -63,7 +69,7 @@ def delivery(restaurant_id, token):
 @delivery_route.route('/delivery/update_retry_items/<restaurant_id>/<token>/', methods=['POST'])
 def update_retry_items(restaurant_id, token):
     if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
-        return redirect(url_for('error_404_delivery'))
+        return redirect(url_for('error_401_delivery'))
     
     data = request.json
     session['retry_items'] = data.get('retry_items')
@@ -74,7 +80,7 @@ def update_retry_items(restaurant_id, token):
 @delivery_route.route('/delivery/complete_order/<restaurant_id>/<token>/', methods=['POST'])
 def complete_order(restaurant_id, token):
     if not validate_token(token, lambda_client, restaurant_id, token_mgr_lambda):
-        return redirect(url_for('error_404_delivery'))
+        return redirect(url_for('error_401_delivery'))
     
     submitted_data = request.json['items']
 
@@ -129,11 +135,11 @@ def delete_token(restaurant_id, token):
         flash(f"Failed to delete token: {response}", 'error')
         return jsonify({
             "success": False,
-            "redirect_url": "/404-delivery"
+            "redirect_url": "/401-delivery"
         })
     return jsonify({
         "success": True,
-        "redirect_url": "/"
+        "redirect_url": "/delivery/complete"
     })
 
 

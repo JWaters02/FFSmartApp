@@ -15,7 +15,7 @@ document.getElementById("edit-user").addEventListener("click", async function ()
             window.location.href = "/users";
         });
     } else {
-        endFlashMessage('User updated successfully.', 'success').then(() => {
+        sendFlashMessage('User updated successfully.', 'success').then(() => {
             window.location.href = "/users";
         });
     }

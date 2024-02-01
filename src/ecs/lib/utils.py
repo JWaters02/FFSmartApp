@@ -31,11 +31,22 @@ def create_user(cognito_client, username, email, restaurant_id, user_pool_id):
     ]
 
     try:
-        response = cognito_client.admin_create_user(
+        cognito_client.admin_create_user(
             UserPoolId=user_pool_id,
             Username=username,
             UserAttributes=user_attributes,
             DesiredDeliveryMediums=['EMAIL']
+        )
+
+        cognito_client.admin_update_user_attributes(
+            UserPoolId=user_pool_id,
+            Username=username,
+            UserAttributes=[
+                {
+                    'Name': 'email_verified',
+                    'Value': 'true'
+                },
+            ]
         )
 
         return True
