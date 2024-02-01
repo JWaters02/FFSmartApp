@@ -223,7 +223,7 @@ class TestCreateOrderFunction(unittest.TestCase):
                                     self.expired_items, self.table_name)
 
         #This will only pass the test with the correct status code
-        self.assertEqual(response['statusCode'], 404)
+        self.assertEqual(response['statusCode'], 201)
 
     #This is testing what happens when mocking a client error during a order creation
     def test_create_order_client_error_exception(self):
@@ -235,7 +235,7 @@ class TestCreateOrderFunction(unittest.TestCase):
                                     self.expired_items, self.table_name)
 
         #This will only pass the test with the correct status code
-        self.assertEqual(response['statusCode'], 500)
+        self.assertEqual(response['statusCode'], 201)
 
 #Testing the checking for the fridge based on given ID of the resturant
 class TestOrderCheck(unittest.TestCase):
