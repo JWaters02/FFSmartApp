@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.index import handler
+from ..src.index import handler
 from src.get import get_all_users, BadRequestException, get_user
 from src.post import create_new_restaurant_dynamodb_entries, BadRequestException
 from src.delete import delete_user

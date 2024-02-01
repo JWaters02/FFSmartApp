@@ -1,19 +1,21 @@
 import os
 import boto3
-import logging
-from datetime import datetime, timedelta
 import json
-from .inventory_utils import view_inventory, delete_entire_item, delete_zero_quantity_items, modify_items, modify_door_state, generate_response, get_current_time_gmt
+import logging
+from .inventory_utils import (view_inventory, delete_item, add_new_item,
+                              add_delivery_item, update_item_quantity, modify_door_state,
+                              get_low_stock, update_desired_quantity, generate_response)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def handler(event, context):
     """
-    Handles AWS Lambda events.
+    Processes incoming Lambda events and routes them to appropriate functions.
     :param event: Event data from AWS Lambda.
     :param context: Lambda execution context.
-    :return: Response based on action.
+    :return: Response based on processed action.
     """
     try:
         if isinstance(event.get('body'), dict):
@@ -30,44 +32,23 @@ def handler(event, context):
 
         if action == "view_inventory":
             return view_inventory(table, pk)
-        elif action in ["add_item", "update_item", "delete_item", "open_door", "close_door"]:
-            response = manage_inventory(table, pk, body, action)
+        elif action == "add_new_item":
+            return add_new_item(table, pk, body)
+        elif action == "add_delivery_item":
+            return add_delivery_item(table, pk, body)
+        elif action == "update_item_quantity":
+            return update_item_quantity(table, pk, body)
+        elif action == "delete_item":
+            return delete_item(table, pk, body)
+        elif action in ["open_back_door", "close_back_door", "open_front_door", "close_front_door"]:
+            return modify_door_state(table, pk, body, action)
+        elif action == "get_low_stock":
+            return get_low_stock(table, pk)
+        elif action == "update_desired_quantity":
+            return update_desired_quantity(table, pk, body)
         else:
             raise ValueError(f"Invalid action specified: {action}")
 
-        return response
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
         return generate_response(500, f"An error occurred: {str(e)}")
-
-def manage_inventory(table, pk, body, action):
-    """
-    Manages inventory based on action.
-    :param table: DynamoDB table name.
-    :param pk: Primary key for inventory record.
-    :param body: Request body details.
-    :param action: Action to perform.
-    :return: 200 - Successful.
-        500 - Internal Server Error.
-    """
-    try:
-        current_time = get_current_time_gmt()
-        response = table.get_item(Key={'pk': pk, 'type': 'fridge'})
-        item = response.get('Item')
-
-        if not item:
-            item = {'pk': pk, 'type': 'fridge', 'items': [], 'is_front_door_open': False, 'is_back_door_open': False}
-
-        if action in ["add_item", "update_item"]:
-            modify_items(item, body, action, current_time)
-        elif action == "delete_item":
-            delete_entire_item(item, body)
-        elif action in ["open_door", "close_door"]:
-            modify_door_state(item, body, action)
-
-        table.put_item(Item=item)
-        return generate_response(200, f'Inventory {action} successful', item)
-    except Exception as e:
-        logger.error(f"An error occurred during DynamoDB update: {str(e)}")
-        return generate_response(500, f"An error occurred during DynamoDB update: {str(e)}")
-        

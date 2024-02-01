@@ -1,0 +1,37 @@
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: |
+    echo Listing all files and directories in the repository at all levels
+    find .
+  displayName: 'List all files in the repo recursively'
+
+- script: |
+    echo Installing Python dependencies for each module
+    for dep_file in $(find src -name 'local_dependencies.txt'); do
+      echo "Installing dependencies from $dep_file"
+      pip install -r $dep_file
+    done
+  displayName: 'Install Module Dependencies'
+
+- script: |
+    echo Adjusting PYTHONPATH
+    export PYTHONPATH=$PYTHONPATH:$(pwd)
+    echo $PYTHONPATH
+    echo Finding and running tests for each Lambda function
+    find . -path '*/src/*' -name 'index.py' | while read lambda_file; do
+      test_file=$(echo "${lambda_file}" | sed 's|/src/index.py|/test/test_index.py|')
+      echo "Running test for ${lambda_file}: ${test_file}"
+      if [ -f "${test_file}" ]; then
+        python -m unittest "${test_file}"
+      else
+        echo "Test file not found: ${test_file}"
+      fi
+    done
+  displayName: 'Run Lambda function tests'
+
+
