@@ -327,7 +327,7 @@ class TestRemoveOldObjects(unittest.TestCase):
         
 class TestCreateNewOrder(unittest.TestCase):
     @patch('src.lambda_requests.make_lambda_request')
-    # Tests the create_new_order function to ensure it behaves as expected when it successfully creates a new order
+    # Tests the create_new_order function to ensure it behaves as expected when it successfully creates a new order.
     def test_create_new_order_success(self, mock_make_lambda_request):
         mock_response = {
             'statusCode': 200,
