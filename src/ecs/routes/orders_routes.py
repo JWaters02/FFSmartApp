@@ -6,8 +6,8 @@ from flask import (
 )
 
 from lib.utils import (
-    get_user_role, 
-    get_order_data,
+    get_user_role,
+    get_order_data, get_restaurant_id,
 )
 from lib.globals import (
     order_mgr_lambda,
@@ -29,7 +29,8 @@ def before_request():
 
 @orders_route.route('/orders')
 def orders():
-    orders = get_order_data(lambda_client, order_mgr_lambda, session['username'])
+    restaurant_name = get_restaurant_id(cognito_client, session['access_token'])
+    orders = get_order_data(lambda_client, order_mgr_lambda, restaurant_name)
     logger.info(orders)
 
     return render_template('orders.html',
