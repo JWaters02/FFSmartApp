@@ -96,6 +96,7 @@ h1, h3 {
     background-color: #273C75;
     color: #fff;
     box-shadow: 0 0 0 0.2rem rgba(16, 24, 33, 0.25);
+    word-wrap: break-word;
 }
 
 @media (min-width: 768px) {

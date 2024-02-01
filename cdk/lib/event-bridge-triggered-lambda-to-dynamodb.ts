@@ -6,14 +6,17 @@ import * as DynamoDB from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from "aws-cdk-lib/aws-iam";
 
 interface eventBridgeTriggeredLambdaToDynamoDbStackProps extends cdk.StackProps {
     lambdaName: string;
     s3BucketWithSourceCode: IBucket;
     s3KeyToZipFile: string;
     masterDb: DynamoDB.Table;
-    lambdaToBeInvoked: lambda.Function;
+    lambda_resources: lambda.Function[];
+    sendEmail: boolean;
     environment?: { [key: string]: string };
+    userPoolArn?: string;
 }
 
 export class EventBridgeTriggeredLambdaToDynamoDbStack extends cdk.Stack {
@@ -36,6 +39,7 @@ export class EventBridgeTriggeredLambdaToDynamoDbStack extends cdk.Stack {
                 s3KeyToZipFile: props.s3KeyToZipFile,
                 masterDb: props.masterDb,
                 environment: props.environment,
+                sendEmail: props.sendEmail,
             },
         );
 
@@ -50,6 +54,22 @@ export class EventBridgeTriggeredLambdaToDynamoDbStack extends cdk.Stack {
 
         this.eventBridgeRule.addTarget(new targets.LambdaFunction(this.lambdaFunction));
 
-        this.lambdaFunction.grantInvoke(props.lambdaToBeInvoked);
+        for (const lambda_function of props.lambda_resources) {
+            lambda_function.grantInvoke(this.lambdaFunction);
+        }
+
+        if (props.userPoolArn && this.lambdaFunction.role) {
+            const cognitoAccessStatement = new iam.PolicyStatement({
+                actions: ['cognito-idp:*'],
+                resources: [props.userPoolArn],
+                effect: iam.Effect.ALLOW
+            });
+
+            const cognitoAccessPolicy = new iam.Policy(this, 'CognitoAccessPolicy', {
+                statements: [cognitoAccessStatement]
+            });
+
+            this.lambdaFunction.role.attachInlinePolicy(cognitoAccessPolicy);
+        }
     }
 }

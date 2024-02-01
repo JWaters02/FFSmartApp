@@ -1,47 +1,58 @@
 import os
 import boto3
-from boto3.dynamodb.conditions import Key
-# NOTE: if you want to import another file aka src/utils.py, you must put a `.` before its name `import .utils`.
-# Not doing this will not error locally but will error on the lambda.
+import json
+from .custom_exceptions import BadRequestException
+from .patch import set_token
+from .post import validate_token
+from .delete import delete_token, clean_up_old_tokens
 
 
 def handler(event, context):
     response = None
 
+    # ensures that requests are dicts
+    if isinstance(event, str):
+        event_dict = json.loads(event)
+    else:
+        event_dict = event
+
     try:
         __master_db_name__ = os.environ.get('MASTER_DB')
+        dynamodb_resource = boto3.resource('dynamodb')
+        dynamodb_client = boto3.client('dynamodb')
+        table = dynamodb_resource.Table(__master_db_name__)
 
-        # Init DynamoDB
-        dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(__master_db_name__)
+        if 'httpMethod' not in event_dict:
+            raise BadRequestException('Bad request httpMethod does not exist.')
 
-        # Read from event example
-        data = event.get('data')
-        partition_key_value = event.get('pk')
-        sort_key_value = event.get('type')
+        if 'action' not in event_dict:
+            raise BadRequestException('Bad request action does not exist.')
 
-        # Write example
-        table.put_item(
-            Item={
-                'pk': partition_key_value,
-                'type': sort_key_value,
-                'data': data
-            }
-        )
+        httpMethod = event_dict['httpMethod']
+        action = event_dict['action']
 
-        # Read example
-        database_response = table.query(
-            KeyConditionExpression=Key('pk').eq(partition_key_value) & Key('type').eq(sort_key_value)
-        )
+        if httpMethod == 'PATCH':
+            if action == 'set_token':
+                response = set_token(event, table)
+        if httpMethod == 'POST':
+            if action == 'validate_token':
+                response = validate_token(event, table)
+        elif httpMethod == 'DELETE':
+            if action == 'delete_token':
+                response = delete_token(event, table)
+            elif action == 'clean_up_old_tokens':
+                response = clean_up_old_tokens(event, table)
 
+        if response is None:
+            raise BadRequestException('Bad request.')
+
+    except BadRequestException as e:
         response = {
-            'statusCode': 200,
-            'body': {
-                'details': 'function works',
-                'db_response': database_response['Items']
-            }
+            'statusCode': 400,
+            'body': str(e)
         }
-    except Exception as e:  # try and use other exception types such as BotoCoreError, with different status codes.
+
+    except Exception as e:
         response = {
             'statusCode': 500,
             'body': {

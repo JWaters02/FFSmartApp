@@ -13,7 +13,6 @@ Edit User
                     <p>{{ user.username }}</p>
                     <p>{{ user.email }}</p>
                     <select id="role" class="form-control">
-                        <option value="Admin" {% if user.job_role == 'Admin' %} selected {% endif %}>Admin</option>
                         <option value="Head Chef" {% if user.job_role == 'Head Chef' %} selected {% endif %}>Head Chef</option>
                         <option value="Chef" {% if user.job_role == 'Chef' %} selected {% endif %}>Chef</option>
                     </select>

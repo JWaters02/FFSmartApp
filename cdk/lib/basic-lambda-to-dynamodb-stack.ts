@@ -32,7 +32,7 @@ export class BasicLambdaToDynamodbStack extends cdk.Stack {
         if (props.sendEmail) {
             this.lambdaFunction.addToRolePolicy(new iam.PolicyStatement({
                 actions: ['ses:SendEmail', 'ses:SendRawEmail'],
-                resources: ['arn:aws:ses:eu-west-1:203163753194:identity/benlewisjones.com'],
+                resources: ['*'],
                 effect: iam.Effect.ALLOW,
             }));
         }

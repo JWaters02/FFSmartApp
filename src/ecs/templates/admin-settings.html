@@ -5,7 +5,7 @@ Admin Settings
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
+    <form method="post">
         <div class="row">
             <div class="col-12 text-center">
                 <h1 class="text-light">Admin Settings</h1>
@@ -14,27 +14,27 @@ Admin Settings
         <div class="row">
             <div class="col-lg-4">
                 <h3 class="text-light">Location</h3>
-                <input type="text" class="form-control mb-3" placeholder="Street Address 1">
-                <input type="text" class="form-control mb-3" placeholder="Street Address 2">
-                <input type="text" class="form-control mb-3" placeholder="Street Address 3">
-                <input type="text" class="form-control mb-3" placeholder="Postcode">
-                <input type="text" class="form-control mb-3" placeholder="City">
+                <input type="text" name="StreetAddress1" class="form-control mb-3" placeholder="StreetAddress1" value="{{ settings[0].restaurant_details.location.street_address_1 if settings else '' }}">
+                <input type="text" name="StreetAddress2" class="form-control mb-3" placeholder="StreetAddress2" value="{{ settings[0].restaurant_details.location.street_address_2 if settings else '' }}">
+                <input type="text" name="StreetAddress3" class="form-control mb-3" placeholder="StreetAddress3" value="{{ settings[0].restaurant_details.location.street_address_3 if settings else '' }}">
+                <input type="text" name="Postcode" class="form-control mb-3" placeholder="Postcode" value="{{ settings[0].restaurant_details.location.postcode if settings else '' }}">
+                <input type="text" name="City" class="form-control mb-3" placeholder="City" value="{{ settings[0].restaurant_details.location.city if settings else '' }}">
             </div>
             <div class="col-lg-4">
-                <h3 class="text-light">Company Details</h3>
-                <input type="text" class="form-control mb-3" placeholder="Company Name">
+                <h3 class="text-light">Restaurant Details</h3>
+                <input type="text" name="RestaurantName" class="form-control mb-3" placeholder="RestaurantName" value="{{ settings[0].restaurant_details.restaurant_name if settings else '' }}">
             </div>
             <div class="col-lg-4">
-                <h3 class="text-light">Delivery Company</h3>
-                <input type="email" class="form-control mb-3" placeholder="Email">
-                <h3 class="text-light">Health and Safety report address</h3>
-                <input type="email" class="form-control mb-3" placeholder="Email">
+                <h3 class="text-light">Delivery Company email address</h3>
+                <input type="email" name="DeliveryCompanyEmail" class="form-control mb-3" placeholder="DeliveryCompanyEmail" value="{{ settings[0].delivery_company_email if settings else '' }}">
+                <h3 class="text-light">Health and Safety report email address</h3>
+                <input type="email" name="HealthAndSafetyEmail" class="form-control mb-3" placeholder="HealthAndSafetyEmail" value="{{ settings[0].health_and_safety_email if settings else '' }}">
             </div>
         </div>
         <div class="row">
             <div class="col-12 text-center">
-                <button type="button" class="btn btn-success">Save Changes</button>
+                <button type="submit" class="btn btn-success">Save Changes</button>
             </div>
         </div>
-    </div>
+    </form>
 {% endblock %}
