@@ -17,7 +17,7 @@ def get_all_orders(event, table):
 
     response = None
 
-    if 'body' not in event and 'restaurant_id' not in event['body']:
+    if 'body' not in event or 'restaurant_id' not in event['body']:
         raise BadRequestException('Bad request restaurant_id not found in body.')
 
     restaurant_name = event['body']['restaurant_id']

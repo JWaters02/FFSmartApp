@@ -99,6 +99,12 @@ export class FfSmartAppTheOneWeAreWorkingOnStack extends cdk.Stack {
         });
         const ordersMgrFunctionArn = cdk.Fn.importValue('OrdersMgrFunctionArn');
 
+        new cdk.CfnOutput(this, 'FridgeMgrFunctionArn', {
+            value: fridgeMgr.lambdaFunction.functionArn,
+            exportName: 'FridgeMgrFunctionArn',
+        });
+        const fridgeMgrFunctionArn = cdk.Fn.importValue('FridgeMgrFunctionArn');
+
         const updateOrders = new EventBridgeTriggeredLambdaToDynamoDbStack(
             this,
             'AnalysisAndDesignUpdateOrdersLambdaStack',
@@ -110,12 +116,14 @@ export class FfSmartAppTheOneWeAreWorkingOnStack extends cdk.Stack {
                 lambda_resources: [
                     tokenMgr.lambdaFunction,
                     ordersMgr.lambdaFunction,
+                    fridgeMgr.lambdaFunction
                 ],
                 sendEmail: true,
                 environment: {
                     'MASTER_DB': storageStack.masterDynamoDbTable.tableName,
                     'TOKEN_MGR_ARN': tokenMgrFunctionArn,
                     'ORDERS_MGR_ARN': ordersMgrFunctionArn,
+                    'FRIDGE_MGR_ARN': fridgeMgrFunctionArn,
                     'USER_POOL_ID': cognitoStack.userPool.userPoolId,
                 },
                 userPoolArn: cognitoStack.userPool.userPoolArn,

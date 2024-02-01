@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.index import handler
+from ..src.index import handler
 
 
 class TestDynamoDBHandler(unittest.TestCase):

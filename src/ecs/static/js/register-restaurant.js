@@ -15,15 +15,11 @@ async function registerRestaurant(restaurantName) {
     const formData = new FormData();
     formData.append('username', restaurantName);
 
-    console.log('Register rest has been called')
-
     try {
         const response = await fetch('/register-restaurant', {
             method: 'POST',
             body: formData
         });
-
-        console.log(response)
 
         if (!response.ok) {
             throw new Error('Network response was not ok: ' + response.statusText);
@@ -61,11 +57,19 @@ document.getElementById("register").addEventListener("click", async function () 
 
     userPool.signUp(username, password, attributeList, null, async function(err, result) {
         if (err) {
-            sendFlashMessage(err)
-            console.log(err);
+            if (err.code === 'InvalidParameterException') {
+                sendFlashMessage('Please enter valid details.', 'danger').then(() => {
+                    window.location.href = "/register-restaurant";
+                });
+            } else {
+                sendFlashMessage('An error occured, please check your details.', 'danger').then(() => {
+                    window.location.href = "/register-restaurant";
+                });
+            }
         } else {
-            alert('Registered successfully, please verify your account, and check your email.');
-            window.location.href = "/verify";
+            sendFlashMessage('Registered successfully, please verify your account, and check your email.', 'success').then(() => {
+                window.location.href = "/verify";
+            });
             let cognitoUser = result.user;
             sessionStorage.setItem('cognitoUser', JSON.stringify(cognitoUser));
 
