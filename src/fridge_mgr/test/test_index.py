@@ -60,15 +60,21 @@ class TestModifyDoorStateFunction(unittest.TestCase):
         self.assertEqual(response, expected_response)
 
     def test_close_front_door_action(self):
+        # Create a MagicMock for the DynamoDB table
         mock_table = MagicMock()
+
+        # Set the return value of get_item() to a dictionary with the expected item
         mock_table.get_item.return_value = {'Item': {'is_front_door_open': True, 'is_back_door_open': True}}
 
+        # Define your test data
         pk = 'test_pk'
         body = {'is_front_door_open': False, 'is_back_door_open': True}
         action = 'close_front_door'
 
+        # Call the function with the mocked data
         response = modify_door_state(mock_table, pk, body, action)
 
+        # Assert the expected behavior from the expected response
         expected_response = generate_response(200, 'Door state updated successfully', {
             'is_front_door_open': False,
             'is_back_door_open': True
