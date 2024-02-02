@@ -1,7 +1,7 @@
 import json
 import unittest
 from unittest.mock import patch, MagicMock, ANY
-from src.inventory_utils import modify_door_state, generate_response, delete_zero_quantity_items, update_item_quantity, add_new_item
+from src.inventory_utils import modify_door_state, generate_response, delete_zero_quantity_items, update_item_quantity, add_new_item, add_delivery_item
 from src.index import handler
 class TestDynamoDBHandler(unittest.TestCase):
 
@@ -228,6 +228,50 @@ class TestAddNewItem(unittest.TestCase):
 
         self.assertEqual(response['statusCode'], 409)
         self.assertEqual(response['body']['details'], 'Item test_name already exists')
+
+
+# Test is for adding a delivery item
+class TestAddDeliveryItem(unittest.TestCase):
+    # Test set up
+    def setUp(self):
+        # Creates a mock DynamoDB table
+        self.dynamodb_table = Mock()
+        self.pk = 'sample_pk'
+        self.body = {
+            'item_name': 'sample_item',
+            'quantity': 5,
+            'expiry_date': '2024-02-02'
+        }
+    # Tests whether the add_delivery_item function is expected to add a delivered item to an existing inventory item
+    def test_add_delivery_item_existing_item(self):
+        # Mocks the  DynamoDB table response with an existing item
+        existing_item = {
+            'item_name': 'sample_item',
+            'item_list': [],
+        }
+        self.dynamodb_table.get_item.return_value = {'Item': {'items': [existing_item]}}
+        ## Calls the function with the mocked objects
+        response = add_delivery_item(self.dynamodb_table, self.pk, self.body)
+        # Status code 200 ensures that the test is a success
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(response['body']['details'], 'Delivery item sample_item added successfully')
+
+        # Verifies that put_item was called with the correct arguments
+        self.dynamodb_table.put_item.assert_called_once()
+
+    # Tests if the function is expected to add a delivered item as a new inventory item
+    def test_add_delivery_item_new_item(self):
+        # Mock DynamoDB table response with no existing item
+        self.dynamodb_table.get_item.return_value = {'Item': None}
+        # Calls the function with the mocked objects.
+        response = add_delivery_item(self.dynamodb_table, self.pk, self.body)
+        # Status code is 404 indicates that the inventory item was not found
+        self.assertEqual(response['statusCode'], 404)
+        self.assertEqual(response['body']['details'], 'Inventory item not found')
+
+        # Verifies that put_item was not called since the item does not exist
+        self.dynamodb_table.put_item.assert_not_called()
+
 
 
 if __name__ == '__main__':
