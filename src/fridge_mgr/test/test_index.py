@@ -1,8 +1,7 @@
 import json
 import unittest
 from unittest.mock import patch, MagicMock, ANY
-from src.inventory_utils import modify_door_state, generate_response
-from src.inventory_utils import delete_zero_quantity_items
+from src.inventory_utils import modify_door_state, generate_response, delete_zero_quantity_items, update_item_quantity, add_new_item
 from src.index import handler
 class TestDynamoDBHandler(unittest.TestCase):
 
@@ -85,7 +84,7 @@ class TestGenerateResponse(unittest.TestCase):
         message = "Success"
         additional_details = {'key': 'value'}
         response = generate_response(status_code, message, additional_details)
-        #Verifies that the details field in the response body contains the correct message 
+        #Verifies that the details field in the response body contains the correct message
         self.assertEqual(response['statusCode'], 200)
         self.assertEqual(response['body']['details'], "Success")
         self.assertEqual(response['body']['additional_details'], {'key': 'value'})
@@ -141,6 +140,88 @@ class TestDeleteZeroQuantityItemsFunction(unittest.TestCase):
         delete_zero_quantity_items(test_item)
 
         self.assertEqual(test_item, {'test_key': 'test_value'})
+
+
+class TestUpdateItemQuantity(unittest.TestCase):
+    # test it updates with normal parameters
+    def test_expected_parameters(self):
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {'pk': 'test_pk', 'type': 'fridge', 'items': [{'item_name': 'test_name',
+                        'item_list': [{'expiry_date': '01-02-01', 'date_added': '01-01-01', 'current_quantity': 5}]}]}}
+        pk = 'test_pk'
+        body = {'item_name': 'test_name', 'quantity_change': 5, 'expiry_date': '01-02-01', 'date_added': '01-01-01'}
+
+        response = update_item_quantity(table, pk, body)
+
+        self.assertEqual(response['statusCode'], 200)
+        table.put_item.assert_called_once()
+
+    # test it returns 404 when Item in empty
+    def test_table_item_empty(self):
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {}}
+        pk = 'test_pk'
+        body = {'item_name': 'test_name', 'quantity_change': 5, 'expiry_date': '01-02-01', 'date_added': '01-01-01'}
+
+        response = update_item_quantity(table, pk, body)
+
+        self.assertEqual(response['statusCode'], 404)
+        self.assertEqual(response['body']['details'], 'Inventory item not found')
+
+    # test it returns 404 when no matching items found
+    def test_table_item_no_match(self):
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {'pk': 'test_pk', 'type': 'fridge', 'items': [{'item_name': 'test_name',
+                        'item_list': [{'expiry_date': '01-02-01', 'date_added': '01-01-01', 'current_quantity': 5}]}]}}
+        pk = 'test_pk'
+        body = {'item_name': 'another_name', 'quantity_change': 5, 'expiry_date': '01-02-01', 'date_added': '01-01-01'}
+
+        response = update_item_quantity(table, pk, body)
+
+        self.assertEqual(response['statusCode'], 404)
+        self.assertEqual(response['body']['details'], 'Item another_name not found in inventory')
+
+    # test it returns delete_item() when the final quantity is 0
+    def test_zero_quantity(self):
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {'pk': 'test_pk', 'type': 'fridge', 'items': [{'item_name': 'test_name',
+                        'item_list': [{'expiry_date': '01-02-01', 'date_added': '01-01-01', 'current_quantity': 5}]}]}}
+        pk = 'test_pk'
+        body = {'item_name': 'test_name', 'quantity_change': -5, 'expiry_date': '01-02-01', 'date_added': '01-01-01'}
+
+        response = update_item_quantity(table, pk, body)
+
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(response['body']['details'], 'Item test_name updated successfully')
+
+
+class TestAddNewItem(unittest.TestCase):
+    # test it creates new item with expected parameters
+    def test_expected_parameters(self):
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {'pk': 'test_pk', 'type': 'fridge', 'items': [{'item_name': 'test_name',
+                                       'desired_quantity': 1, 'item_list': [{'expiry_date': '01-01-01',
+                                       'date_added': '01-01-01', 'current_quantity': 1, 'date_removed': '01-01-01'}]}]}}
+        pk = 'test_pk'
+        body = {'item_name': 'new_name', 'desired_quantity': 10, 'expiry_date': '01-02-01', 'quantity': 5}
+
+        response = add_new_item(table, pk, body)
+
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(response['body']['details'], 'New item new_name added successfully')
+
+    # test it returns 409 when item already exists
+    def test_add_existing_item(self):
+        table = MagicMock()
+        table.get_item.return_value = {'Item': {'pk': 'test_pk', 'type': 'fridge', 'items': [{'item_name': 'test_name',
+                        'item_list': [{'expiry_date': '01-02-01', 'date_added': '01-01-01', 'current_quantity': 5}]}]}}
+        pk = 'test_pk'
+        body = {'item_name': 'test_name', 'desired_quantity': 10, 'expiry_date': '01-02-01', 'quantity': 5}
+
+        response = add_new_item(table, pk, body)
+
+        self.assertEqual(response['statusCode'], 409)
+        self.assertEqual(response['body']['details'], 'Item test_name already exists')
 
 
 if __name__ == '__main__':
