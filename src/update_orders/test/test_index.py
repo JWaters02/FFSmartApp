@@ -434,6 +434,8 @@ class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
         self.assertEqual(result.strip(), expected_result.strip())
 
 class TestMakeLambdaRequest(unittest.TestCase):
+    #this test is for the MakeLambda request
+    # the line below is used to mock the json dumps function.
 
     @patch('src.utils.json.dumps')
     def test_make_lambda_request(self, mock_json_dumps):
@@ -445,31 +447,34 @@ class TestMakeLambdaRequest(unittest.TestCase):
         mock_lambda_client.invoke.return_value = mock_response
         mock_json_dumps.return_value = '{"test": "data"}'
 
-
+        # tests the function and the payload 
         test_payload = {'test': 'data'}
         test_function_name = 'testFunction'
 
 
         response = make_lambda_request(mock_lambda_client, test_payload, test_function_name)
-
+        #ensures the test is called with the expected parameters 
 
         mock_lambda_client.invoke.assert_called_once_with(
             FunctionName='testFunction',
             InvocationType='RequestResponse',
             Payload='{"test": "data"}'
         )
+        # asserts that the response from make_lambda_request matches the expected response
         mock_json_dumps.assert_called_once_with(test_payload)
         self.assertEqual(response, {'key': 'value'})
 
 class TestGenerateAndSendEmail(unittest.TestCase):
-
+#test the GenerateAndSendEmail function to ensure it performs as expected 
     @patch('src.utils.boto3.client')
+    #test is used to check whether the GenerateAndSendEmail function performs is successfully
     def test_generate_and_send_email_success(self, mock_boto3_client):
+        #mock set up for boto3 
         mock_ses_client = Mock()
         mock_ses_client.send_email.return_value = {'MessageId': '12345'}
         mock_boto3_client.return_value = mock_ses_client
 
-        # Define test data
+        # test data that is used
         subject = 'Test Subject'
         body = 'Test Body'
         destinations = ['test@example.com']
@@ -478,7 +483,7 @@ class TestGenerateAndSendEmail(unittest.TestCase):
         result = generate_and_send_email(mock_ses_client, subject, body, destinations, sender)
 
         self.assertTrue(result)
-
+         #ensures the function returns the expected values to determine if it's a success 
         mock_ses_client.send_email.assert_called_once_with(
             Destination={'ToAddresses': destinations},
             Message={
@@ -487,14 +492,17 @@ class TestGenerateAndSendEmail(unittest.TestCase):
             },
             Source=sender
         )
-
+     #test for checking whether there is error handling in place to deal with a failure for generate_and_send_email
     @patch('src.utils.boto3.client')
     def test_generate_and_send_email_failure(self, mock_boto3_client):
+        #mock set up for boto3 
         mock_ses_client = Mock()
+        #test data used for the mock scenario
         error_response = {'Error': {'Code': 'TestException', 'Message': 'Test Message'}}
         mock_ses_client.send_email.side_effect = ClientError(error_response, 'send_email')
         mock_boto3_client.return_value = mock_ses_client
 
+        #some fields are missing on purpose to ensure the error handling is in place to deal with missing data and parameters.
         result = generate_and_send_email(mock_ses_client, 'subject', 'body', ['test@example.com'], 'sender@example.com')
 
         self.assertFalse(result)
