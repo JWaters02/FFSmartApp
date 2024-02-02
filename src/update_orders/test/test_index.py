@@ -43,27 +43,28 @@ class TestEmailFunctions(unittest.TestCase):
     @patch('boto3.client')
     @patch('src.emails.generate_expired_items_email_body')
     @patch('src.emails.generate_and_send_email')
+    # This is testing sending the email whe an item has expired
     def test_send_expired_items(self, mock_generate_and_send_email, mock_generate_expired_items_email_body,
                                 mock_boto3_client):
-        # Mocking SES client using MagicMock
+        # This is mocking a SES client which is Amazons Simple email service
         ses_client = MagicMock()
 
-        # Mock the behavior of boto3.client to return the SES client MagicMock
+        # This is mocking the behaviour of the boto resource to return the client
         mock_boto3_client.return_value = ses_client
 
-        # Mock the behavior of generate_expired_items_email_body
+        # This is a mock of an email body we can use
         mock_generate_expired_items_email_body.return_value = 'example_body'
 
-        # Test data
+        # This is the test data we will be using
         restaurant = {'pk': 'example_pk'}
         emails = ['user@example.com']
         expires_items = ['item1', 'item2']
         going_to_expire_items = ['item3', 'item4']
 
-        # Run the function with the mock data and parameters
+        # Running the function with our test data and information
         send_expired_items(ses_client, restaurant, emails, expires_items, going_to_expire_items)
 
-        # Assertions
+        # Assertions that will need to pass before the test is passed
         mock_generate_expired_items_email_body.assert_called_once_with(restaurant, expires_items, going_to_expire_items)
         mock_generate_and_send_email.assert_called_once_with(
             ses_client,
@@ -105,24 +106,32 @@ class TestGetCognitoUserEmail(unittest.TestCase):
         self.assertEqual(result, 'user@example.com')
         # Explaination here for what the test is actually doing in general
     @patch('src.utils.boto3.client')
+    # This function tests getting a user but if theres no email information
     def test_get_cognito_user_email_no_email_attribute(self, mock_boto3_client):
+        # Mocking a cognito client
         mock_cognito_client = MagicMock()
         mock_boto3_client.return_value = mock_cognito_client
 
+        # Test information we can use
         username = 'test_user'
         user_attributes = [{'Name': 'some_other_attribute', 'Value': 'some_value'}]
 
+        # Accessing the environment variables called User Pool ID which is used for AWS Congnito testing
         os.environ['USER_POOL_ID'] = 'your_user_pool_id'
 
         mock_cognito_client.admin_get_user.return_value = {'UserAttributes': user_attributes}
 
+        # This is running the function along with the username test data
         result = get_cognito_user_email(username)
 
+        # This is used to interact with AWS Cognito, this checks whether he boto client was called exactly once ensuring that its created for Cognito Identity provider
         mock_boto3_client.assert_called_once_with('cognito-idp')
         mock_cognito_client.admin_get_user.assert_called_once_with(UserPoolId='your_user_pool_id', Username='test_user')
 
+        # Deleting the environment variable
         del os.environ['USER_POOL_ID']
 
+        # This will only pass if it returns our test username
         self.assertIsNone(result)
 class TestCreateOrderToken(unittest.TestCase):
     # Test case is designed to verify that create_an_order_token works correctly when the lambda function responds successfully.
@@ -347,11 +356,11 @@ class TestCreateNewOrder(unittest.TestCase):
 
 
 
-
+# This is testing the function which generates the delivery email
 class TestGenerateDeliveryEmailBody(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
-
+    # This function is testing the body of the email
     def test_generate_delivery_email_body(self):
+        # This is mocoking a test resturant
         mock_restaurant_admin_settings = {
             'pk': 'restaurant_id',
             'restaurant_details': {
@@ -367,6 +376,7 @@ class TestGenerateDeliveryEmailBody(unittest.TestCase):
         }
         mock_token = 'test_token'
 
+        # This is the expected response from the email
         expected_email_body = f'''
                    Hello Driver,
     
@@ -384,30 +394,29 @@ class TestGenerateDeliveryEmailBody(unittest.TestCase):
     Good luck!
     This link will self-destruct in 3 days.
                '''
-
+        # This is running the function with our mocked information and token
         result = generate_delivery_email_body(mock_restaurant_admin_settings, mock_token)
 
+        # This will pass if the expected result is the same as whats generated
         self.assertEqual(result.strip(), expected_email_body.strip())
 
-
+# This is testing the generating of an email if the items are expired
 class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
-    # Explaination here for what the test is actually doing in general
-
     def test_generate_expired_items_email_body(self):
-        # Test data
+        # This is the test data that we will be using
         restaurant_admin_settings = {
             'restaurant_details': {
                 'restaurant_name': 'Test Restaurant'
             }
-            # Add other necessary details from your restaurant_admin_settings
         }
+        # This is mocked expired items
         expired_items = [{'item_name': 'Expired Item 1', 'quantity': 2}]
         going_to_expire_items = [{'item_name': 'Expiring Item 1', 'quantity': 3}]
 
-        # Run the function with the test data
+        # This is running the data with the test items we have created
         result = generate_expired_items_email_body(restaurant_admin_settings, expired_items, going_to_expire_items)
 
-        # Assertions
+        # expected result that the email will say
         expected_result = """
         Hello Test Restaurant,
     
@@ -421,6 +430,7 @@ class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
     
     Thanks
         """
+        # This will pass if the expected email is matching the actual result
         self.assertEqual(result.strip(), expected_result.strip())
 
 class TestMakeLambdaRequest(unittest.TestCase):
