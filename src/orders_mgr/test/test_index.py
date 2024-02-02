@@ -431,20 +431,31 @@ class TestIsOrderIdValidFunction(unittest.TestCase):
 class TestGetExpiredItemQuantityFridgeFunction(unittest.TestCase):
     # tests the function returns the correct quantity
     def test_normal_parameters(self):
-        self.fridge_item = {'item_list': [{'expiry_date': time.time()-999999, 'current_quantity': 10}]}
+        mock_time = time.time()-999999
+        self.fridge_item = {'item_list': [{'expiry_date': mock_time, 'current_quantity': 10}]}
 
-        response = get_expired_item_quantity_fridge(self.fridge_item)
+        response = get_expired_item_quantity_fridge(self.fridge_item, mock_time)
 
         self.assertEqual(response, 10)
 
     # tests the function returns 0 when there is no matching items
     def test_zero_expired_item_quantity(self):
-        self.fridge_item = {'item_list': [{'expiry_date': time.time(), 'current_quantity': 10}]}
+        mock_time = time.time() - 999999
+        self.fridge_item = {'item_list': [{'expiry_date': mock_time+999999, 'current_quantity': 10}]}
 
-        response = get_expired_item_quantity_fridge(self.fridge_item)
+        response = get_expired_item_quantity_fridge(self.fridge_item, mock_time)
 
         self.assertEqual(response, 0)
 
+    def test_multiple_expired_item_quantity(self):
+        mock_time = time.time() - 999999
+        self.fridge_item = {'item_list': [{'expiry_date': mock_time, 'current_quantity': 10},
+                                          {'expiry_date': mock_time, 'current_quantity': 15},
+                                          {'expiry_date': mock_time+999999, 'current_quantity': 1}]}
+
+        response = get_expired_item_quantity_fridge(self.fridge_item, mock_time)
+
+        self.assertEqual(response, 25)
 
 class TestGetItemQuantityFridgeFunction(unittest.TestCase):
     # tests the function returns the correct quantity
