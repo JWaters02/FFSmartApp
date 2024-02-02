@@ -8,7 +8,6 @@ from boto3.dynamodb.conditions import Key
 
 
 
-
 #This class is testing the function get all users
 class TestGetAllUsers(unittest.TestCase):
 
