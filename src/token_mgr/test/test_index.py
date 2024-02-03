@@ -9,7 +9,7 @@ from src.delete import delete_token, clean_up_old_tokens
 
 
 
-# Testing the validate token function with mocked test data
+# Testing the validate token function with mocked test data.
 class TestValidateTokenLambda(unittest.TestCase):
     # This is the data we'll be using for this test
     def setUp(self):
