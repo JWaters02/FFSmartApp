@@ -6,7 +6,6 @@ from ..src.index import handler
 import json
 from boto3.dynamodb.conditions import Key
 
-
 class TestHandler(unittest.TestCase):
 
     @patch('boto3.client')
