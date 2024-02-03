@@ -26,7 +26,7 @@ def make_lambda_request(lambda_client, payload, function_name):
 
 def list_of_all_pks_and_delivery_emails(table):
     """
-    Gets all the PKs and corresponding delivery emails from the master table.
+    Gets all the PKs and corresponding delivery emails from the master table!.
     :param table: The resource of the master dynamo table.
     :return: A list containing a dict with each pk and corresponding delivery email.
     """
