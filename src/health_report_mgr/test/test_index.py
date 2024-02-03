@@ -10,7 +10,7 @@ class TestHandler(unittest.TestCase):
 
     @patch('boto3.client')
     @patch('boto3.resource')
-    def test_handler_function(self, mock_boto_resource, mock_boto_client):  # use highly descriptive function names, not what like this
+    def test_handler_function(self, mock_boto_resource, mock_boto_client):
         """Succeeds"""
         # Mock DynamoDB
         mock_dynamodb_resource = MagicMock()
