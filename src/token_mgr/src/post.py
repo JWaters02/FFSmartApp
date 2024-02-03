@@ -2,7 +2,6 @@ import time
 from botocore.exceptions import ClientError
 from .custom_exceptions import BadRequestException, NotFoundException, UnauthorizedException
 
-
 def validate_token(event, table):
     """
     Validates a given token for a given restaurant, the token cannot have expired.

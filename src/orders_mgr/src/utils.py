@@ -1,5 +1,6 @@
 import secrets
 import time
+from src.custom_exceptions import NotFoundException
 
 from src.custom_exceptions import NotFoundException
 
