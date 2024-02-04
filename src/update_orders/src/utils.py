@@ -125,7 +125,7 @@ def generate_delivery_email_body(restaurant_admin_settings, token):
     :param token: Token for the email.
     :return: The emails body.
     """
-    delivery_link = f'http://0.0.0.0:80/delivery/{restaurant_admin_settings["pk"]}/{token}'
+    delivery_link = f'http://FfSmar-Analy-3HyxSmNqsx3Z-1763585782.eu-west-1.elb.amazonaws.com/delivery/{restaurant_admin_settings["pk"]}/{token}'
 
     return f'''
     Hello Driver,
