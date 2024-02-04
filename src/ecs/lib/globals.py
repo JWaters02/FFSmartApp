@@ -12,13 +12,6 @@ users_mgr_lambda = os.environ.get('USERS_MGR_NAME')
 health_report_mgr_lambda = os.environ.get('HEALTH_REPORT_MGR_NAME')
 token_mgr_lambda = os.environ.get('TOKEN_MGR_NAME')
 
-dynamodb_session_table = 'analysis-and-design-ecs-session-table'
-fridge_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignFridgeM-JGnzKOPDBYoi'
-order_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignOrdersM-Q5wAIRISq5SD'
-users_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignUsersMg-AzDLX5oyzz1y'
-health_report_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignHealthR-Fhf8nl7TD4Dl'
-token_mgr_lambda = 'FfSmartAppTheOneWeAreWork-AnalysisAndDesignTokenMg-Iw77qKeVW3Yn'
-
 region = 'eu-west-1'
 user_pool_id = 'eu-west-1_BGeP1szQM'
 client_id = '3368pjmkt1q1nlqg48duhbikgn'
