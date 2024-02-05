@@ -5,10 +5,12 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2'; // Import ELBv2 for Application Load Balancer
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as iam from "aws-cdk-lib/aws-iam";
 
 interface FlaskEcsGatewayStackProps extends cdk.StackProps {
     environmentVariables: { [key: string]: string };
     lambda_resources: lambda.Function[];
+    userPoolArn: string;
 }
 
 export class FlaskEcsGatewayStack extends cdk.Stack {
@@ -51,6 +53,18 @@ export class FlaskEcsGatewayStack extends cdk.Stack {
 
         // Create a task definition and expose port 80
         const taskDefinition = new ecs.Ec2TaskDefinition(this, 'AnalysisAndDesignTaskDef');
+
+        // Grant permissions to cognito
+        const cognitoAccessStatement = new iam.PolicyStatement({
+            actions: ['cognito-idp:*'],
+            resources: [props.userPoolArn],
+            effect: iam.Effect.ALLOW
+        });
+        const cognitoAccessPolicy = new iam.Policy(this, 'CognitoAccessPolicy', {
+            statements: [cognitoAccessStatement]
+        });
+
+        taskDefinition.taskRole.attachInlinePolicy(cognitoAccessPolicy);
 
         // Create environment variables from props
         const environmentVariables: Record<string, string> = {};

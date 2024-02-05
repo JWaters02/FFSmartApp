@@ -145,7 +145,8 @@ export class FfSmartAppTheOneWeAreWorkingOnStack extends cdk.Stack {
                 usersMgr.lambdaFunction,
                 healthReportMgr.lambdaFunction,
                 tokenMgr.lambdaFunction,
-            ]
+            ],
+            userPoolArn: cognitoStack.userPool.userPoolArn,
         });
     }
 }
