@@ -1,6 +1,6 @@
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from .src.custom_exceptions import BadRequestException
+from .custom_exceptions import BadRequestException
 
 
 def get_all_users(event, table):
