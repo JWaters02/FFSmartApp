@@ -268,7 +268,7 @@ class TestDeleteUserLambda(unittest.TestCase):
         self.table.get_item.side_effect = ClientError({'Error': {'Code': 'TestException'}}, 'operation_name')
 
         response = delete_user(self.event, self.table)
-        print (response, "response")
+        #print (response, "response")
         #This ensures that when running this and simulating a error it responds accordingly
         self.assertEqual(response['statusCode'], 500)
         self.assertIn('Error accessing DynamoDB', response['body'])
