@@ -18,12 +18,6 @@ steps:
     done
   displayName: 'Install Module Dependencies'
 
-# - script: |
-#     echo "Adjusting PYTHONPATH to include project src directory"
-#     export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-#     echo "PYTHONPATH adjusted to: $PYTHONPATH"
-#   displayName: 'Adjust PYTHONPATH'
-
 - script: |
     export PYTHONPATH=$(pwd):$PYTHONPATH
     echo "PYTHONPATH adjusted to: $PYTHONPATH"
@@ -65,16 +59,16 @@ steps:
   displayName: 'Run users_mgr Test'
   condition: always()
 
-# - script: |
-#     echo Finding and running tests for each Lambda function
-#     find src -path '*/test' -type d | while read test_dir; do
-#       for test_file in "$test_dir"/*test_index*.py; do
-#         if [ -f "$test_file" ]; then
-#           echo "Running tests in $test_file"
-#           python -m unittest "$test_file" -v
-#         else
-#           echo "No test files found in $test_dir"
-#         fi
-#       done
-#     done
-#   displayName: 'Run Lambda function tests'
+- script: |
+    modules=("fridge_mgr" "health_report_mgr" "orders_mgr" "token_mgr" "update_orders" "users_mgr")
+    for module in "${modules[@]}"
+    do
+      echo "Running unit tests for $module"
+      python -m unittest src/$module/test/test_index.py -v
+      if [ $? -ne 0 ]; then
+        echo "Unit tests for $module failed"
+        exit 1
+      fi
+    done
+  displayName: 'Run Unit Tests for All Modules'
+  condition: always()
