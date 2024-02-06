@@ -19,6 +19,11 @@ steps:
   displayName: 'Install Module Dependencies'
 
 - script: |
+    echo "Adjusting PYTHONPATH to include project src directory"
+    export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+    echo "PYTHONPATH adjusted to: $PYTHONPATH"
+
+- script: |
     echo Adjusting PYTHONPATH
     export PYTHONPATH=$PYTHONPATH:$(pwd)
     echo $PYTHONPATH
