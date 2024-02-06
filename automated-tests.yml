@@ -25,32 +25,38 @@ steps:
   displayName: 'Adjust PYTHONPATH'
 
 - script: |
-    echo "Running a simple test for demonstration"
+    echo "Adjusting PYTHONPATH to include project src directory"
+    export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+    echo "PYTHONPATH adjusted to: $PYTHONPATH"
+  displayName: 'Adjust PYTHONPATH'
+
+- script: |
+    echo "Running unit tests for fridge_mgr"
     python -m unittest src/fridge_mgr/test/test_index.py -v
   displayName: 'Run fridge_mgr Test'
 
 - script: |
-    echo "Running a simple test for demonstration"
+    echo "Running unit tests for health_report_mgr"
     python -m unittest src/health_report_mgr/test/test_index.py -v
   displayName: 'Run health_report_mgr Test'
 
 - script: |
-    echo "Running a simple test for demonstration"
+    echo "Running unit tests for orders_mgr"
     python -m unittest src/orders_mgr/test/test_index.py -v
   displayName: 'Run orders_mgr Test'
 
 - script: |
-    echo "Running a simple test for demonstration"
+    echo "Running unit tests for token_mgr"
     python -m unittest src/token_mgr/test/test_index.py -v
   displayName: 'Run token_mgr Test'
 
 - script: |
-    echo "Running a simple test for demonstration"
+    echo "Running unit tests for update_orders"
     python -m unittest src/update_orders/test/test_index.py -v
   displayName: 'Run update_orders Test'
 
 - script: |
-    echo "Running a simple test for demonstration"
+    echo "Running unit tests for users_mgr"
     python -m unittest src/users_mgr/test/test_index.py -v
   displayName: 'Run users_mgr Test'
 
