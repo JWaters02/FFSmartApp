@@ -1,5 +1,5 @@
 from botocore.exceptions import ClientError
-from .src.custom_exceptions import BadRequestException, NotFoundException
+from .custom_exceptions import BadRequestException, NotFoundException
 
 
 def delete_user(event, table):
