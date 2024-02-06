@@ -25,6 +25,11 @@ steps:
   displayName: 'Adjust PYTHONPATH'
 
 - script: |
+    echo "Running a simple test for demonstration"
+    python -m unittest src/fridge_mgr/test_index.py -v
+  displayName: 'Run a Simple Test'
+
+- script: |
     echo Finding and running tests for each Lambda function
     find src -path '*/test' -type d | while read test_dir; do
       for test_file in "$test_dir"/*test_index*.py; do
