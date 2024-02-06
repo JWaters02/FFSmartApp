@@ -100,7 +100,7 @@ class TestCreateOrderFunction(unittest.TestCase):
     #Testing the response when an order is created successfully
     def test_create_order_successful(self):
         # Here we are modifying the generate order function to isolate the behaviour of this method
-        with patch('src.post.generate_order_id', return_value='example_order_id'):
+        with patch('src.orders_mgr.src.post.generate_order_id', return_value='example_order_id'):
             #Creating the response from all the mocked data into the function
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
                                     self.expired_items, self.table_name)
@@ -140,7 +140,7 @@ class TestCreateOrderFunction(unittest.TestCase):
     #Testing what happens when an creating an order cannot be found
     def test_create_order_not_found_exception(self):
         # Here we are modifying the generate order function to isolate the behaviour of this method
-        with patch('src.post.generate_order_id', return_value='example_order_id'):
+        with patch('src.orders_mgr.src.post.generate_order_id', return_value='example_order_id'):
             #Creating the response from all the mocked data into the function
             self.table.update_item.side_effect = NotFoundException('Restaurant does not exist')
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
@@ -152,7 +152,7 @@ class TestCreateOrderFunction(unittest.TestCase):
     #This is testing what happens when mocking a client error during a order creation
     def test_create_order_client_error_exception(self):
         # Here we are modifying the generate order function to isolate the behaviour of this method
-        with patch('src.post.generate_order_id', return_value='example_order_id'):
+        with patch('src.orders_mgr.src.post.generate_order_id', return_value='example_order_id'):
             #Creating the response from all the mocked data into the function
             self.table.update_item.side_effect = ClientError({'Error': {'Code': 'TestException'}}, 'operation_name')
             response = create_order(self.dynamodb_client, self.table, self.restaurant_name, self.order_items,
@@ -165,9 +165,9 @@ class TestCreateOrderFunction(unittest.TestCase):
 class TestOrderCheck(unittest.TestCase):
 
     # Replacing the boto resource function with a mock object
-    @patch('src.post.get_total_item_quantity')
-    @patch('src.post.get_expired_item_quantity_fridge')
-    @patch('src.post.create_order')
+    @patch('src.orders_mgr.src.post.get_total_item_quantity')
+    @patch('src.orders_mgr.src.post.get_expired_item_quantity_fridge')
+    @patch('src.orders_mgr.src.post.create_order')
     # This test mocks the dynamodb table with a resturant ID and checks against it that it cant find the fridge and orders response
     def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
         def test_order_needed(self, mock_create_order, mock_expired_quantity, mock_total_quantity):
@@ -311,7 +311,7 @@ class TestGetOrderFunction(unittest.TestCase):
 
 class TestGenerateOrderIdFunction(unittest.TestCase):
     # tests the function returns the correct id
-    @patch('src.utils.secrets')
+    @patch('src.orders_mgr.src.utils.secrets')
     def test_normal_parameters(self, mock_secrets):
         self.table = MagicMock()
         restaurant_id = 'example_restaurant'
