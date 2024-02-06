@@ -1,9 +1,6 @@
 import secrets
 import time
-from src.custom_exceptions import NotFoundException
-
-from src.custom_exceptions import NotFoundException
-
+from ..src.custom_exceptions import NotFoundException
 
 def generate_order_id(table, restaurant_id):
     """
