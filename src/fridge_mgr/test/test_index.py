@@ -1,6 +1,6 @@
 import json
 import unittest
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import patch, MagicMock, ANY, Mock
 from ..src.inventory_utils import modify_door_state, generate_response, delete_zero_quantity_items, update_item_quantity, add_new_item, add_delivery_item
 from ..src.index import handler
 class TestDynamoDBHandler(unittest.TestCase):
