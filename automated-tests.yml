@@ -37,3 +37,6 @@ steps:
       done
     done
   displayName: 'Run Lambda function tests'
+
+- script: |
+    python -m unittest src/fridge_mgr/test/test_index.py -v
