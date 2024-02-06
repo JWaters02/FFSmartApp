@@ -1,5 +1,5 @@
 from botocore.exceptions import ClientError
-from src.custom_exceptions import NotFoundException, BadRequestException
+from .custom_exceptions import NotFoundException, BadRequestException
 
 
 def create_new_restaurant_dynamodb_entries(dynamodb_client, event, table_name):

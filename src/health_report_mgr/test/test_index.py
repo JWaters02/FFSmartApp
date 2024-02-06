@@ -1,19 +1,16 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from ..src.index import handler
 import json
 from boto3.dynamodb.conditions import Key
 import unittest
 from unittest.mock import Mock, patch
-from ..src.utils import get_health_and_safety_email, get_filtered_items, send_email_with_attachment
-
-
-
+from src.health_report_mgr.src.index import handler
+from src.health_report_mgr.src.utils import get_health_and_safety_email, get_filtered_items, send_email_with_attachment
 
 class TestDynamoDBFunctions(unittest.TestCase):
     # Test the functions related to the DyanmoDB operations
 
-    @patch('src.utils.boto3')
+    @patch('src.health_report_mgr.src.utils.boto3')
     # Tests the get_health_and_safety_email function to ensure it correctly retrieves a health and safety email address from a DynamoDB table when it exists
     def test_get_health_and_safety_email_found(self, mock_boto3):
         #A mock DynamoDB table is created and configured to return a response containing an email when the get_item method is called
@@ -26,7 +23,7 @@ class TestDynamoDBFunctions(unittest.TestCase):
         # The assertion ensures that the returned email matches the mocked email set up.
         self.assertEqual(email, 'test@example.com')
 
-    @patch('src.utils.boto3')
+    @patch('src.health_report_mgr.src.utils.boto3')
     #Tests the get_health_and_safety_email function to ensure it returns nothing when the email address is not found in the DynamoDB table.
     def test_get_health_and_safety_email_not_found(self, mock_boto3):
         mock_table = Mock()
@@ -37,7 +34,7 @@ class TestDynamoDBFunctions(unittest.TestCase):
         # Assertion to verify that return is none which shows that no email was found.
         self.assertIsNone(email)
 
-    @patch('src.utils.boto3')
+    @patch('src.health_report_mgr.src.utils.boto3')
     #Tests the get_filtered_items function to ensure it can retrieve and filter items from a DynamoDB table based on provided date criteria.
     def test_get_filtered_items(self, mock_boto3):
         mock_table = Mock()
@@ -72,8 +69,8 @@ class TestDynamoDBFunctions(unittest.TestCase):
 
 class TestSendEmailWithAttachmentFunction (unittest.TestCase):
     # test the function works when given the expected parameters
-    @patch('src.utils.boto3.client')
-    @patch('src.utils.create_csv_content')
+    @patch('src.health_report_mgr.src.utils.boto3.client')
+    @patch('src.health_report_mgr.src.utils.create_csv_content')
     def test_normal_parameters(self, mock_create_csv_content, mock_boto3_client):
         mock_ses_client = MagicMock()
         mock_boto3_client.return_value = mock_ses_client
