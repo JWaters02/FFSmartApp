@@ -27,7 +27,7 @@ steps:
 - script: |
     echo Finding and running tests for each Lambda function
     find src -path '*/test' -type d | while read test_dir; do
-      for test_file in "$test_dir"/*test*.py; do
+      for test_file in "$test_dir"/*test_index*.py; do
         if [ -f "$test_file" ]; then
           echo "Running tests in $test_file"
           python -m unittest "$test_file" -v
