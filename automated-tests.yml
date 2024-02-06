@@ -22,21 +22,18 @@ steps:
     echo "Adjusting PYTHONPATH to include project src directory"
     export PYTHONPATH=$PYTHONPATH:$(pwd)/src
     echo "PYTHONPATH adjusted to: $PYTHONPATH"
+  displayName: 'Adjust PYTHONPATH'
 
 - script: |
-    echo Adjusting PYTHONPATH
-    export PYTHONPATH=$PYTHONPATH:$(pwd)
-    echo $PYTHONPATH
     echo Finding and running tests for each Lambda function
-    find . -path '*/src/*' -name 'index.py' | while read lambda_file; do
-      test_file=$(echo "${lambda_file}" | sed 's|/src/index.py|/test/test_index.py|')
-      echo "Running test for ${lambda_file}: ${test_file}"
-      if [ -f "${test_file}" ]; then
-        python -m unittest "${test_file}"
-      else
-        echo "Test file not found: ${test_file}"
-      fi
+    find src -path '*/test' -type d | while read test_dir; do
+      for test_file in "$test_dir"/*test*.py; do
+        if [ -f "$test_file" ]; then
+          echo "Running tests in $test_file"
+          python -m unittest "$test_file" -v
+        else
+          echo "No test files found in $test_dir"
+        fi
+      done
     done
   displayName: 'Run Lambda function tests'
-
-
