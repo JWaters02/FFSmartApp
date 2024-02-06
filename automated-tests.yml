@@ -27,7 +27,32 @@ steps:
 - script: |
     echo "Running a simple test for demonstration"
     python -m unittest src/fridge_mgr/test/test_index.py -v
-  displayName: 'Run a Simple Test'
+  displayName: 'Run fridge_mgr Test'
+
+- script: |
+    echo "Running a simple test for demonstration"
+    python -m unittest src/health_report_mgr/test/test_index.py -v
+  displayName: 'Run health_report_mgr Test'
+
+- script: |
+    echo "Running a simple test for demonstration"
+    python -m unittest src/orders_mgr/test/test_index.py -v
+  displayName: 'Run orders_mgr Test'
+
+- script: |
+    echo "Running a simple test for demonstration"
+    python -m unittest src/token_mgr/test/test_index.py -v
+  displayName: 'Run token_mgr Test'
+
+- script: |
+    echo "Running a simple test for demonstration"
+    python -m unittest src/update_orders/test/test_index.py -v
+  displayName: 'Run update_orders Test'
+
+- script: |
+    echo "Running a simple test for demonstration"
+    python -m unittest src/users_mgr/test/test_index.py -v
+  displayName: 'Run users_mgr Test'
 
 - script: |
     echo Finding and running tests for each Lambda function
