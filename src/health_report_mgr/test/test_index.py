@@ -7,9 +7,6 @@ from unittest.mock import Mock, patch
 from ..src.index import handler
 from ..src.utils import get_health_and_safety_email, get_filtered_items, send_email_with_attachment
 
-
-
-
 class TestDynamoDBFunctions(unittest.TestCase):
     # Test the functions related to the DyanmoDB operations
 
