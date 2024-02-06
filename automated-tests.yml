@@ -26,7 +26,7 @@ steps:
 
 - script: |
     echo "Running a simple test for demonstration"
-    python -m unittest src/fridge_mgr/test_index.py -v
+    python -m unittest src/fridge_mgr/test/test_index.py -v
   displayName: 'Run a Simple Test'
 
 - script: |
