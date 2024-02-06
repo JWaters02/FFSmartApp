@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.get import get_all_users, BadRequestException, get_user
-from src.post import create_new_restaurant_dynamodb_entries, BadRequestException
-from src.delete import delete_user
+from ..src.get import get_all_users, BadRequestException, get_user
+from ..src.post import create_new_restaurant_dynamodb_entries, BadRequestException
+from ..src.delete import delete_user
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
