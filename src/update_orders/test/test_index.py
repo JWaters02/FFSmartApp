@@ -12,8 +12,8 @@ from unittest.mock import patch
 # This is testing the email functions that we use with our application adn their mocked responses
 class TestEmailFunctions(unittest.TestCase):
     # This is patching in a mocked resource
-    @patch('src.emails.generate_delivery_email_body')
-    @patch('src.emails.generate_and_send_email')
+    @patch('src.update_orders.src.emails.generate_delivery_email_body')
+    @patch('src.update_orders.src.emails.generate_and_send_email')
 
     # This is testing the sending of the delivery email when an order is created
     def test_send_delivery_email(self, mock_generate_and_send_email, mock_generate_delivery_email_body):
@@ -41,8 +41,8 @@ class TestEmailFunctions(unittest.TestCase):
 
     # This is patching in a mocked resource
     @patch('boto3.client')
-    @patch('src.emails.generate_expired_items_email_body')
-    @patch('src.emails.generate_and_send_email')
+    @patch('src.update_orders.src.emails.generate_expired_items_email_body')
+    @patch('src.update_orders.src.emails.generate_and_send_email')
     # This is testing sending the email whe an item has expired
     def test_send_expired_items(self, mock_generate_and_send_email, mock_generate_expired_items_email_body,
                                 mock_boto3_client):
@@ -77,7 +77,7 @@ class TestEmailFunctions(unittest.TestCase):
 # This is testing the cognito emails to the user with mocked data and responses
 class TestGetCognitoUserEmail(unittest.TestCase):
     # Patching the mocked resources
-    @patch('src.utils.boto3.client')
+    @patch('src.update_orders.src.utils.boto3.client')
     def test_get_cognito_user_email(self, mock_boto3_client):
         mock_cognito_client = MagicMock()
         mock_boto3_client.return_value = mock_cognito_client
@@ -105,7 +105,7 @@ class TestGetCognitoUserEmail(unittest.TestCase):
         # Test will pass if result equals the test result
         self.assertEqual(result, 'user@example.com')
         # Explaination here for what the test is actually doing in general
-    @patch('src.utils.boto3.client')
+    @patch('src.update_orders.src.utils.boto3.client')
     # This function tests getting a user but if theres no email information
     def test_get_cognito_user_email_no_email_attribute(self, mock_boto3_client):
         # Mocking a cognito client
@@ -136,7 +136,7 @@ class TestGetCognitoUserEmail(unittest.TestCase):
 class TestCreateOrderToken(unittest.TestCase):
     # Test case is designed to verify that create_an_order_token works correctly when the lambda function responds successfully.
     # '@patch' mock the make_lambda_request function. This prevents the actual function from being called and allows us to define a custom response for testing purposes.
-    @patch('src.lambda_requests.make_lambda_request')
+    @patch('src.update_orders.src.lambda_requests.make_lambda_request')
     # Function is called with a mock Lambda client
     def test_create_an_order_token_success(self, mock_make_lambda_request):
 
@@ -174,7 +174,7 @@ class TestCreateOrderToken(unittest.TestCase):
             lambda_arn
         )
 
-    @patch('src.lambda_requests.make_lambda_request')
+    @patch('src.update_orders.src.lambda_requests.make_lambda_request')
     # Test validates how create_an_order_token behaves with a failure
     def test_create_an_order_token_failure(self, mock_make_lambda_request):
         # Mock the lambda response for a failed call
@@ -209,7 +209,7 @@ class TestCreateOrderToken(unittest.TestCase):
         )
 class TestRemoveOldTokens(unittest.TestCase):
     #  Test function to remove old tokens associated with orders from a restaurant system.
-    @patch('src.lambda_requests.make_lambda_request')
+    @patch('src.update_orders.src.lambda_requests.make_lambda_request')
     # mock object to the test function
     def test_remove_old_tokens_success(self, mock_make_lambda_request):
         # the mocked reponse represeting items that have been removed.
@@ -242,7 +242,7 @@ class TestRemoveOldTokens(unittest.TestCase):
             lambda_arn
         )
 
-    @patch('src.lambda_requests.make_lambda_request')
+    @patch('src.update_orders.src.lambda_requests.make_lambda_request')
      # Test behavior of the remove_old_tokens function when it encounters a failure scenario
     def test_remove_old_tokens_failure(self, mock_make_lambda_request):
         mock_response = {
@@ -274,7 +274,7 @@ class TestRemoveOldTokens(unittest.TestCase):
             lambda_arn
         )
 class TestRemoveOldObjects(unittest.TestCase):
-    @patch('src.lambda_requests.make_lambda_request')
+    @patch('src.update_orders.src.lambda_requests.make_lambda_request')
     # This test checks whether the remove_old_objects function makes the correct API calls to the AWS lambda function for deleting old objects.
     def test_remove_old_objects(self, mock_make_lambda_request):
         mock_response = {
@@ -318,7 +318,7 @@ class TestRemoveOldObjects(unittest.TestCase):
         mock_make_lambda_request.assert_has_calls(expected_calls)
         
 class TestCreateNewOrder(unittest.TestCase):
-    @patch('src.lambda_requests.make_lambda_request')
+    @patch('src.update_orders.src.lambda_requests.make_lambda_request')
     # Tests the create_new_order function to ensure it behaves as expected when it successfully creates a new order.
     def test_create_new_order_success(self, mock_make_lambda_request):
         mock_response = {
@@ -437,7 +437,7 @@ class TestMakeLambdaRequest(unittest.TestCase):
     #this test is for the MakeLambda request
     # the line below is used to mock the json dumps function.
 
-    @patch('src.utils.json.dumps')
+    @patch('src.update_orders.src.utils.json.dumps')
     def test_make_lambda_request(self, mock_json_dumps):
         # Set up mock objects
         mock_lambda_client = Mock()
@@ -466,7 +466,7 @@ class TestMakeLambdaRequest(unittest.TestCase):
 
 class TestGenerateAndSendEmail(unittest.TestCase):
 #test the GenerateAndSendEmail function to ensure it performs as expected 
-    @patch('src.utils.boto3.client')
+    @patch('src.update_orders.src.utils.boto3.client')
     #test is used to check whether the GenerateAndSendEmail function performs is successfully
     def test_generate_and_send_email_success(self, mock_boto3_client):
         #mock set up for boto3 
@@ -493,7 +493,7 @@ class TestGenerateAndSendEmail(unittest.TestCase):
             Source=sender
         )
      #test for checking whether there is error handling in place to deal with a failure for generate_and_send_email
-    @patch('src.utils.boto3.client')
+    @patch('src.update_orders.src.utils.boto3.client')
     def test_generate_and_send_email_failure(self, mock_boto3_client):
         #mock set up for boto3 
         mock_ses_client = Mock()
