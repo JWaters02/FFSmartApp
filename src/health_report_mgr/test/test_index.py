@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.index import handler
+from ..src.index import handler
 import json
 from boto3.dynamodb.conditions import Key
 import unittest
 from unittest.mock import Mock, patch
-from src.utils import get_health_and_safety_email, get_filtered_items, send_email_with_attachment
+from ..src.utils import get_health_and_safety_email, get_filtered_items, send_email_with_attachment
 
 
 
