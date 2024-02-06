@@ -2,9 +2,9 @@ import unittest
 import os
 from unittest import mock
 from unittest.mock import patch, MagicMock, Mock
-from ..src.emails import send_delivery_email, send_expired_items
-from ..src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email,ClientError
-from ..src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
+from src.emails import send_delivery_email, send_expired_items
+from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email,ClientError
+from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 from unittest.mock import patch
 
 
@@ -382,7 +382,7 @@ class TestGenerateDeliveryEmailBody(unittest.TestCase):
     
     You have a delivery for {mock_restaurant_admin_settings['restaurant_details']['restaurant_name']}.
     
-    Delivery link: http://0.0.0.0:80/delivery/{mock_restaurant_admin_settings['pk']}/{mock_token}
+    Delivery link: http://FfSmar-Analy-3HyxSmNqsx3Z-1763585782.eu-west-1.elb.amazonaws.com/delivery/{mock_restaurant_admin_settings['pk']}/{mock_token}
     
     Address:
     {mock_restaurant_admin_settings['restaurant_details']['location']['city']}
