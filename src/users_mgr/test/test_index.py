@@ -34,35 +34,23 @@ class TestGetAllUsers(unittest.TestCase):
     @patch('boto3.resource')
     #Testing the response if the application has an internal error whilst testing the function
     def test_get_all_users_internal_error(self, mock_boto3_resource):
-        # Setup mock DynamoDB resource and table
-        mock_dynamodb = mock_boto3_resource.return_value
+        #Creating the mock data and tables
+        mock_event = {'body': {'restaurant_id': 'house'}}
         mock_table = MagicMock()
-        mock_dynamodb.Table.return_value = mock_table
-        
-        # Configure the mock table's query method to raise a ClientError simulating an internal error from DynamoDB
-        mock_table.query.side_effect = ClientError({
-            'ResponseMetadata': {
-                'HTTPStatusCode': 500,
-            },
-            'Error': {
-                'Code': 'InternalServerError',
-                'Message': 'An internal server error occurred.'
-            }
-        }, 'Query')
-        
-        # Your test's event data
-        mock_event = {'body': json.dumps({'restaurant_id': 'house'})}
-        
-        # Execute the function under test with the mock event
+
+        #When the query method is called it will raise a client error
+        mock_table.query.side_effect = ClientError(
+            error_response={'Error': {'Code': 'InternalError', 'Message': 'Unknown error'}},
+            operation_name='operation_name'
+        )
+        #Running the function with our mock data
         result = get_all_users(mock_event, mock_table)
-        
-        # Define your expected result
+        #Expectation when an internal error occurs
         expected_result = {
             'statusCode': 500,
-            'body': 'Error accessing DynamoDB: An error occurred (InternalServerError) when calling the Query operation: An internal server error occurred.'
+            'body': 'Error accessing DynamoDB: An error occurred (InternalError) when calling the operation_name operation: Unknown error'
         }
-        
-        # Assert that the result matches the expected result
+        #this will test the output with an actual and expected result
         self.assertEqual(result, expected_result)
 
     # Replacing the boto resource function with a mock object
