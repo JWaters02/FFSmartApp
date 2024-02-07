@@ -68,7 +68,7 @@ class TestDynamoDBFunctions(unittest.TestCase):
 
 
 class TestSendEmailWithAttachmentFunction (unittest.TestCase):
-    # test the function works when given the expected parameters
+    # test the function works when given the expected parameters.
     @patch('src.health_report_mgr.src.utils.boto3.client')
     @patch('src.health_report_mgr.src.utils.create_csv_content')
     def test_normal_parameters(self, mock_create_csv_content, mock_boto3_client):
