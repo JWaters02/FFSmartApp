@@ -175,7 +175,7 @@ class TestOrderCheck(unittest.TestCase):
             # Mocking fridge information
             mock_dynamodb_client = MagicMock()
             mock_event = {'body': {'restaurant_id': 'restaurant_id'}}
-            mock_table_name = 'your_table_name'
+            mock_table_name = 'example_table_name'
 
             # Mocking the fridge response
             fridge_response = {
