@@ -2,9 +2,9 @@ import unittest
 import os
 from unittest import mock
 from unittest.mock import patch, MagicMock, Mock
-from ..src.emails import send_delivery_email, send_expired_items
-from ..src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email,ClientError
-from ..src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
+from src.emails import send_delivery_email, send_expired_items
+from src.utils import get_cognito_user_email, list_of_all_pks_and_delivery_emails, generate_delivery_email_body, generate_expired_items_email_body, make_lambda_request, generate_and_send_email,ClientError
+from src.lambda_requests import create_an_order_token, remove_old_tokens, remove_old_objects, create_new_order
 from unittest.mock import patch
 
 
@@ -86,8 +86,8 @@ class TestGetCognitoUserEmail(unittest.TestCase):
         username = 'test_user'
         user_attributes = [{'Name': 'email', 'Value': 'user@example.com'}]
 
-        # Accessing the environment variables called User Pool ID which is used for AWS Congnito testing
-        os.environ['USER_POOL_ID'] = 'your_user_pool_id'
+        # Accessing the environment variables called User Pool ID which is used for AWS Cognito testing
+        os.environ['USER_POOL_ID'] = 'example_user_pool_id'
 
         mock_cognito_client.admin_get_user.return_value = {'UserAttributes': user_attributes}
 
@@ -96,15 +96,15 @@ class TestGetCognitoUserEmail(unittest.TestCase):
 
         # This is used to interact with AWS Cognito, this checks whether he boto client was called exactly once ensuring that its created for Cognito Identity provider
         mock_boto3_client.assert_called_once_with('cognito-idp')
-        # This is the mock object retriving information about the user
-        mock_cognito_client.admin_get_user.assert_called_once_with(UserPoolId='your_user_pool_id', Username='test_user')
+        # This is the mock object retrieving information about the user
+        mock_cognito_client.admin_get_user.assert_called_once_with(UserPoolId='example_user_pool_id', Username='test_user')
 
         # Deleting the environment variable
         del os.environ['USER_POOL_ID']
 
         # Test will pass if result equals the test result
         self.assertEqual(result, 'user@example.com')
-        # Explaination here for what the test is actually doing in general
+        # mocking the resource of the boto3 client
     @patch('src.update_orders.src.utils.boto3.client')
     # This function tests getting a user but if theres no email information
     def test_get_cognito_user_email_no_email_attribute(self, mock_boto3_client):
@@ -116,8 +116,8 @@ class TestGetCognitoUserEmail(unittest.TestCase):
         username = 'test_user'
         user_attributes = [{'Name': 'some_other_attribute', 'Value': 'some_value'}]
 
-        # Accessing the environment variables called User Pool ID which is used for AWS Congnito testing
-        os.environ['USER_POOL_ID'] = 'your_user_pool_id'
+        # Accessing the environment variables called User Pool ID which is used for AWS Cognito testing
+        os.environ['USER_POOL_ID'] = 'example_user_pool_id'
 
         mock_cognito_client.admin_get_user.return_value = {'UserAttributes': user_attributes}
 
@@ -126,7 +126,7 @@ class TestGetCognitoUserEmail(unittest.TestCase):
 
         # This is used to interact with AWS Cognito, this checks whether he boto client was called exactly once ensuring that its created for Cognito Identity provider
         mock_boto3_client.assert_called_once_with('cognito-idp')
-        mock_cognito_client.admin_get_user.assert_called_once_with(UserPoolId='your_user_pool_id', Username='test_user')
+        mock_cognito_client.admin_get_user.assert_called_once_with(UserPoolId='example_user_pool_id', Username='test_user')
 
         # Deleting the environment variable
         del os.environ['USER_POOL_ID']
@@ -143,23 +143,23 @@ class TestCreateOrderToken(unittest.TestCase):
         mock_response = {
             'statusCode': 200,
             'body': {
-                'token': 'your_token_here'
+                'token': 'example_token'
             }
         }
         mock_make_lambda_request.return_value = mock_response
 
 
         lambda_client = Mock()
-        lambda_arn = 'your_lambda_arn'
-        restaurant = {'pk': 'your_restaurant_id'}
-        order_id = 'your_order_id'
+        lambda_arn = 'example_lambda_arn'
+        restaurant = {'pk': 'example_restaurant_id'}
+        order_id = 'example_order_id'
 
 
         result = create_an_order_token(lambda_client, lambda_arn, restaurant, order_id)
 
 
-        self.assertEqual(result, 'your_token_here')
-        # Test assertion ensures the reponse matches the mocked response
+        self.assertEqual(result, 'example_token')
+        # Test assertion ensures the response matches the mocked response
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
             {
@@ -186,9 +186,9 @@ class TestCreateOrderToken(unittest.TestCase):
 
 
         lambda_client = Mock()
-        lambda_arn = 'your_lambda_arn'
-        restaurant = {'pk': 'your_restaurant_id'}
-        order_id = 'your_order_id'
+        lambda_arn = 'example_lambda_arn'
+        restaurant = {'pk': 'example_restaurant_id'}
+        order_id = 'example_order_id'
         #function called with parameters
         result = create_an_order_token(lambda_client, lambda_arn, restaurant, order_id)
 
@@ -212,7 +212,7 @@ class TestRemoveOldTokens(unittest.TestCase):
     @patch('src.update_orders.src.lambda_requests.make_lambda_request')
     # mock object to the test function
     def test_remove_old_tokens_success(self, mock_make_lambda_request):
-        # the mocked reponse represeting items that have been removed.
+        # the mocked response representing items that have been removed.
         mock_response = {
             'statusCode': 200,
             'body': {
@@ -223,12 +223,12 @@ class TestRemoveOldTokens(unittest.TestCase):
 
          #setting up parameters
         lambda_client = Mock()
-        lambda_arn = 'your_lambda_arn'
-        restaurant = {'pk': 'your_restaurant_id'}
+        lambda_arn = 'example_lambda_arn'
+        restaurant = {'pk': 'example_restaurant_id'}
 
 
         result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
-        #assertion to ensure thefunction call should be equal to the list of objects that were set up in the mock response
+        #assertion to ensure the function call should be equal to the list of objects that were set up in the mock response
         self.assertEqual(result, [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}])
         mock_make_lambda_request.assert_called_once_with(
             lambda_client,
@@ -255,8 +255,8 @@ class TestRemoveOldTokens(unittest.TestCase):
         #test set up
 
         lambda_client = Mock()
-        lambda_arn = 'your_lambda_arn'
-        restaurant = {'pk': 'your_restaurant_id'}
+        lambda_arn = 'example_lambda_arn'
+        restaurant = {'pk': 'example_restaurant_id'}
 
         result = remove_old_tokens(lambda_client, lambda_arn, restaurant)
 
@@ -283,8 +283,8 @@ class TestRemoveOldObjects(unittest.TestCase):
         # test parameters
         mock_make_lambda_request.return_value = mock_response
         lambda_client = Mock()
-        order_lambda_arn = 'your_order_lambda_arn'
-        restaurant = {'pk': 'your_restaurant_id'}
+        order_lambda_arn = 'example_order_lambda_arn'
+        restaurant = {'pk': 'example_restaurant_id'}
         old_tokens = [{'id_type': 'order', 'object_id': 'order_id_1'}, {'id_type': 'order', 'object_id': 'order_id_2'}]
         #calling the test function
         remove_old_objects(lambda_client, order_lambda_arn, restaurant, old_tokens)
@@ -330,8 +330,8 @@ class TestCreateNewOrder(unittest.TestCase):
         # Sets up necessary data  which are required to call the create_new_order function.
         mock_make_lambda_request.return_value = mock_response
         lambda_client = Mock()
-        lambda_arn = 'your_order_lambda_arn'
-        restaurant = {'pk': 'your_restaurant_id'}
+        lambda_arn = 'example_order_lambda_arn'
+        restaurant = {'pk': 'example_restaurant_id'}
         result = create_new_order(lambda_client, lambda_arn, restaurant)
 
         expected_result = {
@@ -434,8 +434,8 @@ class TestGenerateExpiredItemsEmailBody(unittest.TestCase):
         self.assertEqual(result.strip(), expected_result.strip())
 
 class TestMakeLambdaRequest(unittest.TestCase):
-    #this test is for the MakeLambda request
-    # the line below is used to mock the json dumps function.
+    #this test is for the Make Lambda request
+    # the line below is used to mock the json dumps parameter.
 
     @patch('src.update_orders.src.utils.json.dumps')
     def test_make_lambda_request(self, mock_json_dumps):
