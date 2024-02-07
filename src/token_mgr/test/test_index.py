@@ -42,7 +42,7 @@ class TestValidateTokenLambda(unittest.TestCase):
         self.assertEqual(response['body']['object_id'], 'example_id')
         self.assertEqual(response['body']['id_type'], 'example_type')
 
-    # This is testing what occurs when a token has expired against a resturant
+    # This is testing what occurs when a token has expired against a restaurant
     def test_expired_token(self):
         # Mocked data we'll be running against our mocked db
         self.table.get_item.return_value = {
@@ -79,7 +79,7 @@ class TestValidateTokenLambda(unittest.TestCase):
         # Running the function against the test information
         response = validate_token(self.event, self.table)
 
-        # The test will pass if the status code is a 401 and a error is shown to the user
+        # The test will pass if the status code is a 401 and an error is shown to the user
         self.assertEqual(response['statusCode'], 401)
         self.assertIn('Invalid token', response['body'])
 
@@ -107,7 +107,7 @@ class TestSetTokenFunction(unittest.TestCase):
 
 class TestDeleteToken(unittest.TestCase):
     # The purpose of the test is to view the behaviour of the delete token function in different scenarios.
-    #The test method is created by mocking an object that represents the dynamodb table. also creating a valid request event.
+    #The test method is created by mocking an object that represents the dynamodb table.
     def setUp(self):
         self.table = Mock()
         self.valid_event = {
@@ -137,8 +137,8 @@ class TestDeleteToken(unittest.TestCase):
 
 
 class TestCleanUpOldTokens(unittest.TestCase):
-    # The purpose of the test is to view the behaviour of the clean up old token function in different scenarios.
-    # The set up we will be using a mock object to represent the dynamodb table and valid request events.
+    # The purpose of the test is to view the behaviour of the clean-up old token function in different scenarios.
+    # The set-up we will be using a mock object to represent the dynamodb table and valid request events.
     def setUp(self):
         self.table = Mock()
         self.valid_event = {
@@ -163,7 +163,7 @@ class TestCleanUpOldTokens(unittest.TestCase):
     #Mocking the DynamoDB response to return an empty result set.
         self.table.get_item.return_value = {}
         response = clean_up_old_tokens(self.valid_event, self.table)
-        # Response is 404 showsthat no relevant data was found.
+        # Response is 404 shows that no relevant data was found.
         self.assertEqual(response['statusCode'], 404)
 
 
