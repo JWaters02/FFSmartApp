@@ -1,0 +1,38 @@
+trigger:
+- testing
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: |
+    echo Listing all files and directories in the repository at all levels
+    find .
+  displayName: 'List all files in the repo recursively'
+
+- script: |
+    echo Installing Python dependencies for each module
+    for dep_file in $(find src -name 'local_dependencies.txt'); do
+      echo "Installing dependencies from $dep_file"
+      pip install -r $dep_file
+    done
+  displayName: 'Install Module Dependencies'
+
+- script: |
+    export PYTHONPATH=$(pwd):$PYTHONPATH
+    echo "PYTHONPATH adjusted to: $PYTHONPATH"
+  displayName: 'Set PYTHONPATH'
+
+- script: |
+    modules=("fridge_mgr" "health_report_mgr" "orders_mgr" "token_mgr" "update_orders" "users_mgr")
+    for module in "${modules[@]}"
+    do
+      echo "Running unit tests for $module"
+      python -m unittest src/$module/test/test_index.py -v
+      if [ $? -ne 0 ]; then
+        echo "Unit tests for $module failed"
+        exit 1
+      fi
+    done
+  displayName: 'Run Unit Tests for All Modules'
+  condition: always()
