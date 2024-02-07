@@ -1,8 +1,8 @@
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cdk from "aws-cdk-lib";
 import {Construct} from "constructs";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import {IBucket} from "aws-cdk-lib/aws-s3";
 import * as DynamoDB from "aws-cdk-lib/aws-dynamodb";
+import {IBucket} from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 
 interface LambdaStackProps extends cdk.StackProps {

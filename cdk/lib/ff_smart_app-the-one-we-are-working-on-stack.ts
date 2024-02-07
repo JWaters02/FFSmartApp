@@ -131,7 +131,7 @@ export class FfSmartAppTheOneWeAreWorkingOnStack extends cdk.Stack {
         );
 
         const ecs = new FlaskEcsGatewayStack(this, 'AnalysisAndDesignEcsStack', {
-            environmentVariables: {
+            environVars: {
                 'DYNAMODB_TABLE': storageStack.sessionsDynamoDbTable.tableName,
                 'FRIDGE_MGR_NAME': fridgeMgr.lambdaFunction.functionName,
                 'ORDERS_MGR_NAME': ordersMgr.lambdaFunction.functionName,

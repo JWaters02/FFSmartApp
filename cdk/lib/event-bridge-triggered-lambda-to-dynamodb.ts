@@ -1,12 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
 import {BasicLambdaToDynamodbStack} from "./basic-lambda-to-dynamodb-stack";
-import {IBucket} from "aws-cdk-lib/aws-s3";
-import * as DynamoDB from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as DynamoDB from "aws-cdk-lib/aws-dynamodb";
 import * as events from "aws-cdk-lib/aws-events";
-import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Construct } from 'constructs';
+import {IBucket} from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 interface eventBridgeTriggeredLambdaToDynamoDbStackProps extends cdk.StackProps {
     lambdaName: string;
