@@ -76,17 +76,17 @@ class TestGetUserFunction(unittest.TestCase):
         table_mock = MagicMock()
         table_mock.query.return_value = {
             'Items': [
-                {'users': [{'username': 'john_doe', 'other_field': 'value'}]}
+                {'users': [{'username': 'example_username', 'other_field': 'value'}]}
             ]
         }
         #Creating the mock event which is what will be ran against the function
-        event = {'body': {'restaurant_id': 'example_restaurant', 'username': 'john_doe'}}
+        event = {'body': {'restaurant_id': 'example_restaurant', 'username': 'example_username'}}
 
         #Running the function
         result = get_user(event, table_mock)
 
         #Creating the mock event which is what will be ran against the function
-        expected_result = {'statusCode': 200, 'body': {'username': 'john_doe', 'other_field': 'value'}}
+        expected_result = {'statusCode': 200, 'body': {'username': 'example_username', 'other_field': 'value'}}
         self.assertEqual(result, expected_result)
 
     # Replacing the boto resource function with a mock object
@@ -98,7 +98,7 @@ class TestGetUserFunction(unittest.TestCase):
         table_mock = MagicMock()
         table_mock.query.return_value = {'Items': []}
 
-        #This is the dummy data what will be ran against the function
+        #This is the mocked data what will be ran against the function
         event = {'body': {'restaurant_id': 'example_restaurant', 'username': 'nonexistent_user'}}
 
         #This is running the function with the mock data
@@ -111,9 +111,9 @@ class TestGetUserFunction(unittest.TestCase):
 
     # Replacing the boto resource function with a mock object
     @patch('boto3.resource')
-    # Testing the response of the application when the resturant ID is missing from the body
+    # Testing the response of the application when the restaurant ID is missing from the body
     def test_get_user_bad_request_missing_restaurant_id(self, key_mock):
-        event = {'body': {'username': 'john_doe'}}
+        event = {'body': {'username': 'example_username'}}
 
         # This tests whether the block raises an exception and if it does it passes if not the test will fail
         with self.assertRaises(BadRequestException):
@@ -138,7 +138,7 @@ class TestGetUserFunction(unittest.TestCase):
         table_mock = MagicMock()
         table_mock.query.return_value = {'Items': []}
 
-        #Dummy data
+        #Mocked data
         event = {'body': {'restaurant_id': 'example_restaurant', 'username': 'nonexistent_user'}}
 
         #Running the mocked test data against the function
@@ -150,18 +150,18 @@ class TestGetUserFunction(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
 
-#This class is testing the create_new_resturant against the dynamoDB
+#This class is testing the create_new_restaurant against the dynamoDB
 class TestCreateNewRestaurantDynamoDBEntries(unittest.TestCase):
 
     # Replacing the boto resource function with a mock object
     @patch('boto3.client')
-    # Testing the results when a resturant is created
+    # Testing the results when a restaurant is created
     def test_create_new_restaurant_success(self, client_mock):
 
-        #This is assinging the mock object to the dynamo client mock as if it were an actual dynamodb client
+        #This is assigning the mock object to the dynamo client mock as if it were an actual dynamodb client
         dynamodb_client_mock = client_mock.return_value
 
-        #as we are simulating a success here the dictory will be empty as it is simulating a successful transaction
+        #as we are simulating a success here the directory will be empty as it is simulating a successful transaction
         dynamodb_client_mock.transact_write_items.return_value = {}
 
         #Dummy data
@@ -179,10 +179,10 @@ class TestCreateNewRestaurantDynamoDBEntries(unittest.TestCase):
     @patch('boto3.client')
     # Testing the function if theres a conflict in data already in the table
     def test_create_new_restaurant_conflict(self, client_mock):
-        #This is assinging the mock object to the dynamo client mock as if it were an actual dynamodb client
+        #This is assigning the mock object to the dynamo client mock as if it were an actual dynamodb client
         dynamodb_client_mock = client_mock.return_value
 
-        #This will raises a client error with the error response.
+        #This will raise a client error with the error response.
         dynamodb_client_mock.transact_write_items.side_effect = ClientError(
             {
                 'Error': {
@@ -209,7 +209,7 @@ class TestCreateNewRestaurantDynamoDBEntries(unittest.TestCase):
                 event,
                 'FfSmartAppTheOneWeAreWorkingOnStackAnalysisAndDesignStorageStackC668B19C-analysisanddesigncourseworkmasterdynamodbtable3462106D-1IU8LQL1LND18'
             )
-        #Catching the exceptions and if a specfic type is catch then the actions below ensures it has expected propterties
+        #Catching the exceptions and if a specific type is catch then the actions below ensures it has expected propterties
         except Exception as e:
             self.assertIsInstance(e, ClientError)
             self.assertEqual(e.response['Error']['Code'], 'TransactionCanceledException')
@@ -235,9 +235,9 @@ class TestDeleteUserLambda(unittest.TestCase):
         #creating the mocked table
         self.table = MagicMock()
 
-    #Testing if a succesful user deletion and the response it will return
+    #Testing if a successful user deletion and the response it will return
     def test_delete_user_successful(self):
-        #This simulates the behaviour of retirving an item from dynamodb with example data
+        #This simulates the behaviour of retrieving an item from dynamodb with example data
         self.table.get_item.return_value = {
             'Item': {
                 'pk': 'example_restaurant',
@@ -245,7 +245,7 @@ class TestDeleteUserLambda(unittest.TestCase):
                 'users': [{'username': 'existing_user'}, {'username': 'example_user'}]
             }
         }
-        # Testing the delete user function with the the data that is about to be deleted and the mocked dynamodb table
+        # Testing the delete user function with the data that is about to be deleted and the mocked dynamodb table
         response = delete_user(self.event, self.table)
 
         #if both of these assertions pass with a status code of 200 and teh update_item method is called the expected number of times it will pass
@@ -259,7 +259,7 @@ class TestDeleteUserLambda(unittest.TestCase):
         #once again this tests the delete_user function with the event and mocked data in teh table
         response = delete_user(self.event, self.table)
 
-        #This will check that a 404 is displayed along with the resturant is not found error code
+        #This will check that a 404 is displayed along with the restaurant is not found error code
         self.assertEqual(response['statusCode'], 404)
         self.assertIn('Restaurant does not exist', response['body'])
 

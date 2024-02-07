@@ -34,51 +34,53 @@ class TestDynamoDBHandler(unittest.TestCase):
 
         self.assertEqual(response, expected_response)
 
-#Testing hte function modify door state - when opening the door or closing
+#Testing the function modify door state - when opening the door or closing
 class TestModifyDoorStateFunction(unittest.TestCase):
 
     def test_open_back_door_action(self):
-        # Create a MagicMock for the DynamoDB table
+        # Creating a mocked table which we will be using to test the function
         mock_table = MagicMock()
 
-        # Set the return value of get_item() to a dictionary with the expected item
+        # Expected return value
         mock_table.get_item.return_value = {'Item': {'is_front_door_open': False, 'is_back_door_open': True}}
 
-        # Define your test data
+        # This is the test data that we will be using
         pk = 'test_pk'
         body = {'is_front_door_open': True, 'is_back_door_open': False}
         action = 'open_back_door'
 
-        # Call the function with the mocked data
+        # Testing the function against the mocked table and test data
         response = modify_door_state(mock_table, pk, body, action)
 
-        # Assert the expected behavior
+        # Expected response from the function
         expected_response = generate_response(200, 'Door state updated successfully', {
             'is_front_door_open': False,
             'is_back_door_open': True
         })
+        # The test will only pass if the assertions are correct
         self.assertEqual(response, expected_response)
 
     def test_close_front_door_action(self):
-        # Create a MagicMock for the DynamoDB table
+        # Creating a mocked table which we will be using to test the function
         mock_table = MagicMock()
 
-        # Set the return value of get_item() to a dictionary with the expected item
+        # Expected return value
         mock_table.get_item.return_value = {'Item': {'is_front_door_open': True, 'is_back_door_open': True}}
 
-        # Define your test data
+        # This is the test data that we will be using
         pk = 'test_pk'
         body = {'is_front_door_open': False, 'is_back_door_open': True}
         action = 'close_front_door'
 
-        # Call the function with the mocked data
+        # Testing the function against the mocked table and test data
         response = modify_door_state(mock_table, pk, body, action)
 
-        # Assert the expected behavior from the expected response
+        # Expected response from the function
         expected_response = generate_response(200, 'Door state updated successfully', {
             'is_front_door_open': False,
             'is_back_door_open': True
         })
+        # The test will only pass if the assertions are correct
         self.assertEqual(response, expected_response)
 
 
@@ -250,7 +252,7 @@ class TestAddDeliveryItem(unittest.TestCase):
             'item_list': [],
         }
         self.dynamodb_table.get_item.return_value = {'Item': {'items': [existing_item]}}
-        ## Calls the function with the mocked objects
+        # Calls the function with the mocked objects
         response = add_delivery_item(self.dynamodb_table, self.pk, self.body)
         # Status code 200 ensures that the test is a success
         self.assertEqual(response['statusCode'], 200)

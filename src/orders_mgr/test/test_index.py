@@ -175,7 +175,7 @@ class TestOrderCheck(unittest.TestCase):
             # Mocking fridge information
             mock_dynamodb_client = MagicMock()
             mock_event = {'body': {'restaurant_id': 'restaurant_id'}}
-            mock_table_name = 'your_table_name'
+            mock_table_name = 'example_table_name'
 
             # Mocking the fridge response
             fridge_response = {
@@ -197,13 +197,13 @@ class TestOrderCheck(unittest.TestCase):
             # Running the function against the mocked information
             result = order_check(mock_dynamodb_client, mock_event, mock_table, mock_table_name)
 
-            # Ensuring that the mock total quanity is only called once
+            # Ensuring that the mock total quantity is only called once
             mock_total_quantity.assert_called_once_with(
                 {'item_name': 'item1', 'desired_quantity': 10,
                  'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]},
                 [{'item_name': 'item1', 'orders': [{'expiry_date': '2024-01-01', 'quantity': 2}]}]
             )
-            # ensuring that the mocked expired quanitity is only called once
+            # ensuring that the mocked expired quantity is only called once
             mock_expired_quantity.assert_called_once_with(
                 {'item_name': 'item1', 'desired_quantity': 10,
                  'items': [{'expiry_date': '2024-01-01', 'current_quantity': 5}]}

@@ -9,7 +9,6 @@ from src.health_report_mgr.src.utils import get_health_and_safety_email, get_fil
 
 class TestDynamoDBFunctions(unittest.TestCase):
     # Test the functions related to the DyanmoDB operations
-
     @patch('src.health_report_mgr.src.utils.boto3')
     # Tests the get_health_and_safety_email function to ensure it correctly retrieves a health and safety email address from a DynamoDB table when it exists
     def test_get_health_and_safety_email_found(self, mock_boto3):
@@ -19,6 +18,7 @@ class TestDynamoDBFunctions(unittest.TestCase):
             'Item': {'health_and_safety_email': 'test@example.com'}
         }
 
+        #Running the function against the mocked table
         email = get_health_and_safety_email(mock_table, 'TestRestaurant')
         # The assertion ensures that the returned email matches the mocked email set up.
         self.assertEqual(email, 'test@example.com')
@@ -68,7 +68,7 @@ class TestDynamoDBFunctions(unittest.TestCase):
 
 
 class TestSendEmailWithAttachmentFunction (unittest.TestCase):
-    # test the function works when given the expected parameters
+    # test the function works when given the expected parameters.
     @patch('src.health_report_mgr.src.utils.boto3.client')
     @patch('src.health_report_mgr.src.utils.create_csv_content')
     def test_normal_parameters(self, mock_create_csv_content, mock_boto3_client):
